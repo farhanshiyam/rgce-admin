@@ -109,11 +109,21 @@ button,input,select,textarea{font:inherit;color:inherit}
 .burger[hidden]{display:none}
 .burger:hover{background:rgba(255,255,255,.22)}
 .burger span{display:block;width:20px;height:2px;border-radius:2px;background:#fff}
-.scrim{position:fixed;inset:0;background:rgba(8,16,26,.5);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:40}
-.side{position:fixed;top:0;bottom:0;left:0;width:min(288px,86vw);background:var(--panel);color:var(--text);border-right:1px solid var(--border);box-shadow:4px 0 24px rgba(0,0,0,.14);z-index:50;display:flex;flex-direction:column;transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility .22s;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,0px)}
-body.menu-open{overflow:hidden}
-body.menu-open .scrim{opacity:1;visibility:visible}
-body.menu-open .side{transform:none;visibility:visible}
+.scrim{display:none}
+.side{position:fixed;top:0;bottom:0;left:0;width:64px;background:var(--panel);color:var(--text);border-right:1px solid var(--border);z-index:50;display:none;flex-direction:column;overflow-y:auto;overflow-x:hidden;transition:width .2s ease;padding-bottom:env(safe-area-inset-bottom,0px)}
+body.has-side .side{display:flex}
+body.has-side{padding-left:64px;transition:padding-left .2s ease}
+body.side-open .side{width:260px}
+body.side-open.has-side{padding-left:260px}
+@media(max-width:720px){body.has-side,body.side-open.has-side{padding-left:64px}body.side-open .side{box-shadow:4px 0 24px rgba(0,0,0,.18)}}
+.side .burger{border:1px solid var(--border);background:var(--bg)}
+.side .burger span{background:var(--text)}
+.side .burger:hover{background:var(--border)}
+body:not(.side-open) .side .nav span,body:not(.side-open) .side .sb-title,body:not(.side-open) .side .sb-mail,body:not(.side-open) .sb-logo{display:none}
+body:not(.side-open) .side .nav{justify-content:center;padding:10px 0}
+body:not(.side-open) .side nav,body:not(.side-open) .sb-foot{padding-left:8px;padding-right:8px}
+body:not(.side-open) .sb-head{justify-content:center;padding:12px 0}
+body:not(.side-open) .sb-user{margin:0 10px 10px;padding:6px;justify-content:center}
 .sb-head{display:flex;align-items:center;gap:10px;padding:16px 14px 12px 16px}
 .sb-logo{width:36px;height:36px;flex:none;border-radius:9px;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px}
 .sb-title{flex:1;min-width:0;font-weight:700;font-size:15px;line-height:1.25}
@@ -133,7 +143,7 @@ body.menu-open .side{transform:none;visibility:visible}
 .sb-foot{display:flex;flex-direction:column;gap:2px;padding:0 10px 14px}
 .nav.danger,.nav.danger svg{color:var(--danger)}
 .burger:focus-visible,.nav:focus-visible,.sb-close:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){.side,.scrim{transition:none}}
+@media (prefers-reduced-motion:reduce){.side,body.has-side{transition:none}}
 /* access key table */
 .keytbl{width:100%;border-collapse:collapse;margin:16px 0 8px;border:1px solid var(--border)}
 .keytbl th,.keytbl td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:middle}
@@ -146,13 +156,11 @@ body.menu-open .side{transform:none;visibility:visible}
 <body>
 <header class="top">
   <div class="left">
-    <button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="false" hidden><span></span><span></span><span></span></button>
     <h1><span id="hTitle">RGCE Admin Panel</span><small id="hSub"></small></h1>
   </div>
   <div class="right" id="hRight"></div>
 </header>
-<div class="scrim" id="scrim" data-a="menuclose"></div>
-<aside class="side" id="side" aria-label="Menu" aria-hidden="true"></aside>
+<aside class="side" id="side" aria-label="Menu"></aside>
 <main class="wrap" id="app"><div class="card center" style="text-align:center"><span class="spin"></span></div></main>
 
 <script>
@@ -319,10 +327,29 @@ const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.
 
 /* ============ state ============ */
 let user = null, tab = 'overview', booted = false;
-/* One address per section (hash routes work on GitHub Pages without a server): .../#customers, #account ... */
+/* One clean address per section: .../rgce-admin/customers, .../rgce-admin/public-due ... (no # and no ?).
+   GitHub Pages has no rewrites, so a tiny 404.html hands deep links back to this page (see 404.html). */
 const ROUTE = { overview: 'overview', customers: 'customers', notices: 'notices', due: 'public-due', pass: 'passwords', account: 'account' };
 const LABEL = { overview: 'tOverview', customers: 'tCust', notices: 'tNotices', due: 'tDue', pass: 'tPass', account: 'tAccount' };
-const tabFromHash = () => { const h = decodeURIComponent((location.hash || '').replace(/^#\/?/, '')).toLowerCase(); return Object.keys(ROUTE).find(k => ROUTE[k] === h) || null; };
+const BASE = (() => {
+  const seg = location.pathname.split('/'); const last = seg[seg.length - 1];
+  if (Object.values(ROUTE).includes(last.toLowerCase()) || last.indexOf('.') > -1) seg.pop();
+  return seg.join('/').replace(/\/+$/, '') + '/';
+})();
+try { const r = sessionStorage.getItem('rgce_redirect'); if (r) { sessionStorage.removeItem('rgce_redirect'); history.replaceState(null, '', r); } } catch (x) {}
+const tabFromUrl = () => {
+  const seg = location.pathname.split('/').filter(Boolean); let h = seg[seg.length - 1] || '';
+  if (!Object.values(ROUTE).includes(h.toLowerCase())) h = (location.search || '').replace(/^\?\/?/, '').split(/[&=]/)[0] || (location.hash || '').replace(/^#\/?/, '');   // old ?x / #x links still work
+  try { h = decodeURIComponent(h); } catch (x) {}
+  h = h.toLowerCase();
+  return Object.keys(ROUTE).find(k => ROUTE[k] === h) || null;
+};
+const goTab = k => {
+  if (!ROUTE[k] || k === tab) return;
+  tab = k;
+  try { history.pushState(null, '', BASE + ROUTE[k]); } catch (x) {}
+  renderPanel();
+};
 let N = { list: [], on: false, editing: '', pubErr: false, loaded: false };
 const app = $('#app');
 
@@ -375,8 +402,7 @@ function renderHeader() {
   // signed out: the few options stay in the header; signed in: everything moves to the sidebar
   const inPanel = !!(user && unlocked);
   r.innerHTML = inPanel ? '' : optionButtons(isBn, !!user, false);
-  $('#menuBtn').hidden = !inPanel;
-  if (!inPanel) setMenu(false);
+  document.body.classList.toggle('has-side', inPanel);
   document.documentElement.lang = isBn ? 'bn' : 'en'; document.title = t('title');
 }
 function optionButtons(isBn, withLogout, withLock) {
@@ -386,11 +412,11 @@ function optionButtons(isBn, withLogout, withLock) {
        + (withLock ? '<button class="btn btn-sm" data-a="lock">' + esc(t('lock')) + '</button>' : '')
        + (withLogout ? '<button class="btn btn-sm" data-a="logout">' + esc(t('logout')) + '</button>' : '');
 }
+/* The sidebar is always there as a slim icon rail; only the 3-bar button opens/closes it (it stays as left until clicked again) */
 function setMenu(open) {
-  document.body.classList.toggle('menu-open', !!open);
-  const b = $('#menuBtn'), s = $('#side');
-  if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
-  if (s) s.setAttribute('aria-hidden', open ? 'false' : 'true');
+  document.body.classList.toggle('side-open', !!open);
+  try { localStorage.setItem('rgce_side_open', open ? '1' : '0'); } catch (x) {}
+  const b = $('#menuBtn'); if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 const ICON = {
   overview: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
@@ -412,40 +438,38 @@ function renderSide() {
   if (!user) { s.innerHTML = ''; return; }
   const keys = ['overview', 'customers', 'notices', 'due', 'pass', 'account'];
   const mail = user.email || '', isBn = lang() === 'bn';
-  const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
-  s.innerHTML = '<div class="sb-head"><div class="sb-logo" aria-hidden="true">A</div><div class="sb-title">' + esc(t('title')) + '<small>' + esc(t('sub')) + '</small></div>'
-    + '<button class="sb-close" type="button" data-a="menuclose" aria-label="Close">' + ico('x') + '</button></div>'
+  const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
+  s.innerHTML = '<div class="sb-head"><button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="' + (document.body.classList.contains('side-open') ? 'true' : 'false') + '"><span></span><span></span><span></span></button>'
+    + '<div class="sb-logo" aria-hidden="true">A</div><div class="sb-title">' + esc(t('title')) + '<small>' + esc(t('sub')) + '</small></div></div>'
     + '<div class="sb-user"><div class="sb-av" aria-hidden="true">' + esc(mail.charAt(0) || 'A') + '</div><div class="sb-mail" title="' + esc(mail) + '">' + esc(mail) + '</div></div>'
-    + '<nav aria-label="' + esc(t('menu')) + '">' + keys.map(k => '<a class="nav' + (tab === k ? ' on' : '') + '" href="#' + ROUTE[k] + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>').join('') + '</nav>'
+    + '<nav aria-label="' + esc(t('menu')) + '">' + keys.map(k => '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + BASE + ROUTE[k] + '" title="' + esc(t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>').join('') + '</nav>'
     + '<div class="sb-sep"></div><div class="sb-foot">'
     + item('theme', 'theme', t('dark')) + item('lang', 'lang', isBn ? 'English' : '\u09AC\u09BE\u0982\u09B2\u09BE')
-    + '<a class="nav" href="' + esc(MAIN_APP_URL) + '">' + ico('back') + '<span>' + esc(t('mainApp')) + '</span></a>'
+    + '<a class="nav" href="' + esc(MAIN_APP_URL) + '" title="' + esc(t('mainApp')) + '">' + ico('back') + '<span>' + esc(t('mainApp')) + '</span></a>'
     + item('lock', 'lock', t('lock')) + item('logout', 'out', t('logout'), 'danger') + '</div>';
-  s.querySelectorAll('a[data-tab]').forEach(a => a.addEventListener('click', () => setMenu(false)));
+  s.querySelectorAll('a[data-tab]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); goTab(a.getAttribute('data-tab')); }));
 }
 /* back / forward buttons and typed addresses */
-window.addEventListener('hashchange', () => {
+window.addEventListener('popstate', () => {
   if (!user || !unlocked) return;
-  setMenu(false);
-  const nt = tabFromHash() || 'overview';
+  const nt = tabFromUrl() || 'overview';
   if (nt !== tab) { tab = nt; renderPanel(); }
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-a]'); if (!b) return;
   const a = b.getAttribute('data-a');
-  if (a === 'menu') setMenu(!document.body.classList.contains('menu-open'));
-  else if (a === 'menuclose') setMenu(false);
+  if (a === 'menu') setMenu(!document.body.classList.contains('side-open'));
   else if (a === 'lang') { try { localStorage.setItem('rgce_lang', lang() === 'bn' ? 'en' : 'bn'); } catch (x) {} render(); }
   else if (a === 'theme') {
     const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     const nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', nx);
     try { localStorage.setItem('rgce_admin_theme', nx); } catch (x) {}
   }
-  else if (a === 'lock') { unlocked = false; sessDel('rgce_adm_ok'); setMenu(false); render(); }
-  else if (a === 'logout') { unlocked = false; sessDel('rgce_adm_ok'); try { history.replaceState(null, '', location.pathname + location.search); } catch (x) {} try { await signOut(auth); } catch (x) {} }
+  else if (a === 'lock') { unlocked = false; sessDel('rgce_adm_ok'); render(); }
+  else if (a === 'logout') { unlocked = false; sessDel('rgce_adm_ok'); try { history.replaceState(null, '', BASE); } catch (x) {} try { await signOut(auth); } catch (x) {} }
 });
 try { const th = localStorage.getItem('rgce_admin_theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
+try { if (localStorage.getItem('rgce_side_open') === '1') document.body.classList.add('side-open'); } catch (e) {}
 
 /* ============ screens ============ */
 function authMsg(e) {
@@ -531,14 +555,14 @@ function renderLogin() {
 
 function openPanel() {
   N = { list: [], on: false, editing: '', pubErr: false, loaded: false };
-  tab = tabFromHash() || 'overview'; render();
+  tab = tabFromUrl() || 'overview'; render();
 }
 
 function renderPanel() {
   renderHeader();
   renderSide();
-  const want = '#' + ROUTE[tab];
-  if (location.hash !== want) { try { history.replaceState(null, '', location.pathname + location.search + want); } catch (e) {} }
+  const want = BASE + ROUTE[tab];
+  if (location.pathname !== want || location.search || location.hash) { try { history.replaceState(null, '', want); } catch (e) {} }
   document.title = t(LABEL[tab]) + ' - ' + t('title');
   app.innerHTML = '<div id="tabBody"></div>';
   ({ overview: tabOverview, customers: tabCustomers, notices: tabNotices, pass: tabPass, due: tabDue, account: tabAccount })[tab]();
