@@ -284,11 +284,15 @@ const T = {
   saveFail:'Could not save to the cloud.', confirmDel:'Delete this notice?', admNone:'No notices yet.', pubNoRule:'Saved. The public copy needs the Firestore rules shown in the "Public due" tab.', loadFail:'Could not load notices from the cloud.',
   dueH:'Public due lookup', dueNote:'Fully automatic. The main app publishes every customer change within seconds while a staff device is open. Customers check their due by phone number. This panel only shows the status.',
   dueCount:'Published records', dueAt:'Last published', dueNever:'Not published yet (open the main app with customer data loaded).', dueRefresh:'Refresh', dueRules:'Firestore rules to add (once)', dueCopy:'Copy rules', dueCopied:'Copied.', dueFail:'Could not read the status.',
-  tCust:'Customers', cuH:'Search customers', cuPh:'Type part of a name', cuHint:'Type part of a customer name to search.', cuNone:'No customer found.', cuShow:'Showing {n} of {m} match(es)', cuTotal:'{n} customers in the cloud', cuNo:'#', cuName:'Name', cuPhone:'Phone', cuAddr:'Address', cuSrc:'Source', cuBilled:'Billed', cuPaid:'Paid', cuBal:'Balance',
+  tCust:'Customers', cuH:'Search customers', cuPh:'Type part of a name', cuHint:'Type part of a customer name to search.', cuNone:'No customer found.', cuShow:'Showing {n} of {m} match(es)', cuTotal:'{n} customers in the cloud', cuNo:'#', cuName:'Name', cuPhone:'Phone', cuAddr:'Address', cuSrc:'Source', cuBilled:'Total due', cuPaid:'Paid amount', cuBal:'Current due',
   tOverview:'Overview', ovH:'Business overview', ovNote:'Read-only numbers from the cloud copy of the main app.', ovCust:'Customers', ovInv:'Invoices', ovOut:'Total outstanding due', ovWith:'Customers with due', ovBilled:'Total billed', ovRecv:'Total received', ovSync:'Last cloud sync', ovVer:'App version', ovTop:'Top 10 due customers', ovNone:'No cloud data found yet.', ovFail:'Could not read the cloud data.', ovNoDue:'Nobody has any due.',
   nExport:'Export notices', nImport:'Import notices', nImpBad:'This file is not a valid notices backup.', nImpAsk:'Replace {n} current notice(s) with {m} notice(s) from the file?', nImpOk:'Imported and published.', nBackup:'Backup',
   dueState:'Public lookup', dueOn:'ON', dueOff:'OFF', dueTurnOff:'Turn OFF and remove all public records', dueTurnOn:'Turn ON', dueOffAsk:'Remove all public due records and stop publishing? Customers will no longer be able to look up their due.', dueOnDone:'Turned ON. The main app republishes within about a minute while it is open on a staff device.', dueOffDone:'Turned OFF. All public records removed.',
   acLast:'Last sign-in', acCreated:'Account created', sheetSoon:'',
+ acSecA:'Account details', acName:'Name', acVer2:'Email verified', acYes:'Yes', acNo:'No', acProv:'Sign-in method', acProvPw:'Email & password', acSess:'This session', acSessV:'Signed in and unlocked',
+ acSecP:'This admin panel', acPanelUrl:'Panel address', acShop:'Shop', acLang:'Language', acLangV:'English', acTheme:'Theme', acLight:'Light', acDark:'Dark',
+ acSecM:'Main app (cloud copy)', acMainUrl:'Main app address', acPaidAmt:'Paid amount', acCurDue:'Current due', acTotDue:'Total due',
+ acPubDue:'Public due lookup', acPubRec:'Published records', acNotices:'Notices (shown / total)', acTicker:'Running notice bar', acKeyU:'Access password', acKeyD:'Tools & Settings password', acSet:'Set', acNotSet:'Not set',
   mon:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], idle:'Locked after inactivity.'
  },
  bn:{
@@ -307,11 +311,15 @@ const T = {
   saveFail:'ক্লাউডে সংরক্ষণ করা যায়নি।', confirmDel:'এই নোটিশ মুছে ফেলবেন?', admNone:'এখনো কোনো নোটিশ নেই।', pubNoRule:'সংরক্ষিত। পাবলিক কপির জন্য "পাবলিক বাকি" ট্যাবে দেখানো Firestore নিয়ম যোগ করতে হবে।', loadFail:'ক্লাউড থেকে নোটিশ আনা যায়নি।',
   dueH:'সবার জন্য বাকি দেখার সুবিধা', dueNote:'পুরো স্বয়ংক্রিয়। স্টাফের ডিভাইসে মেইন অ্যাপ খোলা থাকলে কাস্টমারের প্রতিটি পরিবর্তন কয়েক সেকেন্ডে প্রকাশ হয়। কাস্টমার ফোন নম্বর দিয়ে বাকি দেখে। এই প্যানেল শুধু অবস্থা দেখায়।',
   dueCount:'প্রকাশিত রেকর্ড', dueAt:'সর্বশেষ প্রকাশ', dueNever:'এখনো প্রকাশ হয়নি (কাস্টমার ডেটা লোড করে মেইন অ্যাপ খুলুন)।', dueRefresh:'রিফ্রেশ', dueRules:'যে Firestore নিয়ম যোগ করতে হবে (একবার)', dueCopy:'নিয়ম কপি', dueCopied:'কপি হয়েছে।', dueFail:'অবস্থা পড়া যায়নি।',
-  tCust:'কাস্টমার', cuH:'কাস্টমার খুঁজুন', cuPh:'নামের একটু অংশ লিখুন', cuHint:'কাস্টমার খুঁজতে নামের একটু অংশ লিখুন।', cuNone:'কোনো কাস্টমার পাওয়া যায়নি।', cuShow:'{m}টির মধ্যে {n}টি দেখানো হচ্ছে', cuTotal:'ক্লাউডে মোট {n} জন কাস্টমার', cuNo:'নং', cuName:'নাম', cuPhone:'ফোন', cuAddr:'ঠিকানা', cuSrc:'সোর্স', cuBilled:'বিল', cuPaid:'আদায়', cuBal:'বাকি',
+  tCust:'কাস্টমার', cuH:'কাস্টমার খুঁজুন', cuPh:'নামের একটু অংশ লিখুন', cuHint:'কাস্টমার খুঁজতে নামের একটু অংশ লিখুন।', cuNone:'কোনো কাস্টমার পাওয়া যায়নি।', cuShow:'{m}টির মধ্যে {n}টি দেখানো হচ্ছে', cuTotal:'ক্লাউডে মোট {n} জন কাস্টমার', cuNo:'নং', cuName:'নাম', cuPhone:'ফোন', cuAddr:'ঠিকানা', cuSrc:'সোর্স', cuBilled:'মোট বাকি', cuPaid:'পরিশোধিত', cuBal:'বর্তমান বাকি',
   tOverview:'ওভারভিউ', ovH:'ব্যবসার সারসংক্ষেপ', ovNote:'মেইন অ্যাপের ক্লাউড কপি থেকে শুধু দেখার তথ্য।', ovCust:'কাস্টমার', ovInv:'ইনভয়েস', ovOut:'মোট বাকি', ovWith:'বাকি আছে এমন কাস্টমার', ovBilled:'মোট বিল', ovRecv:'মোট আদায়', ovSync:'সর্বশেষ ক্লাউড সিঙ্ক', ovVer:'অ্যাপ সংস্করণ', ovTop:'সবচেয়ে বেশি বাকির ১০ কাস্টমার', ovNone:'এখনো ক্লাউডে কোনো ডেটা নেই।', ovFail:'ক্লাউড ডেটা পড়া যায়নি।', ovNoDue:'কারো কোনো বাকি নেই।',
   nExport:'নোটিশ এক্সপোর্ট', nImport:'নোটিশ ইমপোর্ট', nImpBad:'এটি সঠিক নোটিশ ব্যাকআপ ফাইল নয়।', nImpAsk:'বর্তমান {n}টি নোটিশের জায়গায় ফাইলের {m}টি নোটিশ বসাবেন?', nImpOk:'ইমপোর্ট ও প্রকাশ হয়েছে।', nBackup:'ব্যাকআপ',
   dueState:'পাবলিক বাকি দেখা', dueOn:'চালু', dueOff:'বন্ধ', dueTurnOff:'বন্ধ করুন ও সব পাবলিক তথ্য মুছুন', dueTurnOn:'চালু করুন', dueOffAsk:'সব পাবলিক বাকির তথ্য মুছে প্রকাশ বন্ধ করবেন? কাস্টমাররা আর নিজের বাকি দেখতে পারবে না।', dueOnDone:'চালু হয়েছে। স্টাফের ডিভাইসে মেইন অ্যাপ খোলা থাকলে প্রায় এক মিনিটে আবার প্রকাশ হবে।', dueOffDone:'বন্ধ হয়েছে। সব পাবলিক তথ্য মোছা হয়েছে।',
   acLast:'সর্বশেষ সাইন ইন', acCreated:'অ্যাকাউন্ট তৈরি', sheetSoon:'',
+ acSecA:'অ্যাকাউন্টের তথ্য', acName:'নাম', acVer2:'ইমেইল যাচাই', acYes:'হ্যাঁ', acNo:'না', acProv:'লগইন পদ্ধতি', acProvPw:'ইমেইল ও পাসওয়ার্ড', acSess:'এই সেশন', acSessV:'লগইন করা ও আনলক করা',
+ acSecP:'এই অ্যাডমিন প্যানেল', acPanelUrl:'প্যানেলের ঠিকানা', acShop:'দোকান', acLang:'ভাষা', acLangV:'বাংলা', acTheme:'থিম', acLight:'লাইট', acDark:'ডার্ক',
+ acSecM:'মূল অ্যাপ (ক্লাউড কপি)', acMainUrl:'মূল অ্যাপের ঠিকানা', acPaidAmt:'পরিশোধিত', acCurDue:'বর্তমান বাকি', acTotDue:'মোট বাকি',
+ acPubDue:'পাবলিক বাকি দেখা', acPubRec:'প্রকাশিত রেকর্ড', acNotices:'নোটিশ (দৃশ্যমান / মোট)', acTicker:'চলমান নোটিশ বার', acKeyU:'অ্যাক্সেস পাসওয়ার্ড', acKeyD:'টুলস ও সেটিংস পাসওয়ার্ড', acSet:'সেট করা আছে', acNotSet:'সেট করা নেই',
   mon:['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টে','অক্টো','নভে','ডিসে'], idle:'নিষ্ক্রিয় থাকায় লক হয়েছে।'
  }
 };
@@ -624,14 +632,54 @@ async function tabCustomers() {
 }
 
 /* ---------- tab: account ---------- */
-function tabAccount() {
-  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('accH')) + '</h2><div class="kv" style="margin-top:12px">'
-    + '<b>' + esc(t('accIn')) + '</b><span>' + esc(user.email || '') + '</span>'
-    + '<b>' + esc(t('accUid')) + '</b><code>' + esc(user.uid) + '</code>'
-    + '<b>' + esc(t('acLast')) + '</b><span>' + esc(fmtDT(user.metadata && user.metadata.lastSignInTime)) + '</span>'
-    + '<b>' + esc(t('acCreated')) + '</b><span>' + esc(fmtDT(user.metadata && user.metadata.creationTime)) + '</span>'
-    + '<b>' + esc(t('accCloud')) + '</b><span style="color:var(--success);font-weight:600">' + esc(t('accCloudV')) + '</span>'
-    + '<b>' + esc(t('accScope')) + '</b><span>' + esc(t('accScopeV')) + '</span></div></div>';
+async function tabAccount() {
+  const m = user.metadata || {};
+  const row = (l, v) => '<b>' + esc(l) + '</b><span>' + v + '</span>';        // v is already escaped
+  const prov = (user.providerData || []).map(p => p.providerId === 'password' ? t('acProvPw') : p.providerId).join(', ') || '—';
+  const th = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const ok = txt => '<span style="color:var(--success);font-weight:600">' + esc(txt) + '</span>';
+  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('accH')) + '</h2>'
+    + '<h3>' + esc(t('acSecA')) + '</h3><div class="kv">'
+    + row(t('accIn'), esc(user.email || '')) + (user.displayName ? row(t('acName'), esc(user.displayName)) : '')
+    + row(t('acVer2'), esc(user.emailVerified ? t('acYes') : t('acNo'))) + row(t('acProv'), esc(prov))
+    + row(t('accUid'), '<code>' + esc(user.uid) + '</code>')
+    + row(t('acCreated'), esc(fmtDT(m.creationTime))) + row(t('acLast'), esc(fmtDT(m.lastSignInTime)))
+    + row(t('acSess'), ok(t('acSessV'))) + row(t('accCloud'), ok(t('accCloudV'))) + '</div>'
+    + '<h3>' + esc(t('acSecP')) + '</h3><div class="kv">'
+    + row(t('acPanelUrl'), '<code>' + esc(location.origin + BASE) + '</code>') + row(t('acShop'), esc(SHOP_NAME))
+    + row(t('acLang'), esc(t('acLangV'))) + row(t('acTheme'), esc(t(th === 'dark' ? 'acDark' : 'acLight')))
+    + row(t('accScope'), esc(t('accScopeV'))) + '</div>'
+    + '<h3>' + esc(t('acSecM')) + '</h3>'
+    + '<div class="kv" style="margin-bottom:6px">' + row(t('acMainUrl'), '<a href="' + esc(MAIN_APP_URL) + '">' + esc(MAIN_APP_URL) + '</a>') + '</div>'
+    + '<div class="kv" id="acBox"><span class="spin"></span></div>'
+    + '<div class="msg" id="acMsg" role="status"></div><button class="btn btn-sm" id="acRef" style="margin-top:12px">' + esc(t('dueRefresh')) + '</button></div>';
+  const load = async () => {
+    const box = $('#acBox'); if (!box) return;
+    box.innerHTML = '<span class="spin"></span>'; setMsg('acMsg', '');
+    let shop = null, cfg = null;
+    try { const sn = await getFresh(doc(db, 'shops', user.uid)); shop = sn.exists() ? (sn.data() || {}) : {}; } catch (e) { console.warn(e); }
+    try { const cn = await getFresh(cfgRef()); cfg = cn.exists() ? (cn.data() || {}) : {}; } catch (e) { console.warn(e); }
+    if (!$('#acBox')) return;
+    if (!shop && !cfg) { box.innerHTML = ''; setMsg('acMsg', t('ovFail')); return; }
+    let h = '';
+    if (shop) {
+      const cs = Array.isArray(shop.customers) ? shop.customers : [];
+      let billed = 0, recv = 0, out = 0, withDue = 0;
+      cs.forEach(c => { const due = +c.due || 0, paid = +c.paid || 0, o = Math.max(0, due - paid); billed += due; recv += paid; out += o; if (o > 0) withDue++; });
+      h += row(t('ovVer'), esc(shop.appVersion || '—')) + row(t('ovSync'), esc(fmtDT(shop.updatedAt)))
+        + row(t('ovCust'), esc(cs.length)) + row(t('ovInv'), esc(shop.invoiceCount != null ? shop.invoiceCount : (Array.isArray(shop.invoices) ? shop.invoices.length : 0)))
+        + row(t('ovWith'), esc(withDue)) + row(t('acTotDue'), esc(money(billed))) + row(t('acPaidAmt'), esc(money(recv)))
+        + row(t('acCurDue'), '<span' + (out > 0 ? ' style="color:var(--danger);font-weight:600"' : '') + '>' + esc(money(out)) + '</span>');
+    } else h += row(t('ovVer'), '—') + row(t('ovSync'), '—');
+    if (cfg) {
+      const ids = Array.isArray(cfg.dcuDueIds) ? cfg.dcuDueIds.length : 0, off = cfg.dcuDueOff === true, nl = normN(cfg.dcuNotices);
+      h += row(t('acPubDue'), '<span class="pill ' + (off ? 'off' : 'on') + '">' + esc(t(off ? 'dueOff' : 'dueOn')) + '</span>') + row(t('acPubRec'), esc(ids))
+        + row(t('acNotices'), esc(nl.filter(n => n.active).length + ' / ' + nl.length)) + row(t('acTicker'), esc(t(cfg.dcuTickerOn === true ? 'dueOn' : 'dueOff')))
+        + row(t('acKeyU'), esc(t(cfg.unlock && cfg.unlock.hash ? 'acSet' : 'acNotSet'))) + row(t('acKeyD'), esc(t(cfg.danger && cfg.danger.hash ? 'acSet' : 'acNotSet')));
+    }
+    box.innerHTML = h;
+  };
+  $('#acRef').addEventListener('click', load); load();
 }
 
 /* ---------- tab: passwords ---------- */
