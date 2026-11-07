@@ -121,6 +121,12 @@ body.menu-open .side{transform:none;visibility:visible}
 .side-foot{display:flex;flex-direction:column;gap:8px;padding:12px 16px 18px}
 .side-foot .btn{justify-content:flex-start;width:100%;padding:10px 12px}
 @media (prefers-reduced-motion:reduce){.side,.scrim{transition:none}}
+/* access key table */
+.keytbl{width:100%;border-collapse:collapse;margin:16px 0 8px;border:1px solid var(--border)}
+.keytbl th,.keytbl td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:middle}
+.keytbl th{width:36%;background:var(--bg);font-size:13.5px;font-weight:600}
+.keytbl input{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);letter-spacing:2px}
+.keytbl input:focus{outline:2px solid var(--primary);border-color:var(--primary)}
 @media(max-width:520px){.kv{grid-template-columns:1fr}.card{padding:16px 14px}}
 </style>
 </head>
@@ -187,7 +193,7 @@ catch (e) {
   else window.__bootFail('sdk');
   throw e;
 }
-const { initializeApp, getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, setPersistence, browserLocalPersistence,
+const { initializeApp, initializeAuth, browserSessionPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail,
         initializeFirestore, doc, setDoc, getDoc, getDocFromServer, serverTimestamp, writeBatch } = SDK;
 
 /* ============ SETTINGS (change here only) ============ */
@@ -204,10 +210,13 @@ const firebaseConfig = {
   messagingSenderId: "1057222039031",
   appId: "1:1057222039031:web:f82f411076a579b905caf2"
 };
-const fbApp = initializeApp(firebaseConfig);
-const auth = getAuth(fbApp);
+/* Login is isolated from the main app: separate app name ('rgce-admin') => its own storage key.
+   The login is kept in this tab's sessionStorage, so a refresh keeps you signed in, closing the tab signs you out.
+   The main app's login (default app, IndexedDB/localStorage) is never read, and this panel never touches it.
+   To stay signed in even after closing the browser, replace browserSessionPersistence with browserLocalPersistence (2 places). */
+const fbApp = initializeApp(firebaseConfig, 'rgce-admin');
+const auth = initializeAuth(fbApp, { persistence: browserSessionPersistence });
 const db = initializeFirestore(fbApp, { experimentalAutoDetectLongPolling: true });   // no offline cache; falls back to long-polling on networks that block streaming
-setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 const RULES_TEXT = "match /site_public/{id} {\n  allow get: if true;\n  allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;\n  allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;\n}\nmatch /public_dues/{id} {\n  allow get: if true;\n  allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;\n  allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;\n}";
 
@@ -235,8 +244,8 @@ const T = {
   title:'RGCE Admin Panel', sub:'Separate admin site for the main app', mainApp:'Main app', lock:'Lock', logout:'Logout', dark:'Dark',
   loginH:'Admin sign in', loginP:'Use the same email and password as the main app.', email:'Email', pass:'Password', signin:'Sign in', forgot:'Forgot password?',
   badLogin:'Wrong email or password.', tooMany:'Too many attempts. Wait a few minutes.', noUser:'No account with this email.', badEmail:'Invalid email address.', disabled:'Account disabled.', refBlocked:'Sign-in is blocked for this address (API key website restriction). Add this site to the Firebase API key referrers - see the fix steps.', badDomain:'This domain is not authorized in Firebase. Add it under Authentication > Settings > Authorized domains.', badKey:'The Firebase API key is not valid for this site.', failCode:'Login failed: ', sdkFail:'The Firebase scripts did not load. Check your internet, then refresh the page.',  needEmail:'Enter your email and password.', resetSent:'Password reset email sent.', resetNeed:'Enter your email first.', netErr:'Could not connect. Check your internet.',
-  gateH:'Access password', gateP:'This panel is protected. Enter the same access password you use for the footer unlock in the main app.', gateBtn:'Unlock panel', gateBad:'Incorrect password.', gateLocked:'Too many wrong attempts. Wait 1 minute.',
-  gateNone:'No password is set yet. Open the main app and complete the first-time password setup, then come back.', gateErr:'Could not verify. Check internet and the private_config Firestore rule.',
+  gateH:'Access key', gateP:'This panel is protected. Enter your access key to continue.', gateKey:'Access key', gateBtn:'Open panel', gateBad:'Wrong access key.', gateLocked:'Too many wrong attempts. Wait 1 minute.',
+  gateNone:'No password is set yet. Open the main app and complete the first-time password setup, then come back.', gateErr:'Could not verify the key. Open this page over https.',
   tAccount:'Account', tNotices:'Notices', tPass:'Passwords', tDue:'Public due', menu:'Menu',
   accH:'Account', accIn:'Logged in as', accUid:'UID', accCloud:'Cloud', accCloudV:'Connected (internet required)', accScope:'This panel', accScopeV:'Admin work only. Customers, invoices and reports stay in the main app.',
   chgH:'Change password', chgWhich:'Which password', chgUnlock:'Access password (footer unlock in the main app)', chgDanger:'Clear ALL Data',
@@ -258,8 +267,8 @@ const T = {
   title:'RGCE অ্যাডমিন প্যানেল', sub:'মেইন অ্যাপের জন্য আলাদা অ্যাডমিন সাইট', mainApp:'মেইন অ্যাপ', lock:'লক', logout:'লগআউট', dark:'ডার্ক',
   loginH:'অ্যাডমিন সাইন ইন', loginP:'মেইন অ্যাপের একই ইমেইল ও পাসওয়ার্ড দিন।', email:'ইমেইল', pass:'পাসওয়ার্ড', signin:'সাইন ইন', forgot:'পাসওয়ার্ড ভুলে গেছেন?',
   badLogin:'ইমেইল বা পাসওয়ার্ড ভুল।', tooMany:'অনেকবার চেষ্টা হয়েছে। কয়েক মিনিট অপেক্ষা করুন।', noUser:'এই ইমেইলে কোনো অ্যাকাউন্ট নেই।', badEmail:'ইমেইল ঠিকানা সঠিক নয়।', disabled:'অ্যাকাউন্ট বন্ধ করা আছে।', refBlocked:'এই ঠিকানা থেকে সাইন ইন আটকানো আছে (API key-এর ওয়েবসাইট সীমাবদ্ধতা)। Firebase API key-তে এই সাইট যোগ করুন।', badDomain:'এই ডোমেইন Firebase-এ অনুমোদিত নয়। Authentication > Settings > Authorized domains-এ যোগ করুন।', badKey:'এই সাইটের জন্য Firebase API key কাজ করছে না।', failCode:'লগইন ব্যর্থ: ', sdkFail:'Firebase স্ক্রিপ্ট লোড হয়নি। ইন্টারনেট দেখে পেজ রিফ্রেশ করুন।',  needEmail:'ইমেইল ও পাসওয়ার্ড লিখুন।', resetSent:'পাসওয়ার্ড রিসেট ইমেইল পাঠানো হয়েছে।', resetNeed:'আগে ইমেইল লিখুন।', netErr:'সংযোগ হয়নি। ইন্টারনেট দেখুন।',
-  gateH:'অ্যাক্সেস পাসওয়ার্ড', gateP:'এই প্যানেল সুরক্ষিত। মেইন অ্যাপের ফুটারে যে অ্যাক্সেস পাসওয়ার্ড দিয়ে আনলক করেন, সেটাই দিন।', gateBtn:'প্যানেল খুলুন', gateBad:'পাসওয়ার্ড ভুল।', gateLocked:'অনেকবার ভুল হয়েছে। ১ মিনিট অপেক্ষা করুন।',
-  gateNone:'এখনো কোনো পাসওয়ার্ড সেট করা নেই। মেইন অ্যাপ খুলে প্রথমবারের পাসওয়ার্ড সেটআপ শেষ করে আবার আসুন।', gateErr:'যাচাই করা যায়নি। ইন্টারনেট ও private_config Firestore নিয়ম দেখুন।',
+  gateH:'অ্যাক্সেস কী', gateP:'এই প্যানেল সুরক্ষিত। চালিয়ে যেতে অ্যাক্সেস কী দিন।', gateKey:'অ্যাক্সেস কী', gateBtn:'প্যানেল খুলুন', gateBad:'অ্যাক্সেস কী ভুল।', gateLocked:'অনেকবার ভুল হয়েছে। ১ মিনিট অপেক্ষা করুন।',
+  gateNone:'এখনো কোনো পাসওয়ার্ড সেট করা নেই। মেইন অ্যাপ খুলে প্রথমবারের পাসওয়ার্ড সেটআপ শেষ করে আবার আসুন।', gateErr:'কী যাচাই করা যায়নি। পেজটি https-এ খুলুন।',
   tAccount:'অ্যাকাউন্ট', tNotices:'নোটিশ', tPass:'পাসওয়ার্ড', tDue:'পাবলিক বাকি', menu:'মেনু',
   accH:'অ্যাকাউন্ট', accIn:'লগইন করা আছে', accUid:'UID', accCloud:'ক্লাউড', accCloudV:'সংযুক্ত (ইন্টারনেট লাগবে)', accScope:'এই প্যানেল', accScopeV:'শুধু অ্যাডমিনের কাজ। কাস্টমার, ইনভয়েস ও রিপোর্ট মেইন অ্যাপেই থাকে।',
   chgH:'পাসওয়ার্ড পরিবর্তন', chgWhich:'কোন পাসওয়ার্ড', chgUnlock:'অ্যাক্সেস পাসওয়ার্ড (মেইন অ্যাপের ফুটার আনলক)', chgDanger:'সব ডেটা মুছুন',
@@ -340,15 +349,17 @@ function renderHeader() {
   const r = $('#hRight');
   const isBn = lang() === 'bn';
   // signed out: the few options stay in the header; signed in: everything moves to the sidebar
-  r.innerHTML = user ? '' : optionButtons(isBn, false);
-  $('#menuBtn').hidden = !user;
-  if (!user) setMenu(false);
+  const inPanel = !!(user && unlocked);
+  r.innerHTML = inPanel ? '' : optionButtons(isBn, !!user, false);
+  $('#menuBtn').hidden = !inPanel;
+  if (!inPanel) setMenu(false);
   document.documentElement.lang = isBn ? 'bn' : 'en'; document.title = t('title');
 }
-function optionButtons(isBn, withLogout) {
+function optionButtons(isBn, withLogout, withLock) {
   return '<button class="btn btn-sm" data-a="theme">' + esc(t('dark')) + '</button>'
        + '<button class="btn btn-sm" data-a="lang">' + (isBn ? 'English' : 'বাংলা') + '</button>'
        + '<a class="btn btn-sm" href="' + esc(MAIN_APP_URL) + '">' + esc(t('mainApp')) + '</a>'
+       + (withLock ? '<button class="btn btn-sm" data-a="lock">' + esc(t('lock')) + '</button>' : '')
        + (withLogout ? '<button class="btn btn-sm" data-a="logout">' + esc(t('logout')) + '</button>' : '');
 }
 function setMenu(open) {
@@ -363,7 +374,7 @@ function renderSide() {
   const tabs = [['overview', 'tOverview'], ['customers', 'tCust'], ['notices', 'tNotices'], ['due', 'tDue'], ['pass', 'tPass'], ['account', 'tAccount']];
   s.innerHTML = '<div class="side-h"><b>' + esc(t('menu')) + '</b><button class="btn btn-sm" type="button" data-a="menuclose" aria-label="Close">&times;</button></div>'
     + '<nav>' + tabs.map(x => '<button class="nav' + (tab === x[0] ? ' on' : '') + '" type="button" data-tab="' + x[0] + '"' + (tab === x[0] ? ' aria-current="page"' : '') + '>' + esc(t(x[1])) + '</button>').join('') + '</nav>'
-    + '<div class="side-sep"></div><div class="side-foot">' + optionButtons(lang() === 'bn', true) + '</div>';
+    + '<div class="side-sep"></div><div class="side-foot">' + optionButtons(lang() === 'bn', true, true) + '</div>';
   s.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.getAttribute('data-tab'); setMenu(false); renderPanel(); }));
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
@@ -378,7 +389,8 @@ document.addEventListener('click', async e => {
     const nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', nx);
     try { localStorage.setItem('rgce_admin_theme', nx); } catch (x) {}
   }
-  else if (a === 'logout') { try { await signOut(auth); } catch (x) {} }
+  else if (a === 'lock') { unlocked = false; sessDel('rgce_adm_ok'); setMenu(false); render(); }
+  else if (a === 'logout') { unlocked = false; sessDel('rgce_adm_ok'); try { await signOut(auth); } catch (x) {} }
 });
 try { const th = localStorage.getItem('rgce_admin_theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
 
@@ -397,10 +409,45 @@ function authMsg(e) {
   if (c === 'auth/invalid-api-key' || c === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') return t('badKey');
   return t('failCode') + c;
 }
+/* ============ access key gate (second step after email + password) ============ */
+/* Only a salted SHA-256 hash of the key is stored here, not the key itself. This is a screen lock, not server-side security. */
+const KEY_SALT = 'rgce-admin|', KEY_HASH = '0031658ef358e05afcb041e8efdb647d88dfa770a338605cd14403e6cd0ab445';
+let unlocked = false, gateFails = 0, gateUntil = 0;
+const sessGet = k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } };
+const sessSet = (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} };
+const sessDel = k => { try { sessionStorage.removeItem(k); } catch (e) {} };
+const bnDigits = v => String(v).replace(/[\u09E6-\u09EF]/g, d => String(d.charCodeAt(0) - 0x09E6));
+async function sha256Hex(str) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+function renderGate() {
+  app.innerHTML = '<div class="card center"><h2>' + esc(t('gateH')) + '</h2><p class="muted">' + esc(t('gateP')) + '</p>'
+    + '<table class="keytbl"><tbody><tr><th scope="row"><label for="gkIn">' + esc(t('gateKey')) + '</label></th>'
+    + '<td><input id="gkIn" type="password" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false"></td></tr></tbody></table>'
+    + '<div class="msg" id="gkM" role="status"></div><button class="btn btn-primary" id="gkGo" type="button">' + esc(t('gateBtn')) + '</button></div>';
+  const go = async () => {
+    if (Date.now() < gateUntil) { setMsg('gkM', t('gateLocked')); return; }
+    const v = bnDigits($('#gkIn').value.trim()); if (!v) return;
+    const btn = $('#gkGo'); btn.disabled = true; setMsg('gkM', '');
+    let ok = false;
+    try { ok = (await sha256Hex(KEY_SALT + v)) === KEY_HASH; }
+    catch (e) { console.warn(e); btn.disabled = false; setMsg('gkM', t('gateErr')); return; }
+    if (ok) { gateFails = 0; unlocked = true; sessSet('rgce_adm_ok', user.uid); openPanel(); return; }
+    gateFails++;
+    if (gateFails >= 5) { gateFails = 0; gateUntil = Date.now() + 60000; setMsg('gkM', t('gateLocked')); } else setMsg('gkM', t('gateBad'));
+    $('#gkIn').value = ''; btn.disabled = false; $('#gkIn').focus();
+  };
+  $('#gkGo').addEventListener('click', go);
+  $('#gkIn').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  $('#gkIn').focus();
+}
+
 function render() {
   renderHeader();
   if (!booted) return;
   if (!user) return renderLogin();
+  if (!unlocked) return renderGate();
   renderPanel();
 }
 function setMsg(id, m, cls) { const e = $('#' + id); if (e) { e.textContent = m || ''; e.className = 'msg' + (cls ? ' ' + cls : ''); } }
@@ -431,7 +478,7 @@ function renderLogin() {
 
 function openPanel() {
   N = { list: [], on: false, editing: '', pubErr: false, loaded: false };
-  tab = 'overview'; renderPanel();
+  tab = 'overview'; render();
 }
 
 function renderPanel() {
@@ -655,6 +702,8 @@ onAuthStateChanged(auth, u => {
   booted = true; window.__rgceBooted = true; try { sessionStorage.removeItem('rgce_adm_try'); } catch (x) {}
   const changed = (u && u.uid) !== (user && user.uid);
   user = u || null;
+  unlocked = !!(user && sessGet('rgce_adm_ok') === user.uid);
+  if (!user) sessDel('rgce_adm_ok');
   if (!user) { N = { list: [], on: false, editing: '', pubErr: false, loaded: false }; render(); }
   else if (changed) openPanel();
   else render();
