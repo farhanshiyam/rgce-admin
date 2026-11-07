@@ -763,12 +763,12 @@ async function tabReports() {
       const url = REPORT_VIEW_URL + '?r=' + rpDoc.id;
       if (!rpSaved) {
         await setDoc(doc(db, 'site_public', 'rpt-' + rpDoc.id), { ownerUid: user.uid, shopName: SHOP_NAME, typeId: rpDoc.typeId, g: rpDoc.g, notes: rpDoc.notes, gen: rpDoc.gen, no: rpDoc.no, lang: lang(), count: rpDoc.rows.length,
-          rows: rpDoc.rows.map(r => [r.name, r.phone, r.addr, r.src, r.due, r.paid]), expiresAt: Date.now() + 60 * 864e5, createdAt: serverTimestamp() });
+          rows: rpDoc.rows.map(r => ({ n: r.name, p: r.phone, a: r.addr, s: r.src, d: r.due, u: r.paid })), expiresAt: Date.now() + 60 * 864e5, createdAt: serverTimestamp() });
         rpSaved = true;
       }
       $('#rpLink').innerHTML = esc(rl('rLink')) + ': <a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>';
       printHtml(rpHtml, rpName);
-    } catch (e) { console.warn(e); setMsg('rpMsg', rl('rSaveFail')); }
+    } catch (e) { console.warn(e); setMsg('rpMsg', rl('rSaveFail') + ' [' + ((e && e.code) || (e && e.message) || 'error') + ']'); }
     if ($('#rpPr')) $('#rpPr').disabled = false;
   });
   load();
