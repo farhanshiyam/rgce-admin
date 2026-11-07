@@ -93,14 +93,43 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pill.off{color:var(--danger);border-color:var(--danger)}
 .spin{display:inline-block;width:18px;height:18px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* hamburger + sidebar */
+.top .left{display:flex;align-items:center;gap:12px;min-width:0}
+.burger{width:42px;height:42px;flex:none;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);cursor:pointer}
+.burger[hidden]{display:none}
+.burger:hover{background:rgba(255,255,255,.22)}
+.burger span{display:block;width:20px;height:2px;border-radius:2px;background:#fff}
+.burger:focus-visible,.nav:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.scrim{position:fixed;inset:0;background:rgba(8,16,26,.55);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:40}
+.side{position:fixed;top:0;bottom:0;left:0;width:min(290px,86vw);background:var(--panel);border-right:1px solid var(--border);z-index:50;display:flex;flex-direction:column;transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility .22s;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,0px)}
+body.menu-open{overflow:hidden}
+body.menu-open .scrim{opacity:1;visibility:visible}
+body.menu-open .side{transform:none;visibility:visible}
+.side-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px;background:linear-gradient(135deg,#0f2d4a,#1f4e79);color:#fff;border-bottom:3px solid var(--gold)}
+.side-h b{font-size:16px}
+.side-h .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff;font-size:18px;line-height:1;padding:4px 10px}
+.side nav{display:flex;flex-direction:column;padding:10px 8px;gap:2px}
+.nav{display:block;width:100%;text-align:left;padding:11px 12px;border:0;border-left:4px solid transparent;border-radius:8px;background:none;cursor:pointer;font-weight:600;font-size:15px;color:var(--text)}
+.nav:hover{background:var(--bg)}
+.nav.on{background:var(--bg);border-left-color:var(--primary);color:var(--primary)}
+.side-sep{height:1px;background:var(--border);margin:4px 16px}
+.side-foot{display:flex;flex-direction:column;gap:8px;padding:12px 16px 18px}
+.side-foot .btn{justify-content:flex-start;width:100%;padding:10px 12px}
+@media (prefers-reduced-motion:reduce){.side,.scrim{transition:none}}
 @media(max-width:520px){.kv{grid-template-columns:1fr}.card{padding:16px 14px}}
 </style>
 </head>
 <body>
 <header class="top">
-  <h1><span id="hTitle">RGCE Admin Panel</span><small id="hSub"></small></h1>
+  <div class="left">
+    <button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="false" hidden><span></span><span></span><span></span></button>
+    <h1><span id="hTitle">RGCE Admin Panel</span><small id="hSub"></small></h1>
+  </div>
   <div class="right" id="hRight"></div>
 </header>
+<div class="scrim" id="scrim" data-a="menuclose"></div>
+<aside class="side" id="side" aria-label="Menu" aria-hidden="true"></aside>
 <main class="wrap" id="app"><div class="card center" style="text-align:center"><span class="spin"></span></div></main>
 
 <script type="module">
@@ -157,7 +186,7 @@ const T = {
   badLogin:'Wrong email or password.', tooMany:'Too many attempts. Wait a few minutes.', noUser:'No account with this email.', badEmail:'Invalid email address.', disabled:'Account disabled.', refBlocked:'Sign-in is blocked for this address (API key website restriction). Add this site to the Firebase API key referrers - see the fix steps.', badDomain:'This domain is not authorized in Firebase. Add it under Authentication > Settings > Authorized domains.', badKey:'The Firebase API key is not valid for this site.', failCode:'Login failed: ', sdkFail:'The Firebase scripts did not load. Check your internet, then refresh the page.',  needEmail:'Enter your email and password.', resetSent:'Password reset email sent.', resetNeed:'Enter your email first.', netErr:'Could not connect. Check your internet.',
   gateH:'Access password', gateP:'This panel is protected. Enter the same access password you use for the footer unlock in the main app.', gateBtn:'Unlock panel', gateBad:'Incorrect password.', gateLocked:'Too many wrong attempts. Wait 1 minute.',
   gateNone:'No password is set yet. Open the main app and complete the first-time password setup, then come back.', gateErr:'Could not verify. Check internet and the private_config Firestore rule.',
-  tAccount:'Account', tNotices:'Notices', tPass:'Passwords', tDue:'Public due',
+  tAccount:'Account', tNotices:'Notices', tPass:'Passwords', tDue:'Public due', menu:'Menu',
   accH:'Account', accIn:'Logged in as', accUid:'UID', accCloud:'Cloud', accCloudV:'Connected (internet required)', accScope:'This panel', accScopeV:'Admin work only. Customers, invoices and reports stay in the main app.',
   chgH:'Change password', chgWhich:'Which password', chgUnlock:'Access password (footer unlock in the main app)', chgDanger:'Clear ALL Data',
   chgNew:'New password (min 6 characters)', chgNew2:'Repeat new password', chgBtn:'Save new password', chgShort:'At least 6 characters.', chgMis:'Repeat password does not match.', chgOk:'Password updated.', chgFail:'Failed: ',
@@ -180,7 +209,7 @@ const T = {
   badLogin:'ইমেইল বা পাসওয়ার্ড ভুল।', tooMany:'অনেকবার চেষ্টা হয়েছে। কয়েক মিনিট অপেক্ষা করুন।', noUser:'এই ইমেইলে কোনো অ্যাকাউন্ট নেই।', badEmail:'ইমেইল ঠিকানা সঠিক নয়।', disabled:'অ্যাকাউন্ট বন্ধ করা আছে।', refBlocked:'এই ঠিকানা থেকে সাইন ইন আটকানো আছে (API key-এর ওয়েবসাইট সীমাবদ্ধতা)। Firebase API key-তে এই সাইট যোগ করুন।', badDomain:'এই ডোমেইন Firebase-এ অনুমোদিত নয়। Authentication > Settings > Authorized domains-এ যোগ করুন।', badKey:'এই সাইটের জন্য Firebase API key কাজ করছে না।', failCode:'লগইন ব্যর্থ: ', sdkFail:'Firebase স্ক্রিপ্ট লোড হয়নি। ইন্টারনেট দেখে পেজ রিফ্রেশ করুন।',  needEmail:'ইমেইল ও পাসওয়ার্ড লিখুন।', resetSent:'পাসওয়ার্ড রিসেট ইমেইল পাঠানো হয়েছে।', resetNeed:'আগে ইমেইল লিখুন।', netErr:'সংযোগ হয়নি। ইন্টারনেট দেখুন।',
   gateH:'অ্যাক্সেস পাসওয়ার্ড', gateP:'এই প্যানেল সুরক্ষিত। মেইন অ্যাপের ফুটারে যে অ্যাক্সেস পাসওয়ার্ড দিয়ে আনলক করেন, সেটাই দিন।', gateBtn:'প্যানেল খুলুন', gateBad:'পাসওয়ার্ড ভুল।', gateLocked:'অনেকবার ভুল হয়েছে। ১ মিনিট অপেক্ষা করুন।',
   gateNone:'এখনো কোনো পাসওয়ার্ড সেট করা নেই। মেইন অ্যাপ খুলে প্রথমবারের পাসওয়ার্ড সেটআপ শেষ করে আবার আসুন।', gateErr:'যাচাই করা যায়নি। ইন্টারনেট ও private_config Firestore নিয়ম দেখুন।',
-  tAccount:'অ্যাকাউন্ট', tNotices:'নোটিশ', tPass:'পাসওয়ার্ড', tDue:'পাবলিক বাকি',
+  tAccount:'অ্যাকাউন্ট', tNotices:'নোটিশ', tPass:'পাসওয়ার্ড', tDue:'পাবলিক বাকি', menu:'মেনু',
   accH:'অ্যাকাউন্ট', accIn:'লগইন করা আছে', accUid:'UID', accCloud:'ক্লাউড', accCloudV:'সংযুক্ত (ইন্টারনেট লাগবে)', accScope:'এই প্যানেল', accScopeV:'শুধু অ্যাডমিনের কাজ। কাস্টমার, ইনভয়েস ও রিপোর্ট মেইন অ্যাপেই থাকে।',
   chgH:'পাসওয়ার্ড পরিবর্তন', chgWhich:'কোন পাসওয়ার্ড', chgUnlock:'অ্যাক্সেস পাসওয়ার্ড (মেইন অ্যাপের ফুটার আনলক)', chgDanger:'সব ডেটা মুছুন',
   chgNew:'নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)', chgNew2:'নতুন পাসওয়ার্ড আবার লিখুন', chgBtn:'নতুন পাসওয়ার্ড সংরক্ষণ', chgShort:'কমপক্ষে ৬ অক্ষর দিন।', chgMis:'পাসওয়ার্ড মেলেনি।', chgOk:'পাসওয়ার্ড বদলানো হয়েছে।', chgFail:'ব্যর্থ: ',
@@ -205,7 +234,7 @@ const $ = (s, r) => (r || document).querySelector(s);
 const pad = n => ('0' + n).slice(-2);
 const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
 const fmtDT = v => { if (!v) return '—'; const x = new Date(v.toDate ? v.toDate() : v); if (isNaN(x)) return '—'; return fmtDate(x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate())) + ' ' + pad(x.getHours()) + ':' + pad(x.getMinutes()); };
-const money = n => '\u09F3' + Math.round(n).toLocaleString('en-US');
+const money = n => Math.round(n).toLocaleString('en-US');   // BDT amounts, shown without a currency icon
 const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.length !== 3) return d; return (+p[2]) + ' ' + t('mon')[+p[1] - 1] + ' ' + p[0]; };
 
 /* ============ state ============ */
@@ -254,17 +283,40 @@ function renderHeader() {
   $('#hTitle').textContent = t('title'); $('#hSub').textContent = t('sub');
   const r = $('#hRight');
   const isBn = lang() === 'bn';
-  let h = '<button class="btn btn-sm" data-a="theme">' + esc(t('dark')) + '</button>'
-        + '<button class="btn btn-sm" data-a="lang">' + (isBn ? 'English' : 'বাংলা') + '</button>'
-        + '<a class="btn btn-sm" href="' + esc(MAIN_APP_URL) + '">' + esc(t('mainApp')) + '</a>';
-  if (user) h += '<button class="btn btn-sm" data-a="logout">' + esc(t('logout')) + '</button>';
-  r.innerHTML = h;
+  // signed out: the few options stay in the header; signed in: everything moves to the sidebar
+  r.innerHTML = user ? '' : optionButtons(isBn, false);
+  $('#menuBtn').hidden = !user;
+  if (!user) setMenu(false);
   document.documentElement.lang = isBn ? 'bn' : 'en'; document.title = t('title');
 }
+function optionButtons(isBn, withLogout) {
+  return '<button class="btn btn-sm" data-a="theme">' + esc(t('dark')) + '</button>'
+       + '<button class="btn btn-sm" data-a="lang">' + (isBn ? 'English' : 'বাংলা') + '</button>'
+       + '<a class="btn btn-sm" href="' + esc(MAIN_APP_URL) + '">' + esc(t('mainApp')) + '</a>'
+       + (withLogout ? '<button class="btn btn-sm" data-a="logout">' + esc(t('logout')) + '</button>' : '');
+}
+function setMenu(open) {
+  document.body.classList.toggle('menu-open', !!open);
+  const b = $('#menuBtn'), s = $('#side');
+  if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (s) s.setAttribute('aria-hidden', open ? 'false' : 'true');
+}
+function renderSide() {
+  const s = $('#side'); if (!s) return;
+  if (!user) { s.innerHTML = ''; return; }
+  const tabs = [['overview', 'tOverview'], ['customers', 'tCust'], ['notices', 'tNotices'], ['due', 'tDue'], ['pass', 'tPass'], ['account', 'tAccount']];
+  s.innerHTML = '<div class="side-h"><b>' + esc(t('menu')) + '</b><button class="btn btn-sm" type="button" data-a="menuclose" aria-label="Close">&times;</button></div>'
+    + '<nav>' + tabs.map(x => '<button class="nav' + (tab === x[0] ? ' on' : '') + '" type="button" data-tab="' + x[0] + '"' + (tab === x[0] ? ' aria-current="page"' : '') + '>' + esc(t(x[1])) + '</button>').join('') + '</nav>'
+    + '<div class="side-sep"></div><div class="side-foot">' + optionButtons(lang() === 'bn', true) + '</div>';
+  s.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.getAttribute('data-tab'); setMenu(false); renderPanel(); }));
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-a]'); if (!b) return;
   const a = b.getAttribute('data-a');
-  if (a === 'lang') { try { localStorage.setItem('rgce_lang', lang() === 'bn' ? 'en' : 'bn'); } catch (x) {} render(); }
+  if (a === 'menu') setMenu(!document.body.classList.contains('menu-open'));
+  else if (a === 'menuclose') setMenu(false);
+  else if (a === 'lang') { try { localStorage.setItem('rgce_lang', lang() === 'bn' ? 'en' : 'bn'); } catch (x) {} render(); }
   else if (a === 'theme') {
     const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     const nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', nx);
@@ -332,9 +384,8 @@ async function openPanel() {
 
 function renderPanel() {
   renderHeader();
-  const tabs = [['overview', 'tOverview'], ['customers', 'tCust'], ['notices', 'tNotices'], ['due', 'tDue'], ['pass', 'tPass'], ['account', 'tAccount']];
-  app.innerHTML = '<div class="tabs" role="tablist">' + tabs.map(x => '<button class="tab" role="tab" data-tab="' + x[0] + '" aria-selected="' + (tab === x[0]) + '">' + esc(t(x[1])) + '</button>').join('') + '</div><div id="tabBody"></div>';
-  app.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.getAttribute('data-tab'); renderPanel(); }));
+  renderSide();
+  app.innerHTML = '<div id="tabBody"></div>';
   ({ overview: tabOverview, customers: tabCustomers, notices: tabNotices, pass: tabPass, due: tabDue, account: tabAccount })[tab]();
 }
 
