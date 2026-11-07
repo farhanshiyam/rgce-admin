@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>RGCE Admin</title>
+<script>
+/* GitHub Pages: opening https://<user>.github.io/rgce-admin/customers directly (reload / typed / shared) lands here.
+   Remember the address, then send the browser to the app (index.html), which restores the clean address. */
+(function () {
+  var l = location, keep = 1;            // 1 = project site (/rgce-admin/...). Use 0 for a user site at the domain root.
+  var base = l.pathname.split('/').slice(0, 1 + keep).join('/') + '/';
+  try { sessionStorage.setItem('rgce_redirect', l.pathname + l.search + l.hash); } catch (e) {}
+  l.replace(l.protocol + '//' + l.host + base);
+})();
+</script></head><body></body></html>
