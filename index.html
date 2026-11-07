@@ -6,6 +6,10 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#1f4e79">
 <title>RGCE Admin Panel</title>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f4e79'/%3E%3Ctext x='32' y='43' font-size='30' text-anchor='middle' fill='%23e8c45a' font-family='Arial' font-weight='700'%3EA%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -132,12 +136,59 @@ body.menu-open .side{transform:none;visibility:visible}
 <aside class="side" id="side" aria-label="Menu" aria-hidden="true"></aside>
 <main class="wrap" id="app"><div class="card center" style="text-align:center"><span class="spin"></span></div></main>
 
+<script>
+/* Watchdog: a normal (non-module) script, so it still runs when the Firebase module fails to load */
+(function () {
+  var MSG = {
+    sdk:  ['The Firebase scripts did not load. Check your internet, then reload the page.', 'Firebase স্ক্রিপ্ট লোড হয়নি। ইন্টারনেট দেখে পেজ রিলোড করুন।'],
+    slow: ['The panel is taking too long to start. Check your internet, then reload the page.', 'প্যানেল চালু হতে অনেক সময় লাগছে। ইন্টারনেট দেখে পেজ রিলোড করুন।'],
+    btn:  ['Reload', 'রিলোড']
+  };
+  window.__bootFail = function (kind) {
+    var i = 0; try { i = localStorage.getItem('rgce_lang') === 'bn' ? 1 : 0; } catch (e) {}
+    var app = document.getElementById('app'); if (!app) return;
+    app.innerHTML = '';
+    var card = document.createElement('div'); card.className = 'card center'; card.style.textAlign = 'center';
+    var p = document.createElement('p'); p.className = 'msg'; p.textContent = MSG[kind][i];
+    var b = document.createElement('button'); b.className = 'btn btn-primary'; b.type = 'button'; b.textContent = MSG.btn[i];
+    b.onclick = function () { location.reload(); };
+    card.appendChild(p); card.appendChild(b); app.appendChild(card);
+  };
+  window.addEventListener('online', function () { if (!window.__rgceBooted) location.reload(); });   // internet came back -> try again
+  setTimeout(function () { if (!window.__rgceBooted) window.__bootFail(window.__rgceSdk ? 'slow' : 'sdk'); }, 22000);
+})();
+</script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, setPersistence, browserLocalPersistence }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { initializeFirestore, doc, setDoc, getDoc, getDocFromServer, serverTimestamp, writeBatch }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+/* ============ Firebase loader: 2 CDNs, per-try timeout, one automatic page retry ============ */
+const SDK_VER = '10.12.0';
+const SOURCES = [
+  ['https://www.gstatic.com/firebasejs/' + SDK_VER + '/firebase-app.js', 'https://www.gstatic.com/firebasejs/' + SDK_VER + '/firebase-auth.js', 'https://www.gstatic.com/firebasejs/' + SDK_VER + '/firebase-firestore.js'],
+  ['https://cdn.jsdelivr.net/npm/firebase@' + SDK_VER + '/app/+esm', 'https://cdn.jsdelivr.net/npm/firebase@' + SDK_VER + '/auth/+esm', 'https://cdn.jsdelivr.net/npm/firebase@' + SDK_VER + '/firestore/+esm']
+];
+async function loadSdk() {
+  let last;
+  for (const urls of SOURCES) {
+    try {
+      const mods = await Promise.race([
+        Promise.all(urls.map(u => import(u))),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('sdk timeout')), 8000))
+      ]);
+      return Object.assign({}, ...mods);
+    } catch (e) { last = e; console.warn('[sdk] source failed', urls[0], e); }
+  }
+  throw last;
+}
+let SDK;
+try { SDK = await loadSdk(); window.__rgceSdk = true; }
+catch (e) {
+  let tried = false;
+  try { tried = sessionStorage.getItem('rgce_adm_try') === '1'; if (!tried) sessionStorage.setItem('rgce_adm_try', '1'); } catch (x) {}
+  if (!tried) setTimeout(() => location.reload(), 1200);       // first failure: silently reload once (a reload clears a cached failed import)
+  else window.__bootFail('sdk');
+  throw e;
+}
+const { initializeApp, getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, setPersistence, browserLocalPersistence,
+        initializeFirestore, doc, setDoc, getDoc, getDocFromServer, serverTimestamp, writeBatch } = SDK;
 
 /* ============ SETTINGS (change here only) ============ */
 const MAIN_APP_URL = "https://farhanshiyam.github.io/sites/";   // address of the main app (for the "Main app" button)
@@ -155,7 +206,7 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
-const db = initializeFirestore(fbApp, {});          // no offline cache: the admin site always talks to the cloud
+const db = initializeFirestore(fbApp, { experimentalAutoDetectLongPolling: true });   // no offline cache; falls back to long-polling on networks that block streaming
 setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 const RULES_TEXT = "match /site_public/{id} {\n  allow get: if true;\n  allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;\n  allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;\n}\nmatch /public_dues/{id} {\n  allow get: if true;\n  allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;\n  allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;\n}";
@@ -239,7 +290,7 @@ const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.
 
 /* ============ state ============ */
 let user = null, tab = 'overview', booted = false;
-let N = { list: [], on: false, editing: '', pubErr: false };
+let N = { list: [], on: false, editing: '', pubErr: false, loaded: false };
 const app = $('#app');
 
 /* ============ password helpers (identical scheme to the main app: salted PBKDF2 hashes in private_config/<uid>) ============ */
@@ -255,7 +306,11 @@ async function makeEntry(pw) {
   const salt = b64(crypto.getRandomValues(new Uint8Array(16))), iter = 150000;
   return { salt, iter, hash: await derive(pw, salt, iter) };
 }
-async function getFresh(ref) { try { return await getDocFromServer(ref); } catch (e) { if (e && e.code === 'permission-denied') throw e; return await getDoc(ref); } }
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout' }), ms))]);
+async function getFresh(ref) {
+  try { return await withTimeout(getDocFromServer(ref), 10000); }
+  catch (e) { if (e && e.code === 'permission-denied') throw e; return await withTimeout(getDoc(ref), 8000); }
+}
 async function changePassword(role, pw) {
   const data = { updatedAt: serverTimestamp() }; data[role] = await makeEntry(pw);
   await setDoc(cfgRef(), data, { merge: true });
@@ -268,9 +323,10 @@ const sortN = () => N.list.sort((a, b) => (b.date || '').localeCompare(a.date ||
 async function loadNotices() {
   const snap = await getFresh(cfgRef());
   const d = snap.exists() ? (snap.data() || {}) : {};
-  N.list = normN(d.dcuNotices); sortN(); N.on = d.dcuTickerOn === true;
+  N.list = normN(d.dcuNotices); sortN(); N.on = d.dcuTickerOn === true; N.loaded = true;
 }
 async function saveNotices() {
+  if (!N.loaded) throw new Error('notices not loaded');   // never overwrite the cloud list with an empty one
   await setDoc(cfgRef(), { dcuNotices: N.list, dcuTickerOn: !!N.on }, { merge: true });
   try {
     await setDoc(doc(db, 'site_public', PUB_ID), { ownerUid: user.uid, shopName: SHOP_NAME, notices: N.list.filter(n => n.active), tickerOn: !!N.on, updatedAt: serverTimestamp() });
@@ -373,13 +429,9 @@ function renderLogin() {
   $('#lgE').focus();
 }
 
-async function openPanel() {
-  app.innerHTML = '<div class="card center" style="text-align:center"><span class="spin"></span></div>';
-  renderHeader();
-  let failed = false;
-  try { await loadNotices(); } catch (e) { console.warn(e); failed = true; }
+function openPanel() {
+  N = { list: [], on: false, editing: '', pubErr: false, loaded: false };
   tab = 'overview'; renderPanel();
-  if (failed) setMsg('nMsg', t('loadFail'));
 }
 
 function renderPanel() {
@@ -475,7 +527,17 @@ function tabPass() {
 }
 
 /* ---------- tab: notices ---------- */
-function tabNotices() {
+async function tabNotices() {
+  if (N.loaded) { buildNotices(); return; }
+  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('admH')) + '</h2><div style="margin-top:12px"><span class="spin"></span></div></div>';
+  let ok = false;
+  try { await loadNotices(); ok = true; } catch (e) { console.warn(e); }
+  if (tab !== 'notices' || !$('#tabBody')) return;
+  if (ok) { buildNotices(); return; }
+  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('admH')) + '</h2><div class="msg" role="status">' + esc(t('loadFail')) + '</div><button class="btn btn-sm" id="nRetry">' + esc(t('dueRefresh')) + '</button></div>';
+  $('#nRetry').addEventListener('click', tabNotices);
+}
+function buildNotices() {
   $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('admH')) + '</h2>'
     + '<label class="chk" style="margin-top:12px"><input type="checkbox" id="nTk"><span>' + esc(t('tkOn')) + '</span></label>'
     + '<div class="fg"><label for="nTitle">' + esc(t('admTitle')) + '</label><input id="nTitle" maxlength="140" autocomplete="off"></div>'
@@ -589,12 +651,11 @@ async function tabDue() {
 }
 
 /* ============ start ============ */
-setTimeout(() => { if (!booted) { app.innerHTML = '<div class="card center"><p class="msg">' + esc(t('sdkFail')) + '</p></div>'; } }, 12000);
 onAuthStateChanged(auth, u => {
-  booted = true;
+  booted = true; window.__rgceBooted = true; try { sessionStorage.removeItem('rgce_adm_try'); } catch (x) {}
   const changed = (u && u.uid) !== (user && user.uid);
   user = u || null;
-  if (!user) { N = { list: [], on: false, editing: '', pubErr: false }; render(); }
+  if (!user) { N = { list: [], on: false, editing: '', pubErr: false, loaded: false }; render(); }
   else if (changed) openPanel();
   else render();
 });
