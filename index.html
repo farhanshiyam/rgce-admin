@@ -627,11 +627,11 @@ async function tabCustomers() {
 /* ===== shared report core (identical code is used by the admin panel and by the online report viewer) ===== */
 const SHOP_TAG = 'Gifts \u2022 Electrical \u2022 Cosmetics \u2014 Under One Roof', SHOP_ADDR = 'Moshjid Market, Naohata Mor, Mohadevpur, Naogaon', SHOP_PHONE = '+8801715986646';
 const RL = {
-  en: { rH: 'Report builder', rNote: 'Pick a report type, set filters, preview, then print or save as PDF. Printing also saves an online copy that the QR code in the footer opens.', rType: 'Report type', rAddr: 'Address', rSrc: 'Source', rAll: 'All', rMin: 'Min due', rMax: 'Max due', rTop: 'Top N rows (blank = all)', rFrom: 'Date from', rTo: 'Date to', rHid: 'Include hidden-due customers', rGen: 'Create report', rPrint: 'Print / Save PDF', rRef: 'Refresh data', rNone: 'No customers match these filters.', rNoDate: 'Customer records have no date field, so newest/oldest follows the order customers were added and the date filter is ignored.', rFail: 'Could not load data from the cloud.', rLoad: 'Loading data...', rTooMany: 'The online copy supports up to 2500 rows. Use filters or Top N.', rSaveFail: 'Could not save the online copy, so printing was stopped. Check the internet and the Firestore rules.', rLink: 'Online link',
+  en: { rH: 'Report builder', rNote: 'Pick a report type, set filters, preview, then print or save as PDF. Printing also saves an online copy that the QR code in the footer opens.', rType: 'Report type', rAddr: 'Address', rSrc: 'Source', rAll: 'All', rMin: 'Min due', rMax: 'Max due', rTop: 'Top N rows (blank = all)', rFrom: 'Date from', rTo: 'Date to', rHid: 'Include hidden-due customers', rGen: 'Create report', rPrint: 'Print / Save PDF', rRef: 'Refresh data', rNone: 'No customers match these filters.', rNoDate: 'Customer records have no date field, so newest/oldest follows the order customers were added and the date filter is ignored.', rFail: 'Could not load data from the cloud.', rLoad: 'Loading data...', rTooMany: 'The online copy supports up to 2500 rows. Use filters or Top N.', rSaveFail: 'Could not save the online copy, so printing was stopped. Check the internet and the Firestore rules.', rLink: 'Online link', rGT: 'Show grand total at the end of the table',
     cSL: 'SL', cName: 'Customer', cPhone: 'Phone', cAddr: 'Address', cSrc: 'Source', cBill: 'Billed', cPaid: 'Paid', cDue: 'Due', cSub: 'Subtotal', cTot: 'Grand total', cCnt: 'Customers', cOut: 'Total due', cGen: 'Created', cNo: 'Report no.', cDate: 'Date', cOnline: 'Scan the QR code to view this report online', cNoAddr: 'No address', cNoSrc: 'No source',
     vLoad: 'Loading report...', vNone: 'Report not found or expired.', vPrint: 'Print / PDF',
     ty_hugeDue: 'Huge due (highest first)', ty_oldDue: 'Due of oldest customers first', ty_newDue: 'Due of newest customers first', ty_oldest: 'All customers: oldest first', ty_newest: 'All customers: newest first', ty_byAddr: 'Due by address (with subtotals)', ty_bySrc: 'Due by source (with subtotals)', ty_smallDue: 'Small due (lowest first)', ty_allDue: 'All due list (A-Z)', ty_partial: 'Partly paid customers', ty_cleared: 'Fully paid customers', ty_overpaid: 'Paid more than billed (advance)', ty_noPhone: 'Due without phone number', ty_hidden: 'Hidden-due customers', ty_az: 'All customers (A-Z)' },
-  bn: { rH: 'রিপোর্ট বিল্ডার', rNote: 'রিপোর্টের ধরন ও ফিল্টার বেছে প্রিভিউ দেখুন, তারপর প্রিন্ট বা PDF করুন। প্রিন্টের সময় একটা অনলাইন কপিও সেভ হয়, যা ফুটারের QR কোড খুলে দেয়।', rType: 'রিপোর্টের ধরন', rAddr: 'ঠিকানা', rSrc: 'সোর্স', rAll: 'সব', rMin: 'সর্বনিম্ন বাকি', rMax: 'সর্বোচ্চ বাকি', rTop: 'শীর্ষ N সারি (খালি = সব)', rFrom: 'তারিখ থেকে', rTo: 'তারিখ পর্যন্ত', rHid: 'লুকানো-বাকি কাস্টমারসহ', rGen: 'রিপোর্ট তৈরি করুন', rPrint: 'প্রিন্ট / PDF সেভ', rRef: 'ডেটা রিফ্রেশ', rNone: 'এই ফিল্টারে কোনো কাস্টমার নেই।', rNoDate: 'কাস্টমারের রেকর্ডে তারিখ নেই, তাই নতুন/পুরোনো মানে কাস্টমার যোগ হওয়ার ক্রম, আর তারিখ ফিল্টার কাজ করবে না।', rFail: 'ক্লাউড থেকে ডেটা আনা যায়নি।', rLoad: 'ডেটা লোড হচ্ছে...', rTooMany: 'অনলাইন কপিতে সর্বোচ্চ ২৫০০ সারি চলে। ফিল্টার বা শীর্ষ N ব্যবহার করুন।', rSaveFail: 'অনলাইন কপি সেভ হয়নি, তাই প্রিন্ট বন্ধ করা হয়েছে। ইন্টারনেট ও Firestore rules দেখুন।', rLink: 'অনলাইন লিংক',
+  bn: { rH: 'রিপোর্ট বিল্ডার', rNote: 'রিপোর্টের ধরন ও ফিল্টার বেছে প্রিভিউ দেখুন, তারপর প্রিন্ট বা PDF করুন। প্রিন্টের সময় একটা অনলাইন কপিও সেভ হয়, যা ফুটারের QR কোড খুলে দেয়।', rType: 'রিপোর্টের ধরন', rAddr: 'ঠিকানা', rSrc: 'সোর্স', rAll: 'সব', rMin: 'সর্বনিম্ন বাকি', rMax: 'সর্বোচ্চ বাকি', rTop: 'শীর্ষ N সারি (খালি = সব)', rFrom: 'তারিখ থেকে', rTo: 'তারিখ পর্যন্ত', rHid: 'লুকানো-বাকি কাস্টমারসহ', rGen: 'রিপোর্ট তৈরি করুন', rPrint: 'প্রিন্ট / PDF সেভ', rRef: 'ডেটা রিফ্রেশ', rNone: 'এই ফিল্টারে কোনো কাস্টমার নেই।', rNoDate: 'কাস্টমারের রেকর্ডে তারিখ নেই, তাই নতুন/পুরোনো মানে কাস্টমার যোগ হওয়ার ক্রম, আর তারিখ ফিল্টার কাজ করবে না।', rFail: 'ক্লাউড থেকে ডেটা আনা যায়নি।', rLoad: 'ডেটা লোড হচ্ছে...', rTooMany: 'অনলাইন কপিতে সর্বোচ্চ ২৫০০ সারি চলে। ফিল্টার বা শীর্ষ N ব্যবহার করুন।', rSaveFail: 'অনলাইন কপি সেভ হয়নি, তাই প্রিন্ট বন্ধ করা হয়েছে। ইন্টারনেট ও Firestore rules দেখুন।', rLink: 'অনলাইন লিংক', rGT: 'টেবিলের শেষে সর্বমোট দেখান',
     cSL: 'ক্রমিক', cName: 'কাস্টমার', cPhone: 'ফোন', cAddr: 'ঠিকানা', cSrc: 'সোর্স', cBill: 'মোট বিল', cPaid: 'জমা', cDue: 'বাকি', cSub: 'উপমোট', cTot: 'সর্বমোট', cCnt: 'কাস্টমার', cOut: 'মোট বাকি', cGen: 'তৈরি', cNo: 'রিপোর্ট নং', cDate: 'তারিখ', cOnline: 'অনলাইনে রিপোর্ট দেখতে QR কোড স্ক্যান করুন', cNoAddr: 'ঠিকানা নেই', cNoSrc: 'সোর্স নেই',
     vLoad: 'রিপোর্ট লোড হচ্ছে...', vNone: 'রিপোর্ট পাওয়া যায়নি বা মেয়াদ শেষ।', vPrint: 'প্রিন্ট / PDF',
     ty_hugeDue: 'সবচেয়ে বেশি বাকি (বড় থেকে ছোট)', ty_oldDue: 'পুরোনো কাস্টমারের বাকি আগে', ty_newDue: 'নতুন কাস্টমারের বাকি আগে', ty_oldest: 'সব কাস্টমার: পুরোনো আগে', ty_newest: 'সব কাস্টমার: নতুন আগে', ty_byAddr: 'ঠিকানা অনুযায়ী বাকি (উপমোটসহ)', ty_bySrc: 'সোর্স অনুযায়ী বাকি (উপমোটসহ)', ty_smallDue: 'ছোট বাকি (ছোট থেকে বড়)', ty_allDue: 'সব বাকির তালিকা (নামের ক্রমে)', ty_partial: 'আংশিক পরিশোধ', ty_cleared: 'বাকি পরিশোধ হয়েছে', ty_overpaid: 'বেশি জমা (অগ্রিম)', ty_noPhone: 'ফোন নম্বর ছাড়া বাকি', ty_hidden: 'লুকানো বাকি', ty_az: 'সব কাস্টমার: নামের ক্রমে' }
@@ -642,13 +642,13 @@ const RCSS = ".rp{font:12px/1.45 'Noto Sans Bengali','Segoe UI',Arial,sans-serif
   + ".rp .lg{width:54px;height:54px;flex:none;border-radius:12px;background:#1f4e79;color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:.5px}.rp .lt{flex:1;min-width:0}.rp .lt h1{margin:0;font-size:22px;line-height:1.2;color:#1f4e79}.rp .lt .tg{margin:2px 0;font-size:11px;font-weight:600;color:#8a6d00}.rp .lt p{margin:1px 0;font-size:11px;color:#4a5766}"
   + ".rp .rn{text-align:right;font-size:11px;color:#4a5766;display:flex;flex-direction:column;gap:2px;flex:none}.rp .rn b{font-size:13px;letter-spacing:2px;color:#1f4e79}"
   + ".rp h2{margin:20px 0 3px;font-size:17px;line-height:1.3;color:#1f4e79}.rp .meta{font-size:11px;color:#5a6776;margin-bottom:10px}"
-  + ".rp .sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 14px}.rp .sum div{border:1px solid #d5dce5;border-left:3px solid #1f4e79;border-radius:6px;padding:7px 10px;background:#f7f9fc}.rp .sum small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#5a6776}.rp .sum b{font-size:15px}.rp .sum .bad{border-left-color:#b71c1c}.rp .sum .bad b{color:#b71c1c}"
+  + ".rp .sum{display:flex;gap:8px;margin:10px 0 14px}.rp .sum div{flex:1;min-width:0;break-inside:avoid;border:1px solid #d5dce5;border-left:3px solid #1f4e79;border-radius:6px;padding:7px 10px;background:#f7f9fc}.rp .sum small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#5a6776}.rp .sum b{font-size:15px}.rp .sum .bad{border-left-color:#b71c1c}.rp .sum .bad b{color:#b71c1c}"
   + ".rp .dt{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px}.rp .dt th{background:#1f4e79;color:#fff;padding:7px 6px;text-align:left;font-size:10.5px;font-weight:600}"
   + ".rp .dt td{padding:5px 6px;border-bottom:1px solid #e1e6ed;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}.rp .dt tbody tr:nth-child(even) td{background:#f8fafc}"
   + ".rp .sl{text-align:center;color:#5a6776;white-space:nowrap}.rp .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.rp td.d{font-weight:700;color:#b71c1c}"
   + ".rp tr.gh td{background:#e8eff7!important;color:#1f4e79;font-weight:700;border-top:1px solid #b8c7d9}.rp tr.st td{background:#f1f4f8!important;font-weight:700}.rp tr.gt td{background:#1f4e79!important;color:#fff;font-weight:700;border:0}"
-  + ".rp .dt thead{display:table-header-group}.rp .dt tfoot{display:table-footer-group}.rp .dt tr{break-inside:avoid;page-break-inside:avoid}.rp .dt tfoot td{border:0;background:#fff!important;padding:0}"
-  + ".rp .ft{display:flex;align-items:center;gap:12px;margin-top:10px;padding-top:8px;border-top:2px solid #c9a227;font-size:10px;color:#4a5766;text-align:left}.rp .qr{width:64px;height:64px;flex:none;padding:3px;border:1px solid #d5dce5;border-radius:4px;background:#fff}.rp .qr svg{width:100%;height:100%;display:block}"
+  + ".rp .dt thead{display:table-header-group}.rp .dt tr{break-inside:avoid;page-break-inside:avoid}"
+  + ".rp .ft{break-inside:avoid;page-break-inside:avoid;display:flex;align-items:center;gap:12px;margin-top:10px;padding-top:8px;border-top:2px solid #c9a227;font-size:10px;color:#4a5766;text-align:left}.rp .qr{width:64px;height:64px;flex:none;padding:3px;border:1px solid #d5dce5;border-radius:4px;background:#fff}.rp .qr svg{width:100%;height:100%;display:block}"
   + ".rp .ft .l{flex:1;min-width:0}.rp .ft a{color:#1f4e79;font-weight:600;word-break:break-all;text-decoration:none}.rp .ft .r{text-align:right;max-width:36%}.rp .ft b{color:#1a2330}";
 const PCSS = '@page{size:A4;margin:11mm 11mm 14mm;@bottom-right{content:"Page " counter(page) " / " counter(pages);font:9px Arial,sans-serif;color:#667}}@media print{html,body{margin:0;background:#fff!important}.rp{padding:0!important}}';
 let qrP = null;
@@ -668,17 +668,16 @@ function reportHtml(d) {
       body += '<tr class="gh"><td colspan="8">' + esc(k) + ' (' + gs[k].length + ')</td></tr>' + gs[k].map(tr).join('') + sub('st', rl('cSub'), a, b, c);
     });
   } else body = rows.map(tr).join('');
-  body += sub('gt', rl('cTot'), sd, sp, sb);
+  if (d.gt !== false) body += sub('gt', rl('cTot'), sd, sp, sb);
   const sm = (l, v, c) => '<div' + (c ? ' class="' + c + '"' : '') + '><small>' + esc(l) + '</small><b>' + esc(v) + '</b></div>';
   const th = (l, c) => '<th' + (c ? ' class="' + c + '"' : '') + '>' + esc(rl(l)) + '</th>';
   return '<div class="rp"><div class="lh"><div class="lg">RGCE</div><div class="lt"><h1>' + esc(SHOP_NAME) + '</h1><p class="tg">' + esc(SHOP_TAG) + '</p><p>' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '</p></div>'
     + '<div class="rn"><b>REPORT</b><span>' + esc(rl('cNo')) + ': ' + esc(d.no) + '</span><span>' + esc(rl('cDate')) + ': ' + esc(d.gen) + '</span></div></div>'
     + '<h2>' + esc(rl('ty_' + d.typeId)) + '</h2><div class="meta">' + esc((d.notes || []).join(' \u2022 ')) + '</div>'
-    + '<div class="sum">' + sm(rl('cCnt'), rows.length) + sm(rl('cBill'), money(sd)) + sm(rl('cPaid'), money(sp)) + sm(rl('cOut'), money(sb), 'bad') + '</div>'
     + '<table class="dt"><colgroup><col style="width:7%"><col style="width:22%"><col style="width:13%"><col style="width:24%"><col style="width:8%"><col style="width:9%"><col style="width:8%"><col style="width:9%"></colgroup>'
     + '<thead><tr>' + th('cSL', 'sl') + th('cName') + th('cPhone') + th('cAddr') + th('cSrc') + th('cBill', 'n') + th('cPaid', 'n') + th('cDue', 'n') + '</tr></thead><tbody>' + body + '</tbody>'
-    + '<tfoot><tr><td colspan="8"><div class="ft">' + (d.qr ? '<div class="qr">' + d.qr + '</div>' : '') + '<div class="l"><b>' + esc(rl('cOnline')) + '</b><br><a href="' + esc(d.url) + '">' + esc(d.url) + '</a><br>Powered by Farhan Tanzid Shiyam</div>'
-    + '<div class="r"><b>' + esc(SHOP_NAME) + '</b><br>' + esc(SHOP_ADDR) + '<br>' + esc(SHOP_PHONE) + '</div></div></td></tr></tfoot></table></div>';
+    + '</table><div class="ft">' + (d.qr ? '<div class="qr">' + d.qr + '</div>' : '') + '<div class="l"><b>' + esc(rl('cOnline')) + '</b><br><a href="' + esc(d.url) + '">' + esc(d.url) + '</a><br>Powered by Farhan Tanzid Shiyam</div>'
+    + '<div class="r"><b>' + esc(SHOP_NAME) + '</b><br>' + esc(SHOP_ADDR) + '<br>' + esc(SHOP_PHONE) + '</div></div></div>';
 }
 function printHtml(html, name) {
   const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(f);
@@ -722,7 +721,8 @@ async function tabReports() {
     + fld('rpA', rl('rAddr'), '<select id="rpA"></select>') + fld('rpS', rl('rSrc'), '<select id="rpS"></select>')
     + fld('rpMin', rl('rMin'), '<input id="rpMin" type="number" min="0" inputmode="numeric">') + fld('rpMax', rl('rMax'), '<input id="rpMax" type="number" min="0" inputmode="numeric">')
     + fld('rpN', rl('rTop'), '<input id="rpN" type="number" min="1" inputmode="numeric">') + fld('rpF', rl('rFrom'), '<input id="rpF" type="date">') + fld('rpTo', rl('rTo'), '<input id="rpTo" type="date">') + '</div>'
-    + '<label style="display:flex;gap:8px;align-items:center;margin:4px 0 12px;font-size:14px"><input id="rpH" type="checkbox" checked> ' + esc(rl('rHid')) + '</label>'
+    + '<label style="display:flex;gap:8px;align-items:center;margin:4px 0 8px;font-size:14px"><input id="rpH" type="checkbox" checked> ' + esc(rl('rHid')) + '</label>'
+    + '<label style="display:flex;gap:8px;align-items:center;margin:4px 0 12px;font-size:14px"><input id="rpG" type="checkbox" checked> ' + esc(rl('rGT')) + '</label>'
     + '<div class="msg" id="rpMsg" role="status"></div><p class="muted" id="rpLink"></p><div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-primary" id="rpGo" disabled>' + esc(rl('rGen')) + '</button><button class="btn" id="rpPr" disabled>' + esc(rl('rPrint')) + '</button><button class="btn" id="rpRef">' + esc(rl('rRef')) + '</button></div></div>'
     + '<style>' + RCSS + '</style><div id="rpOut"></div>';
   const fill = (id, key) => { const el = $(id), cur = el.value; const vs = Array.from(new Set((rpRows || []).map(r => r[key]).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'en', { numeric: true })); el.innerHTML = '<option value="">' + esc(rl('rAll')) + '</option>' + vs.map(v => '<option>' + esc(v) + '</option>').join(''); el.value = cur; };
@@ -742,8 +742,8 @@ async function tabReports() {
     if (rows.length > 2500) { setMsg('rpMsg', rl('rTooMany')); return; }
     await loadQR();
     const id = rid(), url = REPORT_VIEW_URL + '?r=' + id, g = typ.g || '', gs = stamp();
-    rpDoc = { id, typeId: typ.id, g, notes, gen: gs, no: id.slice(0, 6).toUpperCase(), rows }; rpSaved = false;
-    rpHtml = reportHtml({ typeId: typ.id, g, rows, notes, gen: gs, no: rpDoc.no, url, qr: qrSvg(url) });
+    rpDoc = { id, typeId: typ.id, g, notes, gen: gs, no: id.slice(0, 6).toUpperCase(), rows, gt: $('#rpG').checked }; rpSaved = false;
+    rpHtml = reportHtml({ typeId: typ.id, g, gt: rpDoc.gt, rows, notes, gen: gs, no: rpDoc.no, url, qr: qrSvg(url) });
     rpName = 'RGCE-Report-' + typ.id + '-' + gs.replace(/[: ]/g, '-');
     $('#rpOut').innerHTML = '<div style="overflow-x:auto;border-radius:8px">' + rpHtml + '</div>'; $('#rpPr').disabled = false;
   };
@@ -762,7 +762,7 @@ async function tabReports() {
     try {
       const url = REPORT_VIEW_URL + '?r=' + rpDoc.id;
       if (!rpSaved) {
-        await setDoc(doc(db, 'site_public', 'rpt-' + rpDoc.id), { ownerUid: user.uid, shopName: SHOP_NAME, typeId: rpDoc.typeId, g: rpDoc.g, notes: rpDoc.notes, gen: rpDoc.gen, no: rpDoc.no, lang: lang(), count: rpDoc.rows.length,
+        await setDoc(doc(db, 'site_public', 'rpt-' + rpDoc.id), { ownerUid: user.uid, shopName: SHOP_NAME, typeId: rpDoc.typeId, g: rpDoc.g, notes: rpDoc.notes, gen: rpDoc.gen, no: rpDoc.no, lang: lang(), count: rpDoc.rows.length, gt: rpDoc.gt,
           rows: rpDoc.rows.map(r => ({ n: r.name, p: r.phone, a: r.addr, s: r.src, d: r.due, u: r.paid })), expiresAt: Date.now() + 60 * 864e5, createdAt: serverTimestamp() });
         rpSaved = true;
       }
