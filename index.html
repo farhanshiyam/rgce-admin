@@ -24,6 +24,11 @@
   --input-bg:#0f1824; --danger:#ef7b7b; --success:#5fcf86; --warn:#e0a24a; --primary:#4f8fc9;
 }
 *{box-sizing:border-box}
+/* Copy protection: nothing can be selected except inside input / textarea boxes */
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+img{-webkit-user-drag:none}
+@media print{body *{display:none!important}}
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Bengali","Noto Sans",Arial,sans-serif;min-height:100vh}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -70,6 +75,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 .chk input{margin-top:4px}
 .rules{width:100%;font:12px/1.45 ui-monospace,Consolas,monospace;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);min-height:230px}
 .big{font-size:26px;font-weight:700;color:var(--primary)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}
+.stat{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--input-bg)}
+.stat small{display:block;color:var(--muted);font-size:12.5px}
+.stat b{display:block;font-size:20px;margin-top:2px}
+.stat.bad b{color:var(--danger)}
+.pill{display:inline-block;padding:2px 12px;border-radius:999px;font-weight:700;font-size:13px;border:1px solid var(--border)}
+.pill.on{color:var(--success);border-color:var(--success)}
+.pill.off{color:var(--danger);border-color:var(--danger)}
 .spin{display:inline-block;width:18px;height:18px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media(max-width:520px){.kv{grid-template-columns:1fr}.card{padding:16px 14px}}
@@ -86,14 +99,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { initializeFirestore, doc, setDoc, getDoc, getDocFromServer, serverTimestamp }
+import { initializeFirestore, doc, setDoc, getDoc, getDocFromServer, serverTimestamp, writeBatch }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ============ SETTINGS (change here only) ============ */
 const MAIN_APP_URL = "https://farhanshiyam.github.io/sites/";   // address of the main app (for the "Main app" button)
 const SHOP_NAME    = "Roza Gift Corner & Electric";
 const PUB_ID       = "rgce-main";                               // public notice document id (same as the main app)
-const AUTO_LOCK_MIN = 10;                                       // asks the master password again after this many idle minutes
 
 /* Same Firebase project as the main app -> same login, same data, same Firestore rules */
 const firebaseConfig = {
@@ -110,6 +122,24 @@ const db = initializeFirestore(fbApp, {});          // no offline cache: the adm
 setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 const RULES_TEXT = "match /site_public/{id} {\n  allow get: if true;\n  allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;\n  allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;\n}\nmatch /public_dues/{id} {\n  allow get: if true;\n  allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;\n  allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;\n}";
+
+/* ============ copy protection: text can only be selected / copied inside input boxes ============ */
+(function protect() {
+  const isField = el => { const n = (el && el.tagName || '').toLowerCase(); return n === 'input' || n === 'textarea' || n === 'select'; };
+  const stop = e => { if (!isField(e.target)) e.preventDefault(); };
+  ['contextmenu', 'dragstart', 'selectstart', 'copy', 'cut'].forEach(ev => document.addEventListener(ev, stop, true));
+  document.addEventListener('keydown', e => {
+    if (isField(e.target)) return;
+    const k = (e.key || '').toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'a', 's', 'u', 'p'].includes(k)) e.preventDefault();
+  }, true);
+  document.addEventListener('selectionchange', () => {
+    if (isField(document.activeElement)) return;
+    const sel = getSelection(); if (!sel || sel.isCollapsed) return;
+    const n = sel.anchorNode, el = n && (n.nodeType === 1 ? n : n.parentElement);
+    if (!isField(el) && !(el && el.closest && el.closest('input,textarea'))) sel.removeAllRanges();
+  });
+})();
 
 /* ============ language (shares the main app's rgce_lang setting) ============ */
 const T = {
@@ -129,6 +159,10 @@ const T = {
   saveFail:'Could not save to the cloud.', confirmDel:'Delete this notice?', admNone:'No notices yet.', pubNoRule:'Saved. The public copy needs the Firestore rules shown in the "Public due" tab.', loadFail:'Could not load notices from the cloud.',
   dueH:'Public due lookup', dueNote:'Fully automatic. The main app publishes every customer change within seconds while a staff device is open. Customers check their due by phone number. This panel only shows the status.',
   dueCount:'Published records', dueAt:'Last published', dueNever:'Not published yet (open the main app with customer data loaded).', dueRefresh:'Refresh', dueRules:'Firestore rules to add (once)', dueCopy:'Copy rules', dueCopied:'Copied.', dueFail:'Could not read the status.',
+  tOverview:'Overview', ovH:'Business overview', ovNote:'Read-only numbers from the cloud copy of the main app.', ovCust:'Customers', ovInv:'Invoices', ovOut:'Total outstanding due', ovWith:'Customers with due', ovBilled:'Total billed', ovRecv:'Total received', ovSync:'Last cloud sync', ovVer:'App version', ovTop:'Top 10 due customers', ovNone:'No cloud data found yet.', ovFail:'Could not read the cloud data.', ovNoDue:'Nobody has any due.',
+  nExport:'Export notices', nImport:'Import notices', nImpBad:'This file is not a valid notices backup.', nImpAsk:'Replace {n} current notice(s) with {m} notice(s) from the file?', nImpOk:'Imported and published.', nBackup:'Backup',
+  dueState:'Public lookup', dueOn:'ON', dueOff:'OFF', dueTurnOff:'Turn OFF and remove all public records', dueTurnOn:'Turn ON', dueOffAsk:'Remove all public due records and stop publishing? Customers will no longer be able to look up their due.', dueOnDone:'Turned ON. The main app republishes within about a minute while it is open on a staff device.', dueOffDone:'Turned OFF. All public records removed.',
+  acLast:'Last sign-in', acCreated:'Account created', sheetSoon:'',
   mon:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], idle:'Locked after inactivity.'
  },
  bn:{
@@ -147,6 +181,10 @@ const T = {
   saveFail:'ক্লাউডে সংরক্ষণ করা যায়নি।', confirmDel:'এই নোটিশ মুছে ফেলবেন?', admNone:'এখনো কোনো নোটিশ নেই।', pubNoRule:'সংরক্ষিত। পাবলিক কপির জন্য "পাবলিক বাকি" ট্যাবে দেখানো Firestore নিয়ম যোগ করতে হবে।', loadFail:'ক্লাউড থেকে নোটিশ আনা যায়নি।',
   dueH:'সবার জন্য বাকি দেখার সুবিধা', dueNote:'পুরো স্বয়ংক্রিয়। স্টাফের ডিভাইসে মেইন অ্যাপ খোলা থাকলে কাস্টমারের প্রতিটি পরিবর্তন কয়েক সেকেন্ডে প্রকাশ হয়। কাস্টমার ফোন নম্বর দিয়ে বাকি দেখে। এই প্যানেল শুধু অবস্থা দেখায়।',
   dueCount:'প্রকাশিত রেকর্ড', dueAt:'সর্বশেষ প্রকাশ', dueNever:'এখনো প্রকাশ হয়নি (কাস্টমার ডেটা লোড করে মেইন অ্যাপ খুলুন)।', dueRefresh:'রিফ্রেশ', dueRules:'যে Firestore নিয়ম যোগ করতে হবে (একবার)', dueCopy:'নিয়ম কপি', dueCopied:'কপি হয়েছে।', dueFail:'অবস্থা পড়া যায়নি।',
+  tOverview:'ওভারভিউ', ovH:'ব্যবসার সারসংক্ষেপ', ovNote:'মেইন অ্যাপের ক্লাউড কপি থেকে শুধু দেখার তথ্য।', ovCust:'কাস্টমার', ovInv:'ইনভয়েস', ovOut:'মোট বাকি', ovWith:'বাকি আছে এমন কাস্টমার', ovBilled:'মোট বিল', ovRecv:'মোট আদায়', ovSync:'সর্বশেষ ক্লাউড সিঙ্ক', ovVer:'অ্যাপ সংস্করণ', ovTop:'সবচেয়ে বেশি বাকির ১০ কাস্টমার', ovNone:'এখনো ক্লাউডে কোনো ডেটা নেই।', ovFail:'ক্লাউড ডেটা পড়া যায়নি।', ovNoDue:'কারো কোনো বাকি নেই।',
+  nExport:'নোটিশ এক্সপোর্ট', nImport:'নোটিশ ইমপোর্ট', nImpBad:'এটি সঠিক নোটিশ ব্যাকআপ ফাইল নয়।', nImpAsk:'বর্তমান {n}টি নোটিশের জায়গায় ফাইলের {m}টি নোটিশ বসাবেন?', nImpOk:'ইমপোর্ট ও প্রকাশ হয়েছে।', nBackup:'ব্যাকআপ',
+  dueState:'পাবলিক বাকি দেখা', dueOn:'চালু', dueOff:'বন্ধ', dueTurnOff:'বন্ধ করুন ও সব পাবলিক তথ্য মুছুন', dueTurnOn:'চালু করুন', dueOffAsk:'সব পাবলিক বাকির তথ্য মুছে প্রকাশ বন্ধ করবেন? কাস্টমাররা আর নিজের বাকি দেখতে পারবে না।', dueOnDone:'চালু হয়েছে। স্টাফের ডিভাইসে মেইন অ্যাপ খোলা থাকলে প্রায় এক মিনিটে আবার প্রকাশ হবে।', dueOffDone:'বন্ধ হয়েছে। সব পাবলিক তথ্য মোছা হয়েছে।',
+  acLast:'সর্বশেষ সাইন ইন', acCreated:'অ্যাকাউন্ট তৈরি', sheetSoon:'',
   mon:['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টে','অক্টো','নভে','ডিসে'], idle:'নিষ্ক্রিয় থাকায় লক হয়েছে।'
  }
 };
@@ -156,12 +194,13 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const $ = (s, r) => (r || document).querySelector(s);
 const pad = n => ('0' + n).slice(-2);
 const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const fmtDT = v => { if (!v) return '—'; const x = new Date(v.toDate ? v.toDate() : v); if (isNaN(x)) return '—'; return fmtDate(x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate())) + ' ' + pad(x.getHours()) + ':' + pad(x.getMinutes()); };
+const money = n => '\u09F3' + Math.round(n).toLocaleString('en-US');
 const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.length !== 3) return d; return (+p[2]) + ' ' + t('mon')[+p[1] - 1] + ' ' + p[0]; };
 
 /* ============ state ============ */
-let user = null, unlocked = false, tab = 'notices', booted = false;
+let user = null, tab = 'overview', booted = false;
 let N = { list: [], on: false, editing: '', pubErr: false };
-let pwFails = 0, pwLockUntil = 0, idleTimer = 0;
 const app = $('#app');
 
 /* ============ password helpers (identical scheme to the main app: salted PBKDF2 hashes in private_config/<uid>) ============ */
@@ -178,22 +217,6 @@ async function makeEntry(pw) {
   return { salt, iter, hash: await derive(pw, salt, iter) };
 }
 async function getFresh(ref) { try { return await getDocFromServer(ref); } catch (e) { if (e && e.code === 'permission-denied') throw e; return await getDoc(ref); } }
-/* returns 'ok' | 'bad' | 'nosetup' | 'locked' | 'error' */
-async function verifyMaster(input) {
-  if (Date.now() < pwLockUntil) return 'locked';
-  try {
-    if (!(window.crypto && crypto.subtle)) return 'error';
-    const snap = await getFresh(cfgRef());
-    const d = snap.exists() ? (snap.data() || {}) : {};
-    /* same rule as the main app's footer unlock: the "unlock" password; older accounts fall back to their Admin / Master password */
-    const e = [d.unlock, d.admin, d.master].find(x => x && x.salt && x.hash);
-    if (!e) return 'nosetup';
-    const h = await derive(String(input || ''), e.salt, e.iter || 150000);
-    if (h === e.hash) { pwFails = 0; return 'ok'; }
-    if (++pwFails >= 5) { pwLockUntil = Date.now() + 60000; pwFails = 0; }
-    return 'bad';
-  } catch (err) { console.warn(err); window.__lastPwErr = (err && (err.code || err.message)) || 'unknown'; return 'error'; }
-}
 async function changePassword(role, pw) {
   const data = { updatedAt: serverTimestamp() }; data[role] = await makeEntry(pw);
   await setDoc(cfgRef(), data, { merge: true });
@@ -224,7 +247,6 @@ function renderHeader() {
   let h = '<button class="btn btn-sm" data-a="theme">' + esc(t('dark')) + '</button>'
         + '<button class="btn btn-sm" data-a="lang">' + (isBn ? 'English' : 'বাংলা') + '</button>'
         + '<a class="btn btn-sm" href="' + esc(MAIN_APP_URL) + '">' + esc(t('mainApp')) + '</a>';
-  if (user && unlocked) h += '<button class="btn btn-sm" data-a="lock">' + esc(t('lock')) + '</button>';
   if (user) h += '<button class="btn btn-sm" data-a="logout">' + esc(t('logout')) + '</button>';
   r.innerHTML = h;
   document.documentElement.lang = isBn ? 'bn' : 'en'; document.title = t('title');
@@ -238,7 +260,6 @@ document.addEventListener('click', async e => {
     const nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', nx);
     try { localStorage.setItem('rgce_admin_theme', nx); } catch (x) {}
   }
-  else if (a === 'lock') lockPanel();
   else if (a === 'logout') { try { await signOut(auth); } catch (x) {} }
 });
 try { const th = localStorage.getItem('rgce_admin_theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
@@ -262,7 +283,6 @@ function render() {
   renderHeader();
   if (!booted) return;
   if (!user) return renderLogin();
-  if (!unlocked) return renderGate();
   renderPanel();
 }
 function setMsg(id, m, cls) { const e = $('#' + id); if (e) { e.textContent = m || ''; e.className = 'msg' + (cls ? ' ' + cls : ''); } }
@@ -291,40 +311,45 @@ function renderLogin() {
   $('#lgE').focus();
 }
 
-function renderGate(note) {
-  let lastErr = '';
-  app.innerHTML = '<div class="card center"><h2>' + esc(t('gateH')) + '</h2><p class="muted">' + esc(t('gateP')) + '</p>'
-    + '<div class="fg"><input id="gtP" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" aria-label="' + esc(t('gateH')) + '"></div>'
-    + '<div class="msg ' + (note ? 'warn' : '') + '" id="gtM" role="status">' + esc(note || '') + '</div>'
-    + '<button class="btn btn-primary" id="gtGo">' + esc(t('gateBtn')) + '</button></div>';
-  const go = async () => {
-    const btn = $('#gtGo'); btn.disabled = true; setMsg('gtM', '');
-    const r = await verifyMaster($('#gtP').value);
-    btn.disabled = false; lastErr = window.__lastPwErr || '';
-    if (r === 'ok') { unlocked = true; startIdle(); await openPanel(); return; }
-    setMsg('gtM', r === 'locked' ? t('gateLocked') : r === 'nosetup' ? t('gateNone') : r === 'error' ? t('gateErr') + (lastErr ? ' (' + lastErr + ')' : '') : t('gateBad'));
-    if (r === 'bad') { $('#gtP').value = ''; $('#gtP').focus(); }
-  };
-  $('#gtGo').addEventListener('click', go);
-  $('#gtP').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  $('#gtP').focus();
-}
-
 async function openPanel() {
   app.innerHTML = '<div class="card center" style="text-align:center"><span class="spin"></span></div>';
   renderHeader();
   let failed = false;
   try { await loadNotices(); } catch (e) { console.warn(e); failed = true; }
-  tab = 'notices'; renderPanel();
+  tab = 'overview'; renderPanel();
   if (failed) setMsg('nMsg', t('loadFail'));
 }
 
 function renderPanel() {
   renderHeader();
-  const tabs = [['notices', 'tNotices'], ['pass', 'tPass'], ['due', 'tDue'], ['account', 'tAccount']];
+  const tabs = [['overview', 'tOverview'], ['notices', 'tNotices'], ['due', 'tDue'], ['pass', 'tPass'], ['account', 'tAccount']];
   app.innerHTML = '<div class="tabs" role="tablist">' + tabs.map(x => '<button class="tab" role="tab" data-tab="' + x[0] + '" aria-selected="' + (tab === x[0]) + '">' + esc(t(x[1])) + '</button>').join('') + '</div><div id="tabBody"></div>';
   app.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.getAttribute('data-tab'); renderPanel(); }));
-  ({ notices: tabNotices, pass: tabPass, due: tabDue, account: tabAccount })[tab]();
+  ({ overview: tabOverview, notices: tabNotices, pass: tabPass, due: tabDue, account: tabAccount })[tab]();
+}
+
+/* ---------- tab: overview (read-only, from shops/<uid>) ---------- */
+async function tabOverview() {
+  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('ovH')) + '</h2><p class="muted">' + esc(t('ovNote')) + '</p><div id="ovBox" style="margin-top:12px"><span class="spin"></span></div>'
+    + '<div class="msg" id="ovMsg" role="status"></div><button class="btn btn-sm" id="ovRef">' + esc(t('dueRefresh')) + '</button></div>';
+  const load = async () => {
+    const box = $('#ovBox'); if (!box) return; setMsg('ovMsg', '');
+    try {
+      const snap = await getFresh(doc(db, 'shops', user.uid));
+      if (!snap.exists()) { box.innerHTML = '<p class="muted">' + esc(t('ovNone')) + '</p>'; return; }
+      const d = snap.data() || {}, cs = Array.isArray(d.customers) ? d.customers : [];
+      let billed = 0, recv = 0, out = 0, withDue = 0; const rows = [];
+      cs.forEach(c => { const due = +c.due || 0, paid = +c.paid || 0, o = Math.max(0, due - paid); billed += due; recv += paid; out += o; if (o > 0) { withDue++; rows.push({ n: String(c.name || '-'), a: String(c.address || ''), o }); } });
+      rows.sort((a, b) => b.o - a.o);
+      const st = (l, v, bad) => '<div class="stat' + (bad ? ' bad' : '') + '"><small>' + esc(l) + '</small><b>' + esc(v) + '</b></div>';
+      box.innerHTML = '<div class="grid">' + st(t('ovCust'), cs.length) + st(t('ovInv'), d.invoiceCount != null ? d.invoiceCount : (Array.isArray(d.invoices) ? d.invoices.length : 0))
+        + st(t('ovOut'), money(out), out > 0) + st(t('ovWith'), withDue) + st(t('ovBilled'), money(billed)) + st(t('ovRecv'), money(recv))
+        + st(t('ovSync'), fmtDT(d.updatedAt)) + st(t('ovVer'), d.appVersion || '—') + '</div>'
+        + '<h3>' + esc(t('ovTop')) + '</h3>'
+        + (rows.length ? rows.slice(0, 10).map(r => '<div class="row"><div class="t"><b>' + esc(r.n) + '</b><small>' + esc(r.a) + '</small></div><b>' + esc(money(r.o)) + '</b></div>').join('') : '<p class="muted">' + esc(t('ovNoDue')) + '</p>');
+    } catch (e) { console.warn(e); box.innerHTML = ''; setMsg('ovMsg', t('ovFail')); }
+  };
+  $('#ovRef').addEventListener('click', load); load();
 }
 
 /* ---------- tab: account ---------- */
@@ -332,6 +357,8 @@ function tabAccount() {
   $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('accH')) + '</h2><div class="kv" style="margin-top:12px">'
     + '<b>' + esc(t('accIn')) + '</b><span>' + esc(user.email || '') + '</span>'
     + '<b>' + esc(t('accUid')) + '</b><code>' + esc(user.uid) + '</code>'
+    + '<b>' + esc(t('acLast')) + '</b><span>' + esc(fmtDT(user.metadata && user.metadata.lastSignInTime)) + '</span>'
+    + '<b>' + esc(t('acCreated')) + '</b><span>' + esc(fmtDT(user.metadata && user.metadata.creationTime)) + '</span>'
     + '<b>' + esc(t('accCloud')) + '</b><span style="color:var(--success);font-weight:600">' + esc(t('accCloudV')) + '</span>'
     + '<b>' + esc(t('accScope')) + '</b><span>' + esc(t('accScopeV')) + '</span></div></div>';
 }
@@ -363,7 +390,8 @@ function tabNotices() {
     + '<div class="fg"><label for="nBody">' + esc(t('admBody')) + '</label><textarea id="nBody" rows="4"></textarea></div>'
     + '<div class="fg"><label for="nDate">' + esc(t('admDate')) + '</label><input type="date" id="nDate"></div>'
     + '<button class="btn btn-primary" id="nSave">' + esc(t('admPub')) + '</button> <button class="btn" id="nCancel" hidden>' + esc(t('admCancel')) + '</button>'
-    + '<div class="msg" id="nMsg" role="status"></div><div id="nList"></div></div>';
+    + '<div class="msg" id="nMsg" role="status"></div><div id="nList"></div>'
+    + '<h3>' + esc(t('nBackup')) + '</h3><button class="btn btn-sm" id="nExp">' + esc(t('nExport')) + '</button> <button class="btn btn-sm" id="nImp">' + esc(t('nImport')) + '</button><input type="file" id="nFile" accept="application/json,.json" hidden></div>';
   $('#nTk').checked = !!N.on; resetForm(); renderList();
   const done = () => setMsg('nMsg', N.pubErr ? t('pubNoRule') : t('saved'), N.pubErr ? 'warn' : 'ok');
   $('#nTk').addEventListener('change', async e => {
@@ -383,6 +411,22 @@ function tabNotices() {
     btn.disabled = false; renderList();
   });
   $('#nCancel').addEventListener('click', () => { resetForm(); setMsg('nMsg', ''); });
+  $('#nExp').addEventListener('click', () => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: 'rgce-notices', ticker: !!N.on, notices: N.list }, null, 2)], { type: 'application/json' }));
+    a.download = 'rgce-notices-' + todayStr() + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+  $('#nImp').addEventListener('click', () => $('#nFile').click());
+  $('#nFile').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+    let data; try { data = JSON.parse(await f.text()); } catch (x) { setMsg('nMsg', t('nImpBad')); return; }
+    const list = normN(Array.isArray(data) ? data : (data && data.notices));
+    if (!list.length) { setMsg('nMsg', t('nImpBad')); return; }
+    if (!confirm(t('nImpAsk').replace('{n}', N.list.length).replace('{m}', list.length))) return;
+    const backup = JSON.stringify(N.list); N.list = list; sortN(); resetForm();
+    try { await saveNotices(); setMsg('nMsg', N.pubErr ? t('pubNoRule') : t('nImpOk'), N.pubErr ? 'warn' : 'ok'); }
+    catch (x) { console.warn(x); N.list = JSON.parse(backup); setMsg('nMsg', t('saveFail')); }
+    renderList();
+  });
   $('#nList').addEventListener('click', async e => {
     const b = e.target.closest && e.target.closest('[data-an]'); if (!b) return;
     const id = b.getAttribute('data-nid'), act = b.getAttribute('data-an'), n = N.list.find(x => x.id === id); if (!n) return;
@@ -410,19 +454,23 @@ function renderList() {
 }
 
 /* ---------- tab: public due status ---------- */
+let dueOff = false, dueIds = [];
 async function tabDue() {
   $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('dueH')) + '</h2><p class="muted">' + esc(t('dueNote')) + '</p>'
-    + '<div class="kv" style="margin:14px 0"><b>' + esc(t('dueCount')) + '</b><span class="big" id="dCount">…</span><b>' + esc(t('dueAt')) + '</b><span id="dAt">…</span></div>'
-    + '<div class="msg" id="dMsg" role="status"></div><button class="btn btn-sm" id="dRef">' + esc(t('dueRefresh')) + '</button>'
+    + '<div class="kv" style="margin:14px 0"><b>' + esc(t('dueState')) + '</b><span><span class="pill" id="dState">…</span></span><b>' + esc(t('dueCount')) + '</b><span class="big" id="dCount">…</span><b>' + esc(t('dueAt')) + '</b><span id="dAt">…</span></div>'
+    + '<div class="msg" id="dMsg" role="status"></div><button class="btn btn-sm" id="dRef">' + esc(t('dueRefresh')) + '</button> <button class="btn btn-sm" id="dSwitch" disabled>…</button>'
     + '<h3>' + esc(t('dueRules')) + '</h3><textarea class="rules" id="dRules" readonly></textarea>'
     + '<div style="margin-top:8px"><button class="btn btn-sm" id="dCopy">' + esc(t('dueCopy')) + '</button></div></div>';
   $('#dRules').value = RULES_TEXT;
   $('#dCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(RULES_TEXT); } catch (e) { $('#dRules').select(); document.execCommand('copy'); } setMsg('dMsg', t('dueCopied'), 'ok'); });
-  const load = async () => {
-    setMsg('dMsg', '');
+  const load = async (keep) => {
+    if (keep !== true) setMsg('dMsg', '');
     try {
       const snap = await getFresh(cfgRef()); const d = snap.exists() ? (snap.data() || {}) : {};
       const ids = Array.isArray(d.dcuDueIds) ? d.dcuDueIds.length : 0;
+      dueOff = d.dcuDueOff === true; dueIds = Array.isArray(d.dcuDueIds) ? d.dcuDueIds : [];
+      const ps = $('#dState'); if (ps) { ps.textContent = t(dueOff ? 'dueOff' : 'dueOn'); ps.className = 'pill ' + (dueOff ? 'off' : 'on'); }
+      const sw = $('#dSwitch'); if (sw) { sw.textContent = t(dueOff ? 'dueTurnOn' : 'dueTurnOff'); sw.disabled = false; sw.className = 'btn btn-sm' + (dueOff ? '' : ' btn-danger'); }
       if ($('#dCount')) $('#dCount').textContent = ids;
       if ($('#dAt')) {
         if (d.dcuDueAt) { const x = new Date(d.dcuDueAt); $('#dAt').textContent = fmtDate(x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate())) + ' ' + pad(x.getHours()) + ':' + pad(x.getMinutes()); }
@@ -430,19 +478,22 @@ async function tabDue() {
       }
     } catch (e) { console.warn(e); if ($('#dCount')) $('#dCount').textContent = '—'; setMsg('dMsg', t('dueFail')); }
   };
-  $('#dRef').addEventListener('click', load); load();
-}
-
-/* ============ lock / idle ============ */
-function lockPanel(msg) {
-  unlocked = false; clearTimeout(idleTimer); N = { list: [], on: false, editing: '', pubErr: false };
-  render(); if (msg && user) renderGate(msg);
-}
-let idleBound = false;
-const bumpIdle = () => { clearTimeout(idleTimer); if (unlocked) idleTimer = setTimeout(() => lockPanel(t('idle')), AUTO_LOCK_MIN * 60000); };
-function startIdle() {
-  if (!idleBound) { idleBound = true; ['click', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, bumpIdle, { passive: true })); }
-  bumpIdle();
+  $('#dRef').addEventListener('click', () => load());
+  $('#dSwitch').addEventListener('click', async () => {
+    const sw = $('#dSwitch'); sw.disabled = true; setMsg('dMsg', '');
+    try {
+      if (dueOff) { await setDoc(cfgRef(), { dcuDueOff: false }, { merge: true }); setMsg('dMsg', t('dueOnDone'), 'ok'); }
+      else {
+        if (!confirm(t('dueOffAsk'))) { sw.disabled = false; return; }
+        await setDoc(cfgRef(), { dcuDueOff: true }, { merge: true });          // set the stop flag first so the main app cannot republish
+        for (let k = 0; k < dueIds.length; k += 400) { const b = writeBatch(db); dueIds.slice(k, k + 400).forEach(id => b.delete(doc(db, 'public_dues', id))); await b.commit(); }
+        await setDoc(cfgRef(), { dcuDueIds: [] }, { merge: true });
+        setMsg('dMsg', t('dueOffDone'), 'ok');
+      }
+    } catch (e) { console.warn(e); setMsg('dMsg', t('saveFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
+    await load(true);
+  });
+  load();
 }
 
 /* ============ start ============ */
@@ -451,8 +502,9 @@ onAuthStateChanged(auth, u => {
   booted = true;
   const changed = (u && u.uid) !== (user && user.uid);
   user = u || null;
-  if (changed || !user) unlocked = false;
-  render();
+  if (!user) { N = { list: [], on: false, editing: '', pubErr: false }; render(); }
+  else if (changed) openPanel();
+  else render();
 });
 </script>
 </body>
