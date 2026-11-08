@@ -334,8 +334,8 @@ const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.
 let user = null, tab = 'overview', booted = false;
 /* One clean address per section: .../rgce-admin/customers, .../rgce-admin/public-due ... (no # and no ?).
    GitHub Pages has no rewrites, so a tiny 404.html hands deep links back to this page (see 404.html). */
-const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', notices: 'notices', due: 'public-due', pass: 'passwords', account: 'account' };
-const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', notices: 'tNotices', due: 'tDue', pass: 'tPass', account: 'tAccount' };
+const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', pass: 'passwords', account: 'account' };
+const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', pass: 'tPass', account: 'tAccount' };
 const BASE = (() => {
   const seg = location.pathname.split('/'); const last = seg[seg.length - 1];
   if (Object.values(ROUTE).includes(last.toLowerCase()) || last.indexOf('.') > -1) seg.pop();
@@ -427,6 +427,7 @@ const ICON = {
   overview: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
   customers: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   reports: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/>',
+  compare: '<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>',
   notices: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
   due: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   pass: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
@@ -442,7 +443,7 @@ const ico = k => '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" st
 function renderSide() {
   const s = $('#side'); if (!s) return;
   if (!user) { s.innerHTML = ''; return; }
-  const keys = ['overview', 'customers', 'reports', 'notices', 'due', 'pass', 'account'];
+  const keys = ['overview', 'customers', 'reports', 'compare', 'notices', 'due', 'pass', 'account'];
   const mail = user.email || '', isBn = lang() === 'bn';
   const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
   s.innerHTML = '<div class="sb-head"><button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="' + (document.body.classList.contains('side-open') ? 'true' : 'false') + '"><span></span><span></span><span></span></button>'
@@ -571,7 +572,7 @@ function renderPanel() {
   if (location.pathname !== want || location.search || location.hash) { try { history.replaceState(null, '', want); } catch (e) {} }
   document.title = t(LABEL[tab]) + ' - ' + t('title');
   app.innerHTML = '<div id="tabBody"></div>';
-  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, notices: tabNotices, pass: tabPass, due: tabDue, account: tabAccount })[tab]();
+  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, account: tabAccount })[tab]();
 }
 
 /* ---------- tab: overview (read-only, from shops/<uid>) ---------- */
@@ -730,7 +731,7 @@ async function tabReports() {
     + '<label style="display:flex;gap:8px;align-items:center;margin:4px 0 8px;font-size:14px"><input id="rpH" type="checkbox" checked> ' + esc(rl('rHid')) + '</label>'
     + '<label style="display:flex;gap:8px;align-items:center;margin:4px 0 12px;font-size:14px"><input id="rpG" type="checkbox" checked> ' + esc(rl('rGT')) + '</label>'
     + '<div class="msg" id="rpMsg" role="status"></div><p class="muted" id="rpLink"></p><div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-primary" id="rpGo" disabled>' + esc(rl('rGen')) + '</button><button class="btn" id="rpPr" disabled>' + esc(rl('rPrint')) + '</button><button class="btn" id="rpRef">' + esc(rl('rRef')) + '</button></div></div>'
-    + '<style>' + RCSS + '</style><div id="rpOut"></div>';
+    + '<div class="card" id="rpList" style="margin-top:14px"></div><style>' + RCSS + '</style><div id="rpOut"></div>';
   const fill = (id, key) => { const el = $(id), cur = el.value; const vs = Array.from(new Set((rpRows || []).map(r => r[key]).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'en', { numeric: true })); el.innerHTML = '<option value="">' + esc(rl('rAll')) + '</option>' + vs.map(v => '<option>' + esc(v) + '</option>').join(''); el.value = cur; };
   const gen = async () => {
     if (!rpRows) return; setMsg('rpMsg', ''); $('#rpLink').textContent = '';
@@ -768,16 +769,146 @@ async function tabReports() {
     try {
       const url = REPORT_VIEW_URL + '?r=' + rpDoc.id;
       if (!rpSaved) {
+        const rpExp = Date.now() + 60 * 864e5;
         await setDoc(doc(db, 'site_public', 'rpt-' + rpDoc.id), { ownerUid: user.uid, shopName: SHOP_NAME, typeId: rpDoc.typeId, g: rpDoc.g, notes: rpDoc.notes, gen: rpDoc.gen, no: rpDoc.no, lang: lang(), count: rpDoc.rows.length, gt: rpDoc.gt,
-          rows: rpDoc.rows.map(r => ({ n: r.name, p: r.phone, a: r.addr, s: r.src, d: r.due, u: r.paid })), expiresAt: Date.now() + 60 * 864e5, createdAt: serverTimestamp() });
+          rows: rpDoc.rows.map(r => ({ n: r.name, p: r.phone, a: r.addr, s: r.src, d: r.due, u: r.paid })), expiresAt: rpExp, createdAt: serverTimestamp() });
         rpSaved = true;
+        try { const li = await rptIdx(); li.unshift({ id: rpDoc.id, ty: rpDoc.typeId, no: rpDoc.no, gen: rpDoc.gen, n: rpDoc.rows.length, at: Date.now(), exp: rpExp }); await rptPut(li.slice(0, RPT_MAX)); if ($('#rpList')) rptList(); } catch (e) { console.warn(e); }
       }
       $('#rpLink').innerHTML = esc(rl('rLink')) + ': <a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>';
       printHtml(rpHtml, rpName);
     } catch (e) { console.warn(e); setMsg('rpMsg', rl('rSaveFail') + ' [' + ((e && e.code) || (e && e.message) || 'error') + ']'); }
     if ($('#rpPr')) $('#rpPr').disabled = false;
   });
+  load(); rptList();
+}
+
+/* ---------- online copies of reports: list + delete (index kept in private_config/<uid>.dcuReports) ---------- */
+Object.assign(RL.en, { lH: 'Online copies of reports', lNote: 'Printing a report saves an online copy for its QR link. Delete the copies you no longer need; the QR link of a deleted copy stops working.', lNone: 'No online copies saved yet.', lOpen: 'Open', lDel: 'Delete', lExpired: 'Expired', lDays: 'days left', lRows: 'rows', lDelExp: 'Delete expired', lDelAll: 'Delete all', lAsk1: 'Delete this online copy? Its QR link will stop working.', lAskN: 'Delete {n} online copies? Their QR links will stop working.', lDone: 'Deleted.', lFail: 'Could not delete.', lNoExp: 'There are no expired copies.' });
+Object.assign(RL.bn, { lH: 'রিপোর্টের অনলাইন কপি', lNote: 'রিপোর্ট প্রিন্ট করলে QR লিংকের জন্য একটা অনলাইন কপি সেভ হয়। যেগুলো আর লাগবে না মুছে দিন; মুছলে ওই কপির QR লিংক আর খুলবে না।', lNone: 'এখনো কোনো অনলাইন কপি সেভ হয়নি।', lOpen: 'খুলুন', lDel: 'মুছুন', lExpired: 'মেয়াদ শেষ', lDays: 'দিন বাকি', lRows: 'সারি', lDelExp: 'মেয়াদ শেষগুলো মুছুন', lDelAll: 'সব মুছুন', lAsk1: 'এই অনলাইন কপি মুছবেন? এর QR লিংক আর খুলবে না।', lAskN: '{n}টি অনলাইন কপি মুছবেন? এগুলোর QR লিংক আর খুলবে না।', lDone: 'মুছে ফেলা হয়েছে।', lFail: 'মুছা যায়নি।', lNoExp: 'মেয়াদ শেষ হওয়া কপি নেই।' });
+const RPT_MAX = 200;
+const rptIdx = async () => { const s = await getFresh(cfgRef()); const d = s.exists() ? (s.data() || {}) : {}; return Array.isArray(d.dcuReports) ? d.dcuReports : []; };
+const rptPut = list => setDoc(cfgRef(), { dcuReports: list }, { merge: true });
+const rptKill = async id => { const ref = doc(db, 'site_public', 'rpt-' + id); const s = await getDoc(ref); if (!s.exists()) return; const b = writeBatch(db); b.delete(ref); await b.commit(); };   // a copy that is already gone counts as deleted
+async function rptList() {
+  const box = $('#rpList'); if (!box) return;
+  box.innerHTML = '<h2>' + esc(rl('lH')) + '</h2><p class="muted">' + esc(rl('lNote')) + '</p><div id="rlRows"></div><div class="msg" id="rlMsg" role="status"></div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><button class="btn btn-sm" id="rlRef">' + esc(rl('rRef')) + '</button><button class="btn btn-sm btn-danger" id="rlExp">' + esc(rl('lDelExp')) + '</button><button class="btn btn-sm btn-danger" id="rlAll">' + esc(rl('lDelAll')) + '</button></div>';
+  let list = [];
+  const draw = () => {
+    const now = Date.now();
+    $('#rlRows').innerHTML = list.length ? list.map(x => { const left = Math.ceil(((+x.exp || 0) - now) / 864e5), dead = left <= 0;
+      return '<div class="row"><div class="t"><b>' + esc(rl('ty_' + x.ty)) + ' <span class="chip ' + (dead ? '' : 'on') + '">' + esc(dead ? rl('lExpired') : left + ' ' + rl('lDays')) + '</span></b><small>' + esc(rl('cNo')) + ' ' + esc(x.no) + ' \u2022 ' + esc(x.gen) + ' \u2022 ' + (x.n || 0) + ' ' + esc(rl('lRows')) + '</small></div>'
+        + '<div class="acts"><a class="btn btn-sm" target="_blank" rel="noopener" href="' + esc(REPORT_VIEW_URL + '?r=' + x.id) + '">' + esc(rl('lOpen')) + '</a><button class="btn btn-sm btn-danger" data-rd="' + esc(x.id) + '">' + esc(rl('lDel')) + '</button></div></div>'; }).join('')
+      : '<div class="row"><span class="muted">' + esc(rl('lNone')) + '</span></div>';
+  };
+  const load = async () => { setMsg('rlMsg', ''); try { list = await rptIdx(); } catch (e) { console.warn(e); setMsg('rlMsg', rl('rFail')); } if ($('#rlRows')) draw(); };
+  const drop = async ids => {
+    setMsg('rlMsg', ''); const gone = new Set();
+    try { for (const id of ids) { await rptKill(id); gone.add(id); } setMsg('rlMsg', rl('lDone'), 'ok'); }
+    catch (e) { console.warn(e); setMsg('rlMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
+    try { if (gone.size) { const cur = (await rptIdx()).filter(x => !gone.has(x.id)); await rptPut(cur); list = cur; } } catch (e) { console.warn(e); list = list.filter(x => !gone.has(x.id)); }
+    if ($('#rlRows')) draw();
+  };
+  box.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-rd]'); if (b && confirm(rl('lAsk1'))) drop([b.getAttribute('data-rd')]); });
+  $('#rlRef').addEventListener('click', load);
+  $('#rlExp').addEventListener('click', () => { const ids = list.filter(x => (+x.exp || 0) <= Date.now()).map(x => x.id); if (!ids.length) return setMsg('rlMsg', rl('lNoExp')); if (confirm(rl('lAskN').replace('{n}', ids.length))) drop(ids); });
+  $('#rlAll').addEventListener('click', () => { if (list.length && confirm(rl('lAskN').replace('{n}', list.length))) drop(list.map(x => x.id)); });
   load();
+}
+
+/* ---------- tab: compare (monthly snapshots: due of every address / source, then month vs month) ---------- */
+T.en.tCompare = 'Compare'; T.bn.tCompare = 'তুলনা';
+Object.assign(RL.en, { cmH: 'Compare due: month to month', cmNote: 'A snapshot records the due of every address and source on the day you save it. Save one at the end of each month, then compare it with the live data or with another snapshot. Comparing needs at least one saved snapshot.', cmBy: 'Group by', cmBase: 'Base (older)', cmWith: 'Compare with', cmLive: 'Live data now', cmSort: 'Sort by', cmSNow: 'Due now (highest first)', cmSChg: 'Change (largest increase first)', cmGo: 'Compare', cmSnap: 'Save snapshot now', cmPr: 'Print', cmDel: 'Delete base snapshot', cmNone: 'No snapshot yet. Press "Save snapshot now" to create the first one.', cmSaved: 'Snapshot saved.', cmAsk: 'Delete the selected base snapshot?', cmTitle: 'Due comparison', cChg: 'Change', cBefore: 'Before', cAfter: 'After', cDueC: 'Due customers' });
+Object.assign(RL.bn, { cmH: 'বাকির তুলনা: মাসে মাসে', cmNote: 'স্ন্যাপশট সেভ করার দিনের প্রতিটি ঠিকানা ও সোর্সের বাকি লিখে রাখে। প্রতি মাসের শেষে একটা সেভ করুন, তারপর এখনকার ডেটা বা অন্য স্ন্যাপশটের সঙ্গে মেলান। তুলনার জন্য অন্তত একটা স্ন্যাপশট লাগবে।', cmBy: 'গ্রুপ', cmBase: 'পুরোনো (ভিত্তি)', cmWith: 'যার সঙ্গে তুলনা', cmLive: 'এখনকার ডেটা', cmSort: 'সাজান', cmSNow: 'এখনকার বাকি (বেশি আগে)', cmSChg: 'পরিবর্তন (বেশি বাড়া আগে)', cmGo: 'তুলনা করুন', cmSnap: 'এখনকার স্ন্যাপশট সেভ করুন', cmPr: 'প্রিন্ট', cmDel: 'ভিত্তি স্ন্যাপশট মুছুন', cmNone: 'এখনো স্ন্যাপশট নেই। প্রথমটা বানাতে "এখনকার স্ন্যাপশট সেভ করুন" চাপুন।', cmSaved: 'স্ন্যাপশট সেভ হয়েছে।', cmAsk: 'নির্বাচিত ভিত্তি স্ন্যাপশট মুছবেন?', cmTitle: 'বাকির তুলনা', cChg: 'পরিবর্তন', cBefore: 'আগে', cAfter: 'পরে', cDueC: 'বাকিওয়ালা কাস্টমার' });
+const SNAP_MAX = 36;
+const grpOf = (rows, key) => { const m = {}; rows.forEach(r => { const k = r[key] || ''; const g = m[k] || (m[k] = { k, n: 0, d: 0, p: 0, b: 0, c: 0 }); g.n++; g.d += r.due; g.p += r.paid; g.b += r.bal; if (r.bal > 0) g.c++; }); return Object.keys(m).map(k => m[k]); };
+const snapOf = rows => { const t0 = { n: rows.length, d: 0, p: 0, b: 0, c: 0 }; rows.forEach(r => { t0.d += r.due; t0.p += r.paid; t0.b += r.bal; if (r.bal > 0) t0.c++; }); return { at: Date.now(), tot: t0, addr: grpOf(rows, 'addr'), src: grpOf(rows, 'src') }; };
+const msStamp = ms => { const d = new Date(ms); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const snapIdx = async () => { const s = await getFresh(cfgRef()); const d = s.exists() ? (s.data() || {}) : {}; return (Array.isArray(d.dcuSnaps) ? d.dcuSnaps : []).slice().sort((a, b) => b.at - a.at); };
+function compareHtml(o) {
+  const sgn = n => (n > 0 ? '+' : n < 0 ? '\u2212' : '') + money(Math.abs(n));
+  const pct = (a, b) => a > 0 ? (b >= a ? '+' : '\u2212') + Math.abs((b - a) / a * 100).toFixed(1) + '%' : (b > 0 ? 'new' : '\u2014');
+  let n = 0; const none = rl(o.g === 'addr' ? 'cNoAddr' : 'cNoSrc');
+  const tr = x => '<tr><td class="sl">' + (++n) + '</td><td>' + esc(x.k || none) + '</td><td class="n">' + money(x.a) + '</td><td class="n">' + money(x.b) + '</td><td class="n">' + sgn(x.b - x.a) + '</td><td class="n">' + pct(x.a, x.b) + '</td><td class="n">' + x.ca + ' \u2192 ' + x.cb + '</td></tr>';
+  const th = (l, c) => '<th' + (c ? ' class="' + c + '"' : '') + '>' + esc(rl(l)) + '</th>';
+  return '<div class="rp"><div class="lh"><div class="lg">RGCE</div><div class="lt"><h1>' + esc(SHOP_NAME) + '</h1><p class="tg">' + esc(SHOP_TAG) + '</p><p>' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '</p></div><div class="rn"><b>REPORT</b><span>' + esc(rl('cDate')) + ': ' + esc(o.gen) + '</span></div></div>'
+    + '<h2>' + esc(rl('cmTitle')) + ' (' + esc(rl(o.g === 'addr' ? 'rAddr' : 'rSrc')) + ')</h2><div class="meta">' + esc(rl('cBefore')) + ': ' + esc(o.aLabel) + ' \u2022 ' + esc(rl('cAfter')) + ': ' + esc(o.bLabel) + '</div>'
+    + '<table class="dt"><colgroup><col style="width:7%"><col style="width:28%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:10%"><col style="width:13%"></colgroup>'
+    + '<thead><tr>' + th('cSL', 'sl') + th(o.g === 'addr' ? 'cAddr' : 'cSrc') + '<th class="n">' + esc(rl('cDue') + ' (' + rl('cBefore') + ')') + '</th><th class="n">' + esc(rl('cDue') + ' (' + rl('cAfter') + ')') + '</th>' + th('cChg', 'n') + '<th class="n">%</th>' + th('cDueC', 'n') + '</tr></thead><tbody>'
+    + o.rows.map(tr).join('') + '<tr class="gt"><td colspan="2">' + esc(rl('cTot')) + '</td><td class="n">' + money(o.ta) + '</td><td class="n">' + money(o.tb) + '</td><td class="n">' + sgn(o.tb - o.ta) + '</td><td class="n">' + pct(o.ta, o.tb) + '</td><td class="n">' + o.tca + ' \u2192 ' + o.tcb + '</td></tr></tbody></table>'
+    + '<div class="ft"><div class="l"><b>' + esc(SHOP_NAME) + '</b> \u2022 ' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '<br>Powered by Farhan Tanzid Shiyam</div></div></div>';
+}
+async function tabCompare() {
+  const fld = (id, lbl, ctl) => '<div class="fg"><label for="' + id + '">' + esc(lbl) + '</label>' + ctl + '</div>';
+  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(rl('cmH')) + '</h2><p class="muted">' + esc(rl('cmNote')) + '</p><div class="grid" style="margin-top:12px">'
+    + fld('cmG', rl('cmBy'), '<select id="cmG"><option value="addr">' + esc(rl('rAddr')) + '</option><option value="src">' + esc(rl('rSrc')) + '</option></select>')
+    + fld('cmA', rl('cmBase'), '<select id="cmA"></select>') + fld('cmB', rl('cmWith'), '<select id="cmB"></select>')
+    + fld('cmS', rl('cmSort'), '<select id="cmS"><option value="now">' + esc(rl('cmSNow')) + '</option><option value="chg">' + esc(rl('cmSChg')) + '</option></select>') + '</div>'
+    + '<div class="msg" id="cmMsg" role="status"></div><div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-primary" id="cmGo" disabled>' + esc(rl('cmGo')) + '</button><button class="btn" id="cmSnap" disabled>' + esc(rl('cmSnap')) + '</button><button class="btn" id="cmPr" disabled>' + esc(rl('cmPr')) + '</button><button class="btn btn-sm btn-danger" id="cmDel" disabled>' + esc(rl('cmDel')) + '</button></div></div>'
+    + '<style>' + RCSS + '</style><div id="cmOut"></div>';
+  let snaps = [], live = null, html = '', name = '';
+  const label = s => msStamp(s.at) + ' \u2022 ' + s.tot.n + ' / ' + money(s.tot.b);
+  const fill = () => {
+    const a = $('#cmA'), b = $('#cmB'), ca = a.value, cb = b.value, opt = s => '<option value="' + s.at + '">' + esc(label(s)) + '</option>';
+    a.innerHTML = snaps.map(opt).join(''); b.innerHTML = '<option value="live">' + esc(rl('cmLive')) + '</option>' + snaps.map(opt).join('');
+    const d0 = new Date(), pm = new Date(d0.getFullYear(), d0.getMonth() - 1, 1).getTime(), cm = new Date(d0.getFullYear(), d0.getMonth(), 1).getTime();
+    const pick = snaps.find(s => s.at >= pm && s.at < cm) || snaps.find(s => s.at < cm) || snaps[0];
+    a.value = ca && snaps.some(s => String(s.at) === ca) ? ca : (pick ? String(pick.at) : ''); b.value = cb && (cb === 'live' || snaps.some(s => String(s.at) === cb)) ? cb : 'live';
+    $('#cmGo').disabled = !snaps.length || !live; $('#cmDel').disabled = !snaps.length; $('#cmSnap').disabled = !live;
+    setMsg('cmMsg', snaps.length ? '' : rl('cmNone'));
+  };
+  const load = async () => {
+    try {
+      const [s, c] = await Promise.all([snapIdx(), getFresh(doc(db, 'shops', user.uid))]); const d = c.exists() ? (c.data() || {}) : {};
+      snaps = s; live = (Array.isArray(d.customers) ? d.customers : []).map(x => { const due = +x.due || 0, paid = +x.paid || 0; return { due, paid, bal: Math.max(0, due - paid), addr: String(x.address || '').trim(), src: String(x.source == null ? '' : x.source).trim() }; });
+      if ($('#cmA')) fill();
+    } catch (e) { console.warn(e); setMsg('cmMsg', rl('rFail')); }
+  };
+  const side = v => v === 'live' ? snapOf(live) : snaps.find(s => String(s.at) === v);
+  $('#cmGo').addEventListener('click', () => {
+    const A = side($('#cmA').value), B = side($('#cmB').value), g = $('#cmG').value; if (!A || !B) return;
+    const ma = {}, mb = {}; (A[g] || []).forEach(x => ma[x.k] = x); (B[g] || []).forEach(x => mb[x.k] = x);
+    const rows = Array.from(new Set(Object.keys(ma).concat(Object.keys(mb)))).map(k => ({ k, a: ma[k] ? ma[k].b : 0, b: mb[k] ? mb[k].b : 0, ca: ma[k] ? ma[k].c : 0, cb: mb[k] ? mb[k].c : 0 }));
+    rows.sort($('#cmS').value === 'chg' ? (x, y) => (y.b - y.a) - (x.b - x.a) : (x, y) => y.b - x.b);
+    const sl = s => s === $('#cmB').value && s === 'live' ? rl('cmLive') + ' (' + msStamp(Date.now()) + ')' : msStamp(+s);
+    const gs = stamp(); html = compareHtml({ g, rows, gen: gs, aLabel: sl($('#cmA').value), bLabel: sl($('#cmB').value), ta: A.tot.b, tb: B.tot.b, tca: A.tot.c, tcb: B.tot.c });
+    name = 'RGCE-Compare-' + g + '-' + gs.replace(/[: ]/g, '-'); $('#cmOut').innerHTML = '<div style="overflow-x:auto;border-radius:8px">' + html + '</div>'; $('#cmPr').disabled = false;
+  });
+  $('#cmSnap').addEventListener('click', async () => {
+    if (!live) return; setMsg('cmMsg', ''); $('#cmSnap').disabled = true;
+    try { const cur = await snapIdx(); cur.unshift(snapOf(live)); await setDoc(cfgRef(), { dcuSnaps: cur.slice(0, SNAP_MAX) }, { merge: true }); setMsg('cmMsg', rl('cmSaved'), 'ok'); await load(); }
+    catch (e) { console.warn(e); setMsg('cmMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
+    if ($('#cmSnap')) $('#cmSnap').disabled = !live;
+  });
+  $('#cmDel').addEventListener('click', async () => {
+    const v = $('#cmA').value; if (!v || !confirm(rl('cmAsk'))) return; setMsg('cmMsg', '');
+    try { const cur = (await snapIdx()).filter(s => String(s.at) !== v); await setDoc(cfgRef(), { dcuSnaps: cur }, { merge: true }); await load(); setMsg('cmMsg', rl('lDone'), 'ok'); }
+    catch (e) { console.warn(e); setMsg('cmMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
+  });
+  $('#cmPr').addEventListener('click', () => { if (html) printHtml(html, name); });
+  load();
+}
+
+/* ---------- due-checker maintenance switch (public doc site_public/due-checker; the page reads it) ---------- */
+Object.assign(RL.en, { mntH: 'Due-checker maintenance mode', mntNote: 'Shows a maintenance message on the due-checker page and hides its search. Customer data is not deleted; switch it off to bring the page back. To remove the public data itself, use the stop switch above.', mntState: 'State', mntOn: 'Maintenance ON', mntOff: 'Site live', mntEn: 'Message (English)', mntBn: 'Message (Bangla)', mntTurnOn: 'Turn maintenance on', mntTurnOff: 'Turn maintenance off', mntSave: 'Save message', mntDone: 'Saved.', mntPhEn: 'Under maintenance. Please try again later.', mntPhBn: 'রক্ষণাবেক্ষণ চলছে। কিছুক্ষণ পর আবার চেষ্টা করুন।' });
+Object.assign(RL.bn, { mntH: 'due-checker রক্ষণাবেক্ষণ মোড', mntNote: 'due-checker পেজে "রক্ষণাবেক্ষণ চলছে" বার্তা দেখায় ও খোঁজার ঘর লুকিয়ে রাখে। কাস্টমারের ডেটা মোছে না; বন্ধ করলেই পেজ ফিরে আসবে। পাবলিক ডেটা সরাতে চাইলে ওপরের স্টপ সুইচ ব্যবহার করুন।', mntState: 'অবস্থা', mntOn: 'রক্ষণাবেক্ষণ চলছে', mntOff: 'সাইট চালু', mntEn: 'বার্তা (ইংরেজি)', mntBn: 'বার্তা (বাংলা)', mntTurnOn: 'রক্ষণাবেক্ষণ চালু করুন', mntTurnOff: 'রক্ষণাবেক্ষণ বন্ধ করুন', mntSave: 'বার্তা সেভ করুন', mntDone: 'সেভ হয়েছে।', mntPhEn: 'Under maintenance. Please try again later.', mntPhBn: 'রক্ষণাবেক্ষণ চলছে। কিছুক্ষণ পর আবার চেষ্টা করুন।' });
+function mntCard() {
+  const fld = (id, lbl, ph) => '<div class="fg"><label for="' + id + '">' + esc(lbl) + '</label><input id="' + id + '" maxlength="140" placeholder="' + esc(ph) + '"></div>';
+  $('#tabBody').insertAdjacentHTML('beforeend', '<div class="card" style="margin-top:14px"><h2>' + esc(rl('mntH')) + '</h2><p class="muted">' + esc(rl('mntNote')) + '</p>'
+    + '<div class="kv" style="margin:14px 0"><b>' + esc(rl('mntState')) + '</b><span><span class="pill" id="mState">…</span></span></div>'
+    + fld('mEn', rl('mntEn'), rl('mntPhEn')) + fld('mBn', rl('mntBn'), rl('mntPhBn'))
+    + '<div class="msg" id="mMsg" role="status"></div><div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-sm" id="mSwitch" disabled>…</button><button class="btn btn-sm" id="mSave" disabled>' + esc(rl('mntSave')) + '</button></div></div>');
+  const ref = () => doc(db, 'site_public', 'due-checker'); let on = false, ready = false;
+  const paint = () => { const p = $('#mState'); if (!p) return; p.textContent = rl(on ? 'mntOn' : 'mntOff'); p.className = 'pill ' + (on ? 'off' : 'on'); const b = $('#mSwitch'); b.textContent = rl(on ? 'mntTurnOff' : 'mntTurnOn'); b.className = 'btn btn-sm' + (on ? '' : ' btn-danger'); b.disabled = !ready; $('#mSave').disabled = !ready; };
+  const write = async next => {
+    setMsg('mMsg', ''); $('#mSwitch').disabled = true; $('#mSave').disabled = true;
+    try { await setDoc(ref(), { ownerUid: user.uid, shopName: SHOP_NAME, on: next, msgEn: $('#mEn').value.trim(), msgBn: $('#mBn').value.trim(), updatedAt: serverTimestamp() }); on = next; setMsg('mMsg', rl('mntDone'), 'ok'); }
+    catch (e) { console.warn(e); setMsg('mMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
+    paint();
+  };
+  $('#mSwitch').addEventListener('click', () => write(!on)); $('#mSave').addEventListener('click', () => write(on));
+  (async () => { try { const s = await getFresh(ref()); const d = s.exists() ? (s.data() || {}) : {}; on = d.on === true; if ($('#mEn')) { $('#mEn').value = d.msgEn || ''; $('#mBn').value = d.msgBn || ''; } ready = true; } catch (e) { console.warn(e); setMsg('mMsg', rl('rFail')); } paint(); })();
 }
 
 /* ---------- tab: account ---------- */
@@ -900,6 +1031,7 @@ async function tabDue() {
     + '<h3>' + esc(t('dueRules')) + '</h3><textarea class="rules" id="dRules" readonly></textarea>'
     + '<div style="margin-top:8px"><button class="btn btn-sm" id="dCopy">' + esc(t('dueCopy')) + '</button></div></div>';
   $('#dRules').value = RULES_TEXT;
+  mntCard();
   $('#dCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(RULES_TEXT); } catch (e) { $('#dRules').select(); document.execCommand('copy'); } setMsg('dMsg', t('dueCopied'), 'ok'); });
   const load = async (keep) => {
     if (keep !== true) setMsg('dMsg', '');
