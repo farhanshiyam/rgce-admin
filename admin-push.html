@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>push</title></head><body>
+<!-- Hidden helper page loaded in an iframe by the admin panel. The admin panel switches IndexedDB off for itself, but Firebase
+     Cloud Messaging needs IndexedDB, so the push token is created here and sent back to the panel with postMessage. -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+/* Firebase console > Project settings > Cloud Messaging > Web Push certificates > "Key pair" (public key). */
+const VAPID_KEY = 'PASTE_YOUR_WEB_PUSH_PUBLIC_KEY_HERE';
+const cfg = { apiKey: 'AIzaSyCZOUCY2_19d6g5pnuVmEi1prfc-wBeN9w', authDomain: 'rgce-sparkdesk-2.firebaseapp.com', projectId: 'rgce-sparkdesk-2',
+  storageBucket: 'rgce-sparkdesk-2.firebasestorage.app', messagingSenderId: '1057222039031', appId: '1:1057222039031:web:f82f411076a579b905caf2' };
+const reply = (m) => parent.postMessage(Object.assign({ type: 'rgce-push' }, m), location.origin);
+async function run() {
+  if (VAPID_KEY.indexOf('PASTE') === 0) return reply({ error: 'no-vapid' });
+  if (!(await isSupported()) || Notification.permission !== 'granted') return reply({ error: 'unsupported-or-denied' });
+  try {
+    const reg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' });
+    await navigator.serviceWorker.ready;
+    const token = await getToken(getMessaging(initializeApp(cfg)), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    reply(token ? { token } : { error: 'no-token' });
+  } catch (e) { reply({ error: String(e && e.code || e) }); }
+}
+addEventListener('message', (e) => { if (e.origin === location.origin && e.data && e.data.type === 'rgce-push-go') run(); });
+parent.postMessage({ type: 'rgce-push-ready' }, location.origin);
+</script></body></html>
