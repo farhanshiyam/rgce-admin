@@ -6,7 +6,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
 /* Firebase console > Project settings > Cloud Messaging > Web Push certificates > "Key pair" (public key). */
-const VAPID_KEY = 'PASTE_YOUR_WEB_PUSH_PUBLIC_KEY_HERE';
+const VAPID_KEY = 'BO_gseGbtgp0dCjARn86PShk_HD_eZG9Ht77iDBdm0_2-CVflYTz3NTiYMvH7D6LUXgjc2Q5KC4RnTxTTUw76IU';
 const cfg = { apiKey: 'AIzaSyCZOUCY2_19d6g5pnuVmEi1prfc-wBeN9w', authDomain: 'rgce-sparkdesk-2.firebaseapp.com', projectId: 'rgce-sparkdesk-2',
   storageBucket: 'rgce-sparkdesk-2.firebasestorage.app', messagingSenderId: '1057222039031', appId: '1:1057222039031:web:f82f411076a579b905caf2' };
 const reply = (m) => parent.postMessage(Object.assign({ type: 'rgce-push' }, m), location.origin);
