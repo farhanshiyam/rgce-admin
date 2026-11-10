@@ -279,7 +279,7 @@ const T = {
   badLogin:'Wrong email or password.', tooMany:'Too many attempts. Wait a few minutes.', noUser:'No account with this email.', badEmail:'Invalid email address.', disabled:'Account disabled.', refBlocked:'Sign-in is blocked for this address (API key website restriction). Add this site to the Firebase API key referrers - see the fix steps.', badDomain:'This domain is not authorized in Firebase. Add it under Authentication > Settings > Authorized domains.', badKey:'The Firebase API key is not valid for this site.', failCode:'Login failed: ', sdkFail:'The Firebase scripts did not load. Check your internet, then refresh the page.',  needEmail:'Enter your email and password.', resetSent:'Password reset email sent.', resetNeed:'Enter your email first.', netErr:'Could not connect. Check your internet.',
   gateH:'Access key', gateP:'This panel is protected. Enter your access key to continue.', gateKey:'Access key', gateBtn:'Open panel', gateBad:'Wrong access key.', gateLocked:'Too many wrong attempts. Wait 1 minute.',
   gateNone:'No password is set yet. Open the main app and complete the first-time password setup, then come back.', gateErr:'Could not verify the key. Open this page over https.',
-  tAccount:'Account', tNotices:'Notices', tPass:'Passwords', tDue:'Public due', menu:'Menu',
+  tAccount:'Account', tNotices:'Notices', tPass:'Passwords', tDue:'Public due', tChats:'Chats', menu:'Menu',
   accH:'Account', accIn:'Logged in as', accUid:'UID', accCloud:'Cloud', accCloudV:'Connected (internet required)', accScope:'This panel', accScopeV:'Admin work only. Customers, invoices and reports stay in the main app.',
   chgH:'Change password', chgWhich:'Which password', chgUnlock:'Access password (footer unlock in the main app)', chgDanger:'Clear ALL Data',
   chgNew:'New password (min 6 characters)', chgNew2:'Repeat new password', chgBtn:'Save new password', chgShort:'At least 6 characters.', chgMis:'Repeat password does not match.', chgOk:'Password updated.', chgFail:'Failed: ',
@@ -302,7 +302,7 @@ const T = {
   badLogin:'ইমেইল বা পাসওয়ার্ড ভুল।', tooMany:'অনেকবার চেষ্টা হয়েছে। কয়েক মিনিট অপেক্ষা করুন।', noUser:'এই ইমেইলে কোনো অ্যাকাউন্ট নেই।', badEmail:'ইমেইল ঠিকানা সঠিক নয়।', disabled:'অ্যাকাউন্ট বন্ধ করা আছে।', refBlocked:'এই ঠিকানা থেকে সাইন ইন আটকানো আছে (API key-এর ওয়েবসাইট সীমাবদ্ধতা)। Firebase API key-তে এই সাইট যোগ করুন।', badDomain:'এই ডোমেইন Firebase-এ অনুমোদিত নয়। Authentication > Settings > Authorized domains-এ যোগ করুন।', badKey:'এই সাইটের জন্য Firebase API key কাজ করছে না।', failCode:'লগইন ব্যর্থ: ', sdkFail:'Firebase স্ক্রিপ্ট লোড হয়নি। ইন্টারনেট দেখে পেজ রিফ্রেশ করুন।',  needEmail:'ইমেইল ও পাসওয়ার্ড লিখুন।', resetSent:'পাসওয়ার্ড রিসেট ইমেইল পাঠানো হয়েছে।', resetNeed:'আগে ইমেইল লিখুন।', netErr:'সংযোগ হয়নি। ইন্টারনেট দেখুন।',
   gateH:'অ্যাক্সেস কী', gateP:'এই প্যানেল সুরক্ষিত। চালিয়ে যেতে অ্যাক্সেস কী দিন।', gateKey:'অ্যাক্সেস কী', gateBtn:'প্যানেল খুলুন', gateBad:'অ্যাক্সেস কী ভুল।', gateLocked:'অনেকবার ভুল হয়েছে। ১ মিনিট অপেক্ষা করুন।',
   gateNone:'এখনো কোনো পাসওয়ার্ড সেট করা নেই। মেইন অ্যাপ খুলে প্রথমবারের পাসওয়ার্ড সেটআপ শেষ করে আবার আসুন।', gateErr:'কী যাচাই করা যায়নি। পেজটি https-এ খুলুন।',
-  tAccount:'অ্যাকাউন্ট', tNotices:'নোটিশ', tPass:'পাসওয়ার্ড', tDue:'পাবলিক বাকি', menu:'মেনু',
+  tAccount:'অ্যাকাউন্ট', tNotices:'নোটিশ', tPass:'পাসওয়ার্ড', tDue:'পাবলিক বাকি', tChats:'চ্যাট', menu:'মেনু',
   accH:'অ্যাকাউন্ট', accIn:'লগইন করা আছে', accUid:'UID', accCloud:'ক্লাউড', accCloudV:'সংযুক্ত (ইন্টারনেট লাগবে)', accScope:'এই প্যানেল', accScopeV:'শুধু অ্যাডমিনের কাজ। কাস্টমার, ইনভয়েস ও রিপোর্ট মেইন অ্যাপেই থাকে।',
   chgH:'পাসওয়ার্ড পরিবর্তন', chgWhich:'কোন পাসওয়ার্ড', chgUnlock:'অ্যাক্সেস পাসওয়ার্ড (মেইন অ্যাপের ফুটার আনলক)', chgDanger:'সব ডেটা মুছুন',
   chgNew:'নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)', chgNew2:'নতুন পাসওয়ার্ড আবার লিখুন', chgBtn:'নতুন পাসওয়ার্ড সংরক্ষণ', chgShort:'কমপক্ষে ৬ অক্ষর দিন।', chgMis:'পাসওয়ার্ড মেলেনি।', chgOk:'পাসওয়ার্ড বদলানো হয়েছে।', chgFail:'ব্যর্থ: ',
@@ -334,8 +334,8 @@ const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.
 let user = null, tab = 'overview', booted = false;
 /* One clean address per section: .../rgce-admin/customers, .../rgce-admin/public-due ... (no # and no ?).
    GitHub Pages has no rewrites, so a tiny 404.html hands deep links back to this page (see 404.html). */
-const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', pass: 'passwords', account: 'account' };
-const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', pass: 'tPass', account: 'tAccount' };
+const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', chats: 'chats', pass: 'passwords', account: 'account' };
+const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', chats: 'tChats', pass: 'tPass', account: 'tAccount' };
 const BASE = (() => {
   const seg = location.pathname.split('/'); const last = seg[seg.length - 1];
   if (Object.values(ROUTE).includes(last.toLowerCase()) || last.indexOf('.') > -1) seg.pop();
@@ -424,6 +424,7 @@ function setMenu(open) {
   const b = $('#menuBtn'); if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 const ICON = {
+  chats: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   overview: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
   customers: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   reports: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/>',
@@ -443,7 +444,7 @@ const ico = k => '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" st
 function renderSide() {
   const s = $('#side'); if (!s) return;
   if (!user) { s.innerHTML = ''; return; }
-  const keys = ['overview', 'customers', 'reports', 'compare', 'notices', 'due', 'pass', 'account'];
+  const keys = ['overview', 'customers', 'chats', 'reports', 'compare', 'notices', 'due', 'pass', 'account'];
   const mail = user.email || '', isBn = lang() === 'bn';
   const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
   s.innerHTML = '<div class="sb-head"><button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="' + (document.body.classList.contains('side-open') ? 'true' : 'false') + '"><span></span><span></span><span></span></button>'
@@ -455,6 +456,7 @@ function renderSide() {
     + '<a class="nav" href="' + esc(MAIN_APP_URL) + '" title="' + esc(t('mainApp')) + '">' + ico('back') + '<span>' + esc(t('mainApp')) + '</span></a>'
     + item('lock', 'lock', t('lock')) + item('logout', 'out', t('logout'), 'danger') + '</div>';
   s.querySelectorAll('a[data-tab]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); goTab(a.getAttribute('data-tab')); }));
+  paintChatBadge();
 }
 /* back / forward buttons and typed addresses */
 window.addEventListener('popstate', () => {
@@ -530,6 +532,7 @@ function renderGate() {
 function render() {
   renderHeader();
   if (!booted) return;
+  if (!user || !unlocked) stopChats();
   if (!user) return renderLogin();
   if (!unlocked) return renderGate();
   renderPanel();
@@ -561,6 +564,7 @@ function renderLogin() {
 }
 
 function openPanel() {
+  startChats();
   N = { list: [], on: false, editing: '', pubErr: false, loaded: false };
   tab = tabFromUrl() || 'overview'; render();
 }
@@ -572,7 +576,7 @@ function renderPanel() {
   if (location.pathname !== want || location.search || location.hash) { try { history.replaceState(null, '', want); } catch (e) {} }
   document.title = t(LABEL[tab]) + ' - ' + t('title');
   app.innerHTML = '<div id="tabBody"></div>';
-  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, account: tabAccount })[tab]();
+  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, chats: tabChats, account: tabAccount })[tab]();
 }
 
 /* ---------- tab: overview (read-only, from shops/<uid>) ---------- */
@@ -1064,6 +1068,274 @@ async function tabDue() {
     await load(true);
   });
   load();
+}
+
+/* ============ CHATS: customer inbox, 72-hour retention review, manual purge ============ */
+const { collection, query, orderBy, where, limit, onSnapshot, deleteDoc, getDocs, increment, Timestamp, deleteField } = SDK;
+const CT = {
+  en: { h: 'Customer chats', search: 'Search name, number or message', none: 'No chats yet. They appear here live when a customer writes from the due-check page.', noMatch: 'No chat matches.',
+        pick: 'Select a chat from the list.', back: 'Back', send: 'Send', ph: 'Write a reply...', created: 'Started', lastAct: 'Last activity', delAt: 'Scheduled deletion', ext: 'Extended', times: 'time(s)',
+        extBtn: 'Extend 3 days', delBtn: 'Delete thread', seen: 'Seen', sent: 'Sent', you: 'You', left: 'd left', overdue: 'review due', loadErr: 'Could not load chats (', loadErr2: '). Check the Firestore rules and that you are signed in with the owner account.',
+        retH: 'Chats that reached 72 hours', retP: 'Confirm deletion, or extend by 3 days. If nobody answers, the server extends the chat by 3 days automatically.', retDel: 'Confirm Deletion', retExt: 'Extend 3 Days', retDelAll: 'Delete all', retExtAll: 'Extend all',
+        askDel: 'Delete this chat and all its messages for good?', askExt: 'Extend this chat by 3 days?', askDelAll: 'Delete ALL listed chats and their messages for good?', askExtAll: 'Extend ALL listed chats by 3 days?',
+        done: 'Done.', fail: 'Failed: ', pgH: 'Purge chat history', pgP: 'Delete every chat whose last activity falls in this date range. Leave one side empty for open-ended.', from: 'From', to: 'To', pgCount: 'Count', pgDel: 'Delete matching chats',
+        pgNeed: 'Pick at least one date.', pgFound: '{n} chat(s) match.', pgAsk: 'Delete {n} chat(s) and all their messages for good?', pgDone: '{n} chat(s) deleted.',
+        push: 'Enable alerts on this device', pushOn: 'Alerts enabled on this device.', pushDeny: 'Notifications are blocked in the browser.', pushNo: 'This browser does not support push.', pushVapid: 'Add the web push key inside admin-push.html first.', pushErr: 'Could not enable alerts: ',
+        unreadT: 'unread' },
+  bn: { h: 'গ্রাহকদের চ্যাট', search: 'নাম, নম্বর বা মেসেজ খুঁজুন', none: 'এখনো কোনো চ্যাট নেই। বাকি-চেক পেজ থেকে গ্রাহক লিখলে এখানে সাথে সাথে দেখা যাবে।', noMatch: 'কোনো চ্যাট মেলেনি।',
+        pick: 'তালিকা থেকে একটি চ্যাট বেছে নিন।', back: 'পিছনে', send: 'পাঠান', ph: 'উত্তর লিখুন...', created: 'শুরু', lastAct: 'শেষ কার্যকলাপ', delAt: 'মোছার নির্ধারিত সময়', ext: 'বাড়ানো হয়েছে', times: 'বার',
+        extBtn: '৩ দিন বাড়ান', delBtn: 'থ্রেড মুছুন', seen: 'দেখা হয়েছে', sent: 'পাঠানো', you: 'আপনি', left: 'দিন বাকি', overdue: 'রিভিউ বাকি', loadErr: 'চ্যাট লোড হয়নি (', loadErr2: ')। Firestore রুলস এবং মালিকের অ্যাকাউন্টে লগইন আছে কিনা দেখুন।',
+        retH: '৭২ ঘণ্টা পূর্ণ হওয়া চ্যাট', retP: 'মুছে ফেলার নিশ্চিত করুন, অথবা ৩ দিন বাড়ান। কেউ সাড়া না দিলে সার্ভার নিজে থেকেই ৩ দিন বাড়িয়ে দেবে।', retDel: 'মুছে ফেলুন', retExt: '৩ দিন বাড়ান', retDelAll: 'সব মুছুন', retExtAll: 'সব বাড়ান',
+        askDel: 'এই চ্যাট ও এর সব মেসেজ চিরতরে মুছবেন?', askExt: 'এই চ্যাট ৩ দিন বাড়াবেন?', askDelAll: 'তালিকার সব চ্যাট ও মেসেজ চিরতরে মুছবেন?', askExtAll: 'তালিকার সব চ্যাট ৩ দিন বাড়াবেন?',
+        done: 'হয়েছে।', fail: 'ব্যর্থ: ', pgH: 'চ্যাট ইতিহাস মুছুন', pgP: 'শেষ কার্যকলাপ এই তারিখের মধ্যে পড়লে সেই সব চ্যাট মুছে যাবে। এক দিক ফাঁকা রাখলে সীমাহীন।', from: 'থেকে', to: 'পর্যন্ত', pgCount: 'গুনুন', pgDel: 'মিলে যাওয়া চ্যাট মুছুন',
+        pgNeed: 'অন্তত একটি তারিখ দিন।', pgFound: '{n}টি চ্যাট মিলেছে।', pgAsk: '{n}টি চ্যাট ও সব মেসেজ চিরতরে মুছবেন?', pgDone: '{n}টি চ্যাট মোছা হয়েছে।',
+        push: 'এই ডিভাইসে অ্যালার্ট চালু করুন', pushOn: 'এই ডিভাইসে অ্যালার্ট চালু হয়েছে।', pushDeny: 'ব্রাউজারে নোটিফিকেশন বন্ধ করা আছে।', pushNo: 'এই ব্রাউজারে পুশ সাপোর্ট নেই।', pushVapid: 'আগে admin-push.html ফাইলে ওয়েব পুশ কী বসান।', pushErr: 'অ্যালার্ট চালু হয়নি: ',
+        unreadT: 'অপঠিত' }
+};
+const ct = k => (CT[lang()][k] != null ? CT[lang()][k] : CT.en[k]);
+const H72 = 72 * 3600 * 1000;
+let CH = { list: [], due: [], unread: 0, started: false, err: '', sel: '', msgs: [], q: '', unsubList: null, unsubDue: null, unsubMsgs: null, timer: 0, marking: false, busy: false };
+let DEEP = null;
+(function () {                       // deep links from push notifications: .../chats?chat=ID&act=confirm|extend&review=1
+  try {
+    const p = new URLSearchParams(location.search), o = { chat: p.get('chat') || '', act: p.get('act') || '', review: p.get('review') || '' };
+    if (o.chat || o.act || o.review) sessionStorage.setItem('rgce_chat_deep', JSON.stringify(o));
+    DEEP = JSON.parse(sessionStorage.getItem('rgce_chat_deep') || 'null');
+  } catch (x) {}
+})();
+
+function startChats() {
+  if (CH.started || !user) return; CH.started = true;
+  CH.unsubList = onSnapshot(query(collection(db, 'chats'), orderBy('lastActivity', 'desc'), limit(300)), snap => {
+    CH.list = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); CH.err = ''; chatsChanged();
+  }, e => { console.warn('chats', e); CH.err = (e && e.code) || 'error'; chatsChanged(); });
+  const subDue = () => {            // time-series deletion query: chats whose deletionScheduledAt has passed (single-field index)
+    if (CH.unsubDue) CH.unsubDue();
+    CH.unsubDue = onSnapshot(query(collection(db, 'chats'), where('deletionScheduledAt', '<=', Timestamp.now()), orderBy('deletionScheduledAt'), limit(100)), snap => {
+      CH.due = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); chatsChanged();
+    }, e => console.warn('due chats', e));
+  };
+  subDue(); CH.timer = setInterval(subDue, 15 * 60 * 1000);
+}
+function stopChats() {
+  if (CH.unsubList) CH.unsubList(); if (CH.unsubDue) CH.unsubDue(); if (CH.unsubMsgs) CH.unsubMsgs(); clearInterval(CH.timer);
+  CH = { list: [], due: [], unread: 0, started: false, err: '', sel: '', msgs: [], q: '', unsubList: null, unsubDue: null, unsubMsgs: null, timer: 0, marking: false, busy: false };
+  paintChatBadge();
+}
+function paintChatBadge() {
+  const a = document.querySelector('a[data-tab="chats"]'); if (!a) return;
+  let b = a.querySelector('.cbd'); const n = CH.unread + CH.due.length;
+  if (!n) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('span'); b.className = 'cbd'; a.appendChild(b); }
+  b.textContent = n > 99 ? '99+' : n; b.title = CH.unread + ' ' + ct('unreadT') + (CH.due.length ? ', ' + CH.due.length + ' ' + ct('overdue') : '');
+}
+function chatsChanged() {
+  CH.unread = CH.list.reduce((s, c) => s + (+c.unreadAdmin || 0), 0); paintChatBadge();
+  if (tab !== 'chats' || !$('#cList')) return;
+  drawRetention(); drawList(); drawThreadHead();
+}
+
+/* ---------- helpers ---------- */
+const chatById = id => CH.list.find(c => c.id === id) || CH.due.find(c => c.id === id);
+const tms = v => (v && v.toMillis ? v.toMillis() : (v ? +new Date(v) : 0));
+function ago(ms) {
+  if (!ms) return ''; const d = new Date(ms), n = new Date(), p = x => String(x).padStart(2, '0');
+  if (d.toDateString() === n.toDateString()) return p(d.getHours()) + ':' + p(d.getMinutes());
+  return d.getDate() + ' ' + t('mon')[d.getMonth()];
+}
+async function wipeChat(id) {         // messages first (batches of 400), then the thread; the cleanupDeletedChat function removes anything left
+  for (let i = 0; i < 200; i++) {
+    const s = await getDocs(query(collection(db, 'chats', id, 'messages'), limit(400)));
+    if (s.empty) break;
+    const b = writeBatch(db); s.docs.forEach(d => b.delete(d.ref)); await b.commit();
+    if (s.size < 400) break;
+  }
+  await deleteDoc(doc(db, 'chats', id));
+  if (CH.sel === id) { CH.sel = ''; if (CH.unsubMsgs) CH.unsubMsgs(); CH.unsubMsgs = null; CH.msgs = []; }
+}
+async function extendChat(id) {
+  const c = chatById(id); if (!c) return;
+  const base = Math.max(Date.now(), tms(c.deletionScheduledAt));
+  await updateDoc(doc(db, 'chats', id), { deletionScheduledAt: Timestamp.fromMillis(base + H72), extensionCount: increment(1), deletionPromptedAt: deleteField() });
+}
+async function guarded(fn, msgId) {
+  if (CH.busy) return; CH.busy = true;
+  try { await fn(); if (msgId) setMsg(msgId, ct('done'), 'ok'); } catch (e) { console.warn(e); if (msgId) setMsg(msgId, ct('fail') + ((e && e.code) || (e && e.message) || ''), 'err'); }
+  finally { CH.busy = false; chatsChanged(); }
+}
+async function retentionAct(id, act) {
+  if (!confirm(act === 'confirm' ? ct('askDel') : ct('askExt'))) return;
+  await guarded(() => act === 'confirm' ? wipeChat(id) : extendChat(id), 'cRetMsg');
+}
+function applyDeep() {
+  if (!DEEP) return; const o = DEEP; DEEP = null; try { sessionStorage.removeItem('rgce_chat_deep'); } catch (x) {}
+  if (o.chat) selectChat(o.chat);
+  if (o.chat && (o.act === 'confirm' || o.act === 'extend') && CH.due.some(c => c.id === o.chat)) setTimeout(() => retentionAct(o.chat, o.act), 400);
+}
+
+/* ---------- push alerts (token is created inside admin-push.html because this page has IndexedDB switched off) ---------- */
+async function enablePush() {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return setMsg('cPushMsg', ct('pushNo'), 'err');
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') return setMsg('cPushMsg', ct('pushDeny'), 'err');
+  const fr = document.createElement('iframe'); fr.style.display = 'none'; fr.src = BASE + 'admin-push.html'; fr.setAttribute('aria-hidden', 'true');
+  const onMsg = async e => {
+    if (e.origin !== location.origin || !e.data) return;
+    if (e.data.type === 'rgce-push-ready') fr.contentWindow.postMessage({ type: 'rgce-push-go' }, location.origin);
+    else if (e.data.type === 'rgce-push') {
+      removeEventListener('message', onMsg); setTimeout(() => fr.remove(), 500);
+      if (e.data.error === 'no-vapid') return setMsg('cPushMsg', ct('pushVapid'), 'err');
+      if (e.data.error) return setMsg('cPushMsg', ct('pushErr') + e.data.error, 'err');
+      try { await setDoc(doc(db, 'admin_push_tokens', e.data.token), { uid: user.uid, updatedAt: serverTimestamp(), ua: String(navigator.userAgent).slice(0, 120) }); setMsg('cPushMsg', ct('pushOn'), 'ok'); }
+      catch (x) { setMsg('cPushMsg', ct('pushErr') + ((x && x.code) || ''), 'err'); }
+    }
+  };
+  addEventListener('message', onMsg); document.body.appendChild(fr);
+}
+try { navigator.serviceWorker && navigator.serviceWorker.addEventListener('message', e => {      // notification clicked while the panel is already open
+  if (e.data && e.data.type === 'rgce-open') { try { const u = new URL(e.data.url, location.origin), p = u.searchParams; DEEP = { chat: p.get('chat') || '', act: p.get('act') || '', review: p.get('review') || '' }; if (tab !== 'chats') goTab('chats'); else applyDeep(); } catch (x) {} }
+}); } catch (x) {}
+
+/* ---------- view ---------- */
+function chatStyle() {
+  if (document.getElementById('chatCss')) return;
+  const s = document.createElement('style'); s.id = 'chatCss';
+  s.textContent = '.cbd{margin-left:auto;background:var(--danger);color:#fff;font-size:11px;font-weight:700;border-radius:10px;min-width:20px;padding:1px 6px;text-align:center}' +
+    '.cht-wrap{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:16px;align-items:start}.cht-wrap .card{margin-bottom:0}' +
+    '.cht-list{padding:12px!important;max-height:72vh;display:flex;flex-direction:column}.cht-items{overflow-y:auto;margin-top:10px;display:flex;flex-direction:column;gap:6px}' +
+    '.cht-item{text-align:left;width:100%;border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:10px;padding:9px 11px;cursor:pointer;font:inherit}' +
+    '.cht-item.on{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary) inset}.cht-item b{display:flex;gap:8px;justify-content:space-between}' +
+    '.cht-item small{display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cht-item .u{background:var(--danger);color:#fff;border-radius:10px;padding:0 7px;font-size:12px}' +
+    '.cht-item .od{color:var(--warn);font-weight:600}.cht-thread{display:flex;flex-direction:column;height:72vh;padding:0!important;overflow:hidden}' +
+    '.cht-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}.cht-head small{display:block;color:var(--muted)}' +
+    '.cht-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}' +
+    '.cht-m{max-width:78%;padding:8px 11px;border-radius:14px;background:var(--panel);border:1px solid var(--border);align-self:flex-start;white-space:pre-wrap;overflow-wrap:anywhere}' +
+    '.cht-m.a{align-self:flex-end;background:var(--primary);border-color:var(--primary);color:#fff}.cht-m small{display:block;opacity:.7;font-size:11px;text-align:right;margin-top:2px}' +
+    '.cht-send{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)}.cht-send textarea{flex:1;resize:none;min-height:42px;max-height:120px}' +
+    '.cht-ret{border-color:var(--warn)!important}.cht-ret .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding:8px 0}' +
+    '.cht-back{display:none}@media(max-width:860px){.cht-wrap{grid-template-columns:1fr}.cht-wrap.sel .cht-list{display:none}.cht-wrap:not(.sel) .cht-thread{display:none}.cht-back{display:inline-flex}.cht-thread{height:78vh}}';
+  document.head.appendChild(s);
+}
+function tabChats() {
+  chatStyle();
+  $('#tabBody').innerHTML = '<div class="card cht-ret" id="cRet" hidden></div>'
+    + '<div class="cht-wrap' + (CH.sel ? ' sel' : '') + '" id="cWrap"><div class="card cht-list"><h2 style="margin:0">' + esc(ct('h')) + '</h2>'
+    + '<div class="fg" style="margin-top:10px"><input id="cQ" type="search" autocomplete="off" placeholder="' + esc(ct('search')) + '" aria-label="' + esc(ct('search')) + '" value="' + esc(CH.q) + '"></div>'
+    + '<div style="margin-top:8px"><button class="btn btn-sm" id="cPush" type="button">' + esc(ct('push')) + '</button></div><div class="msg" id="cPushMsg" role="status"></div>'
+    + '<div class="cht-items" id="cList"></div></div>'
+    + '<div class="card cht-thread" id="cThread"></div></div>'
+    + '<div class="card" id="cPurge" style="margin-top:16px"><h2>' + esc(ct('pgH')) + '</h2><p class="muted">' + esc(ct('pgP')) + '</p>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:12px;margin:10px 0"><label class="fg" style="margin:0">' + esc(ct('from')) + '<input type="date" id="pgFrom"></label><label class="fg" style="margin:0">' + esc(ct('to')) + '<input type="date" id="pgTo"></label></div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-sm" id="pgCount" type="button">' + esc(ct('pgCount')) + '</button><button class="btn btn-sm btn-danger" id="pgDel" type="button">' + esc(ct('pgDel')) + '</button></div><div class="msg" id="pgMsg" role="status"></div></div>';
+  $('#cQ').addEventListener('input', e => { CH.q = e.target.value; drawList(); });
+  $('#cPush').addEventListener('click', enablePush);
+  $('#cList').addEventListener('click', e => { const b = e.target.closest('[data-chat]'); if (b) selectChat(b.getAttribute('data-chat')); });
+  $('#pgCount').addEventListener('click', () => purge(false));
+  $('#pgDel').addEventListener('click', () => purge(true));
+  drawRetention(); drawList(); drawThread();
+  applyDeep();
+}
+function drawRetention() {
+  const box = $('#cRet'); if (!box) return;
+  if (!CH.due.length) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = '<h2 style="margin-top:0">' + esc(ct('retH')) + ' (' + CH.due.length + ')</h2><p class="muted">' + esc(ct('retP')) + '</p>'
+    + CH.due.map(c => '<div class="row"><div><b>' + esc(c.customerName || '-') + '</b> <span class="muted">' + esc(c.contactNumber || '') + ' \u2022 ' + esc(fmtDT(c.deletionScheduledAt)) + ' \u2022 ' + esc(ct('ext')) + ' ' + (+c.extensionCount || 0) + ' ' + esc(ct('times')) + '</span></div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-sm btn-danger" data-ra="confirm" data-id="' + esc(c.id) + '" type="button">' + esc(ct('retDel')) + '</button><button class="btn btn-sm" data-ra="extend" data-id="' + esc(c.id) + '" type="button">' + esc(ct('retExt')) + '</button></div></div>').join('')
+    + '<div class="row" style="justify-content:flex-end;gap:8px"><button class="btn btn-sm btn-danger" id="raDelAll" type="button">' + esc(ct('retDelAll')) + '</button><button class="btn btn-sm" id="raExtAll" type="button">' + esc(ct('retExtAll')) + '</button></div><div class="msg" id="cRetMsg" role="status"></div>';
+  box.querySelectorAll('[data-ra]').forEach(b => b.addEventListener('click', () => retentionAct(b.getAttribute('data-id'), b.getAttribute('data-ra'))));
+  $('#raDelAll').addEventListener('click', () => { if (confirm(ct('askDelAll'))) guarded(async () => { for (const c of CH.due.slice()) await wipeChat(c.id); }, 'cRetMsg'); });
+  $('#raExtAll').addEventListener('click', () => { if (confirm(ct('askExtAll'))) guarded(async () => { for (const c of CH.due.slice()) await extendChat(c.id); }, 'cRetMsg'); });
+}
+function drawList() {
+  const box = $('#cList'); if (!box) return;
+  if (CH.err) { box.innerHTML = '<p class="muted">' + esc(ct('loadErr') + CH.err + ct('loadErr2')) + '</p>'; return; }
+  const w = CH.q.toLowerCase().split(/\s+/).filter(Boolean);
+  const rows = CH.list.filter(c => w.every(x => (String(c.customerName || '') + ' ' + (c.contactNumber || '') + ' ' + (c.lastMessage || '')).toLowerCase().indexOf(x) >= 0));
+  if (!rows.length) { box.innerHTML = '<p class="muted">' + esc(CH.list.length ? ct('noMatch') : ct('none')) + '</p>'; return; }
+  const now = Date.now();
+  box.innerHTML = rows.map(c => {
+    const left = Math.ceil((tms(c.deletionScheduledAt) - now) / 86400000), u = +c.unreadAdmin || 0;
+    return '<button type="button" class="cht-item' + (c.id === CH.sel ? ' on' : '') + '" data-chat="' + esc(c.id) + '"><b><span>' + esc(c.customerName || '-') + '</span><span>' + (u ? '<span class="u">' + u + '</span> ' : '') + '<small style="display:inline">' + esc(ago(tms(c.lastActivity))) + '</small></span></b>'
+      + '<small>' + esc(c.contactNumber || '') + ' \u2022 ' + (left <= 0 ? '<span class="od">' + esc(ct('overdue')) + '</span>' : left + ' ' + esc(ct('left'))) + '</small><small>' + esc((c.lastSender === 'admin' ? ct('you') + ': ' : '') + (c.lastMessage || '')) + '</small></button>';
+  }).join('');
+}
+function selectChat(id) {
+  if (!id) return; CH.sel = id; CH.msgs = [];
+  if (CH.unsubMsgs) CH.unsubMsgs();
+  CH.unsubMsgs = onSnapshot(query(collection(db, 'chats', id, 'messages'), orderBy('timestamp', 'asc'), limit(500)), snap => {
+    CH.msgs = snap.docs.map(d => Object.assign({ id: d.id, ts: tms(d.data({ serverTimestamps: 'estimate' }).timestamp) }, d.data({ serverTimestamps: 'estimate' })));
+    drawMsgs(); markRead();
+  }, e => console.warn('msgs', e));
+  const w = $('#cWrap'); if (w) w.classList.add('sel');
+  drawList(); drawThread();
+}
+function drawThread() {
+  const th = $('#cThread'); if (!th) return;
+  if (!CH.sel) { th.innerHTML = '<div class="cht-msgs" style="align-items:center;justify-content:center"><p class="muted">' + esc(ct('pick')) + '</p></div>'; return; }
+  th.innerHTML = '<div class="cht-head" id="cHead"></div><div class="cht-msgs" id="cMsgs" aria-live="polite"></div>'
+    + '<div class="cht-send"><textarea id="cTx" rows="1" maxlength="1000" placeholder="' + esc(ct('ph')) + '" aria-label="' + esc(ct('ph')) + '"></textarea><button class="btn" id="cSend" type="button">' + esc(ct('send')) + '</button></div>';
+  $('#cSend').addEventListener('click', sendReply);
+  $('#cTx').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); } });
+  drawThreadHead(); drawMsgs();
+}
+function drawThreadHead() {
+  const h = $('#cHead'); if (!h) return; const c = chatById(CH.sel);
+  if (!c) { CH.sel = ''; drawThread(); const w = $('#cWrap'); if (w) w.classList.remove('sel'); return; }
+  h.innerHTML = '<div><button class="btn btn-sm cht-back" id="cBack" type="button">\u2190 ' + esc(ct('back')) + '</button> <b>' + esc(c.customerName || '-') + '</b> <span class="muted">' + esc(c.contactNumber || '') + '</span>'
+    + '<small>' + esc(ct('created')) + ': ' + esc(fmtDT(c.createdAt)) + ' \u2022 ' + esc(ct('delAt')) + ': ' + esc(fmtDT(c.deletionScheduledAt)) + ' \u2022 ' + esc(ct('ext')) + ' ' + (+c.extensionCount || 0) + ' ' + esc(ct('times')) + '</small></div>'
+    + '<div style="display:flex;gap:6px"><button class="btn btn-sm" id="cExt" type="button">' + esc(ct('extBtn')) + '</button><button class="btn btn-sm btn-danger" id="cDel" type="button">' + esc(ct('delBtn')) + '</button></div>';
+  $('#cBack').addEventListener('click', () => { const w = $('#cWrap'); if (w) w.classList.remove('sel'); });
+  $('#cExt').addEventListener('click', () => { if (confirm(ct('askExt'))) guarded(() => extendChat(c.id)); });
+  $('#cDel').addEventListener('click', () => { if (confirm(ct('askDel'))) guarded(() => wipeChat(c.id)); });
+}
+function drawMsgs() {
+  const b = $('#cMsgs'); if (!b) return; const near = b.scrollHeight - b.scrollTop - b.clientHeight < 90; b.textContent = '';
+  CH.msgs.forEach(m => {
+    const d = document.createElement('div'); d.className = 'cht-m' + (m.senderType === 'admin' ? ' a' : ''); d.appendChild(document.createTextNode(m.text));
+    const s = document.createElement('small'); s.textContent = ago(m.ts) + (m.senderType === 'admin' ? '  ' + (m.readStatus === 'read' ? '\u2713\u2713 ' + ct('seen') : '\u2713 ' + ct('sent')) : '');
+    d.appendChild(s); b.appendChild(d);
+  });
+  if (near || !b.dataset.init) { b.scrollTop = b.scrollHeight; b.dataset.init = '1'; }
+}
+async function sendReply() {
+  const tx = $('#cTx'); if (!tx || !CH.sel) return; const text = tx.value.trim().slice(0, 1000); if (!text) return; tx.value = '';
+  try {
+    const ref = doc(collection(db, 'chats', CH.sel, 'messages')), b = writeBatch(db);
+    b.set(ref, { messageId: ref.id, senderId: user.uid, senderType: 'admin', text, timestamp: serverTimestamp(), readStatus: 'sent' });
+    b.update(doc(db, 'chats', CH.sel), { lastActivity: serverTimestamp(), lastMessage: text.slice(0, 120), lastSender: 'admin', unreadCustomer: increment(1) });
+    await b.commit(); const m = $('#cMsgs'); if (m) m.scrollTop = m.scrollHeight;
+  } catch (e) { console.warn(e); tx.value = text; alert(ct('fail') + ((e && e.code) || '')); }
+}
+async function markRead() {                       // read receipts: customer messages become "read" once the thread is open on screen
+  if (CH.marking || !CH.sel || document.hidden) return;
+  const un = CH.msgs.filter(m => m.senderType === 'customer' && m.readStatus !== 'read'), c = chatById(CH.sel);
+  if (!un.length && !(c && c.unreadAdmin > 0)) return;
+  CH.marking = true;
+  try { const b = writeBatch(db); un.slice(0, 400).forEach(m => b.update(doc(db, 'chats', CH.sel, 'messages', m.id), { readStatus: 'read' })); b.update(doc(db, 'chats', CH.sel), { unreadAdmin: 0 }); await b.commit(); }
+  catch (e) { console.warn('markRead', e); } finally { CH.marking = false; }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && tab === 'chats') markRead(); });
+
+/* ---------- manual purge by date range ---------- */
+async function purge(doDelete) {
+  const f = $('#pgFrom').value, to = $('#pgTo').value;
+  if (!f && !to) return setMsg('pgMsg', ct('pgNeed'), 'err');
+  const build = () => { const c = []; if (f) c.push(where('lastActivity', '>=', Timestamp.fromDate(new Date(f + 'T00:00:00')))); if (to) c.push(where('lastActivity', '<=', Timestamp.fromDate(new Date(to + 'T23:59:59.999')))); return query(collection(db, 'chats'), ...c, orderBy('lastActivity'), limit(500)); };
+  if (CH.busy) return; CH.busy = true; setMsg('pgMsg', '');
+  try {
+    let s = await getDocs(build()), n = s.size, more = s.size === 500;
+    if (!doDelete) { setMsg('pgMsg', ct('pgFound').replace('{n}', n + (more ? '+' : '')), 'ok'); return; }
+    if (!n) { setMsg('pgMsg', ct('pgFound').replace('{n}', 0), 'ok'); return; }
+    if (!confirm(ct('pgAsk').replace('{n}', n + (more ? '+' : '')))) return;
+    let total = 0;
+    for (let round = 0; round < 40 && !s.empty; round++) {
+      for (const d of s.docs) { await wipeChat(d.id); total++; }
+      s = s.size === 500 ? await getDocs(build()) : { empty: true };
+    }
+    setMsg('pgMsg', ct('pgDone').replace('{n}', total), 'ok');
+  } catch (e) { console.warn(e); setMsg('pgMsg', ct('fail') + ((e && e.code) || (e && e.message) || ''), 'err'); }
+  finally { CH.busy = false; chatsChanged(); }
 }
 
 /* ============ start ============ */
