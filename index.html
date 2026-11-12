@@ -113,7 +113,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pbar{height:12px;border-radius:999px;background:var(--border);overflow:hidden;margin:6px 0 4px}.pbar>i{display:block;height:100%;border-radius:999px}
 .mdl-back{position:fixed;inset:0;z-index:200;background:rgba(10,16,24,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .mdl{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;width:100%;max-width:580px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+/* every sidebar modal opens full screen (same idea as the expanded daily products / sales panel) */
+.mdl-back{padding:0;align-items:stretch;justify-content:stretch}
+.mdl,.mdl.wide{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;border:0;box-shadow:none}
+.mdl-h{padding-top:max(14px,env(safe-area-inset-top,0px))!important}
+.mdl-b{flex:1;min-height:0;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+.log-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px}
 .mdl-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}.mdl-h h2{margin:0;font-size:17px}
+.mask{-webkit-text-security:disc;text-security:disc;font-family:Verdana,sans-serif;letter-spacing:2px}
 .mdl.wide{max-width:1000px}.bz-host{margin-top:16px;border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--panel)}.bz-host[hidden]{display:none}
 .wrap:has(#bizHost:not([hidden])){max-width:none;padding-left:18px;padding-right:18px}
 .bz-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px;align-items:start}
@@ -342,8 +349,8 @@ const lang = () => { try { return localStorage.getItem('rgce_lang') === 'bn' ? '
 const t = k => (T[lang()][k] != null ? T[lang()][k] : (T.en[k] != null ? T.en[k] : k));
 Object.assign(T.en, { mdlClose: 'Close', rateH: 'Collection rate', rateSub: '{a} collected of {b} billed \u2022 {c} still due',
   newLnk: 'New customers: this month vs last month', newH: 'New customers', newThis: 'This month (so far)', newSame: 'Same days last month', newLast: 'Last month (full)', newChg: 'Compared with the same days last month', newNoDate: '{n} customers have no saved date and are not counted.', newNone: 'The customer data has no saved creation date, so new customers cannot be counted exactly.', newSnap: 'Net change in customer count since the last month-end snapshot:', newList: 'Added this month', newNoThis: 'No new customers this month yet.',
-  logLnk: 'Admin activity log', logH: 'Admin activity log', logNote: 'The latest actions on this admin panel (up to 100).', logNone: 'No activity recorded yet.', logPend: 'not saved to the cloud yet', logFail: 'Could not read the saved log.',
-  lg_unlock: 'Signed in (access key accepted)', lg_keyFail: 'Wrong access key entered 5 times', lg_lock: 'Panel locked', lg_logout: 'Signed out', lg_rpPrint: 'Printed a report', lg_cmPrint: 'Printed a comparison', lg_rpDel: 'Deleted online report copies', lg_snap: 'Saved a month snapshot', lg_snapDel: 'Deleted a snapshot', lg_notice: 'Changed notices / ticker', lg_maint: 'Changed maintenance mode', lg_pass: 'Changed a password', lg_chatDel: 'Deleted chat(s)', lg_chatExt: 'Extended chat deletion',
+  logLnk: 'Admin activity log', logH: 'Admin activity log', logNote: 'The latest actions on this admin panel (up to 100).', logNone: 'No activity recorded yet.', logPend: 'not saved to the cloud yet', logFail: 'Could not read the saved log.', logDel: 'Delete', logDelAll: 'Delete all', logAskOne: 'Delete this log entry?', logAskAll: 'Delete the whole activity log?', logDelFail: 'Could not delete. Try again.',
+  lg_logDel: 'Deleted the activity log', lg_unlock: 'Signed in (access key accepted)', lg_keyFail: 'Wrong access key entered 5 times', lg_lock: 'Panel locked', lg_logout: 'Signed out', lg_rpPrint: 'Printed a report', lg_cmPrint: 'Printed a comparison', lg_rpDel: 'Deleted online report copies', lg_snap: 'Saved a month snapshot', lg_snapDel: 'Deleted a snapshot', lg_notice: 'Changed notices / ticker', lg_maint: 'Changed maintenance mode', lg_pass: 'Changed a password', lg_chatDel: 'Deleted chat(s)', lg_chatExt: 'Extended chat deletion',
   stH: 'Storage health', stNote: 'How full the cloud data behind this panel is. Each Firestore document can hold about 1 MB.', stShop: 'Shop data (customers, invoices)', stCfg: 'Settings and history (notices, snapshots, report list, log)', stRoom: 'Room for about {n} more customers', stGood: 'Healthy', stWatch: 'Getting full', stCrit: 'Almost full',
   stCopies: 'Online report copies', stCopiesV: '{a} saved \u2022 {b} expired', stSnaps: 'Month snapshots', stChats: 'Chats', stChatsV: '{a} stored \u2022 {b} waiting for deletion', stLog: 'Activity log entries', stRef: 'Refresh', stClean: 'Delete expired copies', stFail: 'Could not read storage details.', stNoExp: 'There are no expired copies.', stDone: 'Expired copies deleted.', stAsk: 'Delete {n} expired online report copies? Their QR links will stop working.' });
 Object.assign(T.en, { staLnk: 'Customer status split', staH: 'Customers by status', staDue: 'Due', staHid: 'Hidden due (nothing due, nothing paid)', staPart: 'Partly paid', staPaid: 'Paid', staOut: 'still due', staTotal: 'customers in total',
@@ -358,8 +365,8 @@ Object.assign(T.bn, { staLnk: 'কাস্টমারের অবস্থা
   recLnk: 'সাম্প্রতিক কার্যকলাপ', recH: 'সাম্প্রতিক কার্যকলাপ', recNote: 'কাস্টমারদের লেনদেনের ইতিহাস থেকে সাম্প্রতিক পেমেন্ট ও বাকি।', recNone: 'কাস্টমার ডেটায় এখনো কোনো কার্যকলাপ নেই।', recDue: 'বাকি যোগ', recPay: 'পেমেন্ট পাওয়া গেছে', recAdj: 'সংশোধন' });
 Object.assign(T.bn, { mdlClose: 'বন্ধ করুন', rateH: 'আদায়ের হার', rateSub: '{b} বিলের মধ্যে {a} আদায় \u2022 বাকি {c}',
   newLnk: 'নতুন কাস্টমার: এই মাস বনাম গত মাস', newH: 'নতুন কাস্টমার', newThis: 'এই মাস (এখন পর্যন্ত)', newSame: 'গত মাসের একই দিন পর্যন্ত', newLast: 'গত মাস (পুরো)', newChg: 'গত মাসের একই দিনের তুলনায়', newNoDate: '{n} জন কাস্টমারের তারিখ সেভ করা নেই, তাই গোনা হয়নি।', newNone: 'কাস্টমার ডেটায় যোগ করার তারিখ নেই, তাই নতুন কাস্টমার ঠিকভাবে গোনা যাচ্ছে না।', newSnap: 'গত মাসের শেষের স্ন্যাপশটের পর কাস্টমার সংখ্যার নিট পরিবর্তন:', newList: 'এই মাসে যোগ হয়েছে', newNoThis: 'এই মাসে এখনো নতুন কাস্টমার নেই।',
-  logLnk: 'অ্যাডমিন অ্যাক্টিভিটি লগ', logH: 'অ্যাডমিন অ্যাক্টিভিটি লগ', logNote: 'এই অ্যাডমিন প্যানেলের সাম্প্রতিক কাজ (সর্বোচ্চ ১০০টি)।', logNone: 'এখনো কোনো কাজ রেকর্ড হয়নি।', logPend: 'এখনো ক্লাউডে সেভ হয়নি', logFail: 'সেভ করা লগ পড়া যায়নি।',
-  lg_unlock: 'সাইন ইন (অ্যাক্সেস কী সঠিক)', lg_keyFail: '৫ বার ভুল অ্যাক্সেস কী দেওয়া হয়েছে', lg_lock: 'প্যানেল লক করা হয়েছে', lg_logout: 'সাইন আউট', lg_rpPrint: 'রিপোর্ট প্রিন্ট করা হয়েছে', lg_cmPrint: 'তুলনা প্রিন্ট করা হয়েছে', lg_rpDel: 'অনলাইন রিপোর্ট কপি মোছা হয়েছে', lg_snap: 'মাসের স্ন্যাপশট সেভ করা হয়েছে', lg_snapDel: 'স্ন্যাপশট মোছা হয়েছে', lg_notice: 'নোটিশ / টিকার বদলানো হয়েছে', lg_maint: 'রক্ষণাবেক্ষণ মোড বদলানো হয়েছে', lg_pass: 'পাসওয়ার্ড বদলানো হয়েছে', lg_chatDel: 'চ্যাট মোছা হয়েছে', lg_chatExt: 'চ্যাট মোছার সময় বাড়ানো হয়েছে',
+  logLnk: 'অ্যাডমিন অ্যাক্টিভিটি লগ', logH: 'অ্যাডমিন অ্যাক্টিভিটি লগ', logNote: 'এই অ্যাডমিন প্যানেলের সাম্প্রতিক কাজ (সর্বোচ্চ ১০০টি)।', logNone: 'এখনো কোনো কাজ রেকর্ড হয়নি।', logPend: 'এখনো ক্লাউডে সেভ হয়নি', logFail: 'সেভ করা লগ পড়া যায়নি।', logDel: 'মুছুন', logDelAll: 'সব মুছুন', logAskOne: 'এই লগ এন্ট্রিটি মুছবেন?', logAskAll: 'পুরো অ্যাক্টিভিটি লগ মুছবেন?', logDelFail: 'মোছা যায়নি। আবার চেষ্টা করুন।',
+  lg_logDel: 'অ্যাক্টিভিটি লগ মোছা হয়েছে', lg_unlock: 'সাইন ইন (অ্যাক্সেস কী সঠিক)', lg_keyFail: '৫ বার ভুল অ্যাক্সেস কী দেওয়া হয়েছে', lg_lock: 'প্যানেল লক করা হয়েছে', lg_logout: 'সাইন আউট', lg_rpPrint: 'রিপোর্ট প্রিন্ট করা হয়েছে', lg_cmPrint: 'তুলনা প্রিন্ট করা হয়েছে', lg_rpDel: 'অনলাইন রিপোর্ট কপি মোছা হয়েছে', lg_snap: 'মাসের স্ন্যাপশট সেভ করা হয়েছে', lg_snapDel: 'স্ন্যাপশট মোছা হয়েছে', lg_notice: 'নোটিশ / টিকার বদলানো হয়েছে', lg_maint: 'রক্ষণাবেক্ষণ মোড বদলানো হয়েছে', lg_pass: 'পাসওয়ার্ড বদলানো হয়েছে', lg_chatDel: 'চ্যাট মোছা হয়েছে', lg_chatExt: 'চ্যাট মোছার সময় বাড়ানো হয়েছে',
   stH: 'স্টোরেজের অবস্থা', stNote: 'এই প্যানেলের ক্লাউড ডেটা কতটা ভরেছে। Firestore-এর প্রতিটি ডকুমেন্টে প্রায় ১ MB ধরে।', stShop: 'দোকানের ডেটা (কাস্টমার, ইনভয়েস)', stCfg: 'সেটিংস ও ইতিহাস (নোটিশ, স্ন্যাপশট, রিপোর্ট তালিকা, লগ)', stRoom: 'আরও প্রায় {n} জন কাস্টমারের জায়গা আছে', stGood: 'ঠিক আছে', stWatch: 'ভরে আসছে', stCrit: 'প্রায় ভর্তি',
   stCopies: 'অনলাইন রিপোর্ট কপি', stCopiesV: '{a}টি সেভ \u2022 {b}টির মেয়াদ শেষ', stSnaps: 'মাসের স্ন্যাপশট', stChats: 'চ্যাট', stChatsV: '{a}টি জমা \u2022 {b}টি মোছার অপেক্ষায়', stLog: 'অ্যাক্টিভিটি লগের সংখ্যা', stRef: 'রিফ্রেশ', stClean: 'মেয়াদ শেষ কপি মুছুন', stFail: 'স্টোরেজের তথ্য পড়া যায়নি।', stNoExp: 'মেয়াদ শেষ হওয়া কপি নেই।', stDone: 'মেয়াদ শেষ কপি মুছে ফেলা হয়েছে।', stAsk: 'মেয়াদ শেষ {n}টি অনলাইন রিপোর্ট কপি মুছবেন? এগুলোর QR লিংক আর খুলবে না।' });
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -439,13 +446,46 @@ async function flushLog() {
   catch (e) { console.warn('activity log', e); LOGQ = q.concat(LOGQ).slice(0, 50); }
 }
 async function showLog() {
-  const body = openModal(t('logH'), '<span class="spin"></span>');
+  openModal(t('logH'), '<span class="spin"></span>');
   let list = [], ok = true;
-  try { await flushLog(); const s = await getFresh(cfgRef()); const d = s.exists() ? (s.data() || {}) : {}; list = Array.isArray(d.adminLog) ? d.adminLog : []; } catch (e) { console.warn(e); ok = false; }
-  const row = (x, pend) => '<div class="row"><div class="t"><b>' + esc(t('lg_' + x.a)) + ((x.n || 0) > 1 ? ' \u00D7' + x.n : '') + '</b>' + (x.d ? '<small>' + esc(x.d) + '</small>' : '') + (pend ? '<small>' + esc(t('logPend')) + '</small>' : '') + '</div><small class="muted">' + esc(fmtDT(x.at)) + '</small></div>';
-  const all = LOGQ.map(x => row(x, true)).concat(list.map(x => row(x, false)));
-  if (!$('#mdlB')) return;
-  $('#mdlB').innerHTML = '<p class="muted" style="margin-top:0">' + esc(t('logNote')) + '</p>' + (ok ? '' : '<div class="msg">' + esc(t('logFail')) + '</div>') + (all.length ? all.join('') : '<div class="row"><span class="muted">' + esc(t('logNone')) + '</span></div>');
+  const load = async () => {
+    ok = true;
+    try { await flushLog(); const s = await getFresh(cfgRef()); const d = s.exists() ? (s.data() || {}) : {}; list = Array.isArray(d.adminLog) ? d.adminLog : []; }
+    catch (e) { console.warn(e); ok = false; }
+  };
+  const same = (x, y) => x.at === y.at && x.a === y.a && (x.d || '') === (y.d || '');
+  const paint = () => {
+    const box = $('#mdlB'); if (!box) return;
+    const all = LOGQ.map(x => ({ x: x, pend: true })).concat(list.map(x => ({ x: x, pend: false })));
+    const row = (o, i) => { const x = o.x; return '<div class="row"><div class="t"><b>' + esc(t('lg_' + x.a)) + ((x.n || 0) > 1 ? ' \u00D7' + x.n : '') + '</b>' + (x.d ? '<small>' + esc(x.d) + '</small>' : '') + (o.pend ? '<small>' + esc(t('logPend')) + '</small>' : '') + '</div>'
+      + '<div style="display:flex;align-items:center;gap:10px"><small class="muted">' + esc(fmtDT(x.at)) + '</small><button type="button" class="btn btn-sm btn-danger" data-ld="' + i + '">' + esc(t('logDel')) + '</button></div></div>'; };
+    box.innerHTML = '<div class="log-tools"><p class="muted" style="margin:0">' + esc(t('logNote')) + '</p>' + (all.length ? '<button type="button" class="btn btn-sm btn-danger" id="logAll">' + esc(t('logDelAll')) + '</button>' : '') + '</div>'
+      + '<div class="msg" id="logM" role="status">' + (ok ? '' : esc(t('logFail'))) + '</div>'
+      + (all.length ? all.map(row).join('') : '<div class="row"><span class="muted">' + esc(t('logNone')) + '</span></div>');
+    box.querySelectorAll('[data-ld]').forEach(btn => btn.addEventListener('click', async () => {
+      const target = all[+btn.getAttribute('data-ld')]; if (!target || !confirm(t('logAskOne'))) return;
+      btn.disabled = true;
+      try {
+        await flushLog(); LOGQ = LOGQ.filter(y => !same(y, target.x));
+        const ref = cfgRef(), s = await getFresh(ref), d = s.exists() ? (s.data() || {}) : {};
+        const cur = Array.isArray(d.adminLog) ? d.adminLog : [];
+        await setDoc(ref, { adminLog: cur.filter(y => !same(y, target.x)) }, { merge: true });
+        await load(); paint();
+      } catch (e) { console.warn(e); btn.disabled = false; setMsg('logM', t('logDelFail')); }
+    }));
+    const ab = $('#logAll');
+    if (ab) ab.addEventListener('click', async () => {
+      if (!confirm(t('logAskAll'))) return;
+      ab.disabled = true;
+      try {
+        clearTimeout(logTimer); LOGQ = [];
+        await setDoc(cfgRef(), { adminLog: [] }, { merge: true });
+        logAct('logDel');   // one line remains so the deletion itself is on record
+        await load(); paint();
+      } catch (e) { console.warn(e); ab.disabled = false; setMsg('logM', t('logDelFail')); }
+    });
+  };
+  await load(); paint();
 }
 /* ---------- new customers: this month vs last month ---------- */
 const cNew = c => {   // main app saves dateAdded as DD/MM/YYYY; createdAt / created / addedAt (timestamp, ms or ISO) are read too if present
@@ -866,7 +906,7 @@ async function sha256Hex(str) {
 function renderGate() {
   app.innerHTML = '<div class="card center">' + logoPlate() + '<h2>' + esc(t('gateH')) + '</h2><p class="muted">' + esc(t('gateP')) + '</p>'
     + '<table class="keytbl"><tbody><tr><th scope="row"><label for="gkIn">' + esc(t('gateKey')) + '</label></th>'
-    + '<td><input id="gkIn" type="password" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false"></td></tr></tbody></table>'
+    + '<td><input id="gkIn" class="mask" name="panel-access-code" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"></td></tr></tbody></table>'
     + '<div class="msg" id="gkM" role="status"></div><button class="btn btn-primary" id="gkGo" type="button">' + esc(t('gateBtn')) + '</button></div>';
   const go = async () => {
     if (Date.now() < gateUntil) { setMsg('gkM', t('gateLocked')); return; }
