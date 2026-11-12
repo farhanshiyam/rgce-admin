@@ -431,7 +431,12 @@ async function showLog() {
   $('#mdlB').innerHTML = '<p class="muted" style="margin-top:0">' + esc(t('logNote')) + '</p>' + (ok ? '' : '<div class="msg">' + esc(t('logFail')) + '</div>') + (all.length ? all.join('') : '<div class="row"><span class="muted">' + esc(t('logNone')) + '</span></div>');
 }
 /* ---------- new customers: this month vs last month ---------- */
-const cNew = c => { let v = c.createdAt || c.created || c.addedAt || c.date; if (!v) return null; if (v.toDate) v = v.toDate(); else if (v.seconds) v = v.seconds * 1000; const x = new Date(v); return isNaN(x) ? null : x.getTime(); };
+const cNew = c => {   // main app saves dateAdded as DD/MM/YYYY; createdAt / created / addedAt (timestamp, ms or ISO) are read too if present
+  let v = c.createdAt || c.created || c.addedAt || c.dateAdded || c.date; if (!v) return null;
+  if (v.toDate) v = v.toDate(); else if (v.seconds) v = v.seconds * 1000;
+  else if (typeof v === 'string') { const m = v.trim().match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/); if (m) v = new Date(+m[3], +m[2] - 1, +m[1]).getTime(); }
+  const x = new Date(v); return isNaN(x) ? null : x.getTime();
+};
 async function showNew(cs) {
   openModal(t('newH'), '<span class="spin"></span>');
   const now = new Date(), y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
