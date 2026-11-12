@@ -50,7 +50,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .top h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.2px}
 .top small{display:block;opacity:.8;font-size:12.5px;font-weight:400}
 .top .right{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.wrap{max-width:none;margin:0 auto;padding:18px 18px 60px}
+.wrap{max-width:860px;margin:0 auto;padding:18px 14px 60px}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 20px;margin-bottom:16px}
 .card h2{margin:0 0 4px;font-size:18px}
 .card h3{margin:18px 0 8px;font-size:15px}
@@ -113,11 +113,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pbar{height:12px;border-radius:999px;background:var(--border);overflow:hidden;margin:6px 0 4px}.pbar>i{display:block;height:100%;border-radius:999px}
 .mdl-back{position:fixed;inset:0;z-index:200;background:rgba(10,16,24,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .mdl{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;width:100%;max-width:580px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
-/* every sidebar modal opens full screen (same idea as the expanded daily products / sales panel) */
-.mdl-back{padding:0;align-items:stretch;justify-content:stretch}
-.mdl,.mdl.wide{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;border:0;box-shadow:none}
-.mdl-h{padding-top:max(14px,env(safe-area-inset-top,0px))!important}
-.mdl-b{flex:1;min-height:0;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
 .log-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px}
 .mdl-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}.mdl-h h2{margin:0;font-size:17px}
 .mask{-webkit-text-security:disc;text-security:disc;font-family:Verdana,sans-serif;letter-spacing:2px}
@@ -127,9 +122,12 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bz-t{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px;align-items:start}
 .bz-st{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}
 @media(max-width:1100px){.bz-t{grid-template-columns:minmax(0,1fr)}}.mdl-b{padding:16px 18px;overflow:auto}
-.mdl-back{padding:0!important;align-items:stretch!important;justify-content:stretch!important}
-.mdl,.mdl.wide{max-width:none!important;width:100vw!important;height:100%!important;max-height:none!important;border-radius:0!important}
-.mdl-b>*{max-width:none}
+/* modals fill the whole main area (like the expanded daily products / sales panel): the one top header and the sidebar rail stay visible, nothing is repeated */
+.mdl-back{position:fixed;top:0;left:64px;right:0;bottom:0;padding:0;background:var(--bg);z-index:45;display:block}
+body.side-open .mdl-back{left:260px}
+@media(max-width:720px){body.side-open .mdl-back{left:64px}}
+.mdl,.mdl.wide{max-width:none;width:100%;height:100%;max-height:none;border:0;border-radius:0;box-shadow:none}
+.mdl-b{flex:1;min-height:0;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
 .wd{border-collapse:collapse;width:100%;font:14px Calibri,Arial,sans-serif;color:var(--text);background:transparent}.wd th,.wd td{border:1px solid var(--text);padding:4px 8px;text-align:right}.wd th{text-align:center;font-weight:700}.wd th:first-child,.wd td:first-child{text-align:left}.wd tfoot td{font-weight:700}
 .bz-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:8px 0}.bz-in label{display:block;font-size:12.5px;color:var(--muted)}.bz-in input{width:100%}.mdl-b .row .t small{display:block}
 /* hamburger + sidebar (standard) */
@@ -420,14 +418,18 @@ const cfgRef = () => doc(db, 'private_config', user.uid);
 /* ---------- modal ---------- */
 let mdlClose = null;
 function closeModal() { if (mdlClose) mdlClose(); }
+document.addEventListener('click', e => { if (mdlClose && e.target.closest && e.target.closest('#side') && !e.target.closest('#menuBtn')) closeModal(); });
 function openModal(title, html, wide) {
   closeModal();
   const back = document.createElement('div'); back.className = 'mdl-back';
   back.innerHTML = '<div class="mdl' + (wide ? ' wide' : '') + '" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><div class="mdl-h"><h2>' + esc(title) + '</h2><button type="button" class="sb-close" id="mdlX" aria-label="' + esc(t('mdlClose')) + '">' + ico('x') + '</button></div><div class="mdl-b" id="mdlB">' + html + '</div></div>';
   document.body.appendChild(back);
+  const hd = document.querySelector('header.top');
+  const fit = () => { back.style.top = (hd ? Math.max(0, Math.round(hd.getBoundingClientRect().bottom)) : 0) + 'px'; };
+  fit(); window.addEventListener('resize', fit);
   const prev = document.activeElement;
   const onKey = e => { if (e.key === 'Escape') closeModal(); };
-  mdlClose = () => { document.removeEventListener('keydown', onKey); back.remove(); mdlClose = null; if (prev && prev.focus) { try { prev.focus(); } catch (x) {} } };
+  mdlClose = () => { document.removeEventListener('keydown', onKey); window.removeEventListener('resize', fit); back.remove(); mdlClose = null; if (prev && prev.focus) { try { prev.focus(); } catch (x) {} } };
   document.addEventListener('keydown', onKey);
   back.addEventListener('mousedown', e => { if (e.target === back) closeModal(); });
   $('#mdlX').addEventListener('click', closeModal); $('#mdlX').focus();
