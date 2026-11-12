@@ -108,6 +108,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 .spin{display:inline-block;width:18px;height:18px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px}
 @keyframes sp{to{transform:rotate(360deg)}}
 
+.lnk{background:none;border:0;padding:0;color:var(--primary);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit;font-weight:600;text-align:left}
+.lnk:hover{opacity:.8}
+.pbar{height:12px;border-radius:999px;background:var(--border);overflow:hidden;margin:6px 0 4px}.pbar>i{display:block;height:100%;border-radius:999px}
+.mdl-back{position:fixed;inset:0;z-index:200;background:rgba(10,16,24,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.mdl{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;width:100%;max-width:580px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.mdl-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}.mdl-h h2{margin:0;font-size:17px}
+.mdl-b{padding:16px 18px;overflow:auto}.mdl-b .row .t small{display:block}
 /* hamburger + sidebar (standard) */
 .top .left{display:flex;align-items:center;gap:12px;min-width:0}
 .brand-ic{width:40px;height:40px;flex:none;display:block;border-radius:10px;-webkit-user-drag:none}
@@ -326,6 +333,18 @@ const T = {
 };
 const lang = () => { try { return localStorage.getItem('rgce_lang') === 'bn' ? 'bn' : 'en'; } catch (e) { return 'en'; } };
 const t = k => (T[lang()][k] != null ? T[lang()][k] : (T.en[k] != null ? T.en[k] : k));
+Object.assign(T.en, { mdlClose: 'Close', rateH: 'Collection rate', rateSub: '{a} collected of {b} billed \u2022 {c} still due',
+  newLnk: 'New customers: this month vs last month', newH: 'New customers', newThis: 'This month (so far)', newSame: 'Same days last month', newLast: 'Last month (full)', newChg: 'Compared with the same days last month', newNoDate: '{n} customers have no saved date and are not counted.', newNone: 'The customer data has no saved creation date, so new customers cannot be counted exactly.', newSnap: 'Net change in customer count since the last month-end snapshot:', newList: 'Added this month', newNoThis: 'No new customers this month yet.',
+  logLnk: 'Admin activity log', logH: 'Admin activity log', logNote: 'The latest actions on this admin panel (up to 100).', logNone: 'No activity recorded yet.', logPend: 'not saved to the cloud yet', logFail: 'Could not read the saved log.',
+  lg_unlock: 'Signed in (access key accepted)', lg_keyFail: 'Wrong access key entered 5 times', lg_lock: 'Panel locked', lg_logout: 'Signed out', lg_rpPrint: 'Printed a report', lg_cmPrint: 'Printed a comparison', lg_rpDel: 'Deleted online report copies', lg_snap: 'Saved a month snapshot', lg_snapDel: 'Deleted a snapshot', lg_notice: 'Changed notices / ticker', lg_maint: 'Changed maintenance mode', lg_pass: 'Changed a password', lg_chatDel: 'Deleted chat(s)', lg_chatExt: 'Extended chat deletion',
+  stH: 'Storage health', stNote: 'How full the cloud data behind this panel is. Each Firestore document can hold about 1 MB.', stShop: 'Shop data (customers, invoices)', stCfg: 'Settings and history (notices, snapshots, report list, log)', stRoom: 'Room for about {n} more customers', stGood: 'Healthy', stWatch: 'Getting full', stCrit: 'Almost full',
+  stCopies: 'Online report copies', stCopiesV: '{a} saved \u2022 {b} expired', stSnaps: 'Month snapshots', stChats: 'Chats', stChatsV: '{a} stored \u2022 {b} waiting for deletion', stLog: 'Activity log entries', stRef: 'Refresh', stClean: 'Delete expired copies', stFail: 'Could not read storage details.', stNoExp: 'There are no expired copies.', stDone: 'Expired copies deleted.', stAsk: 'Delete {n} expired online report copies? Their QR links will stop working.' });
+Object.assign(T.bn, { mdlClose: 'বন্ধ করুন', rateH: 'আদায়ের হার', rateSub: '{b} বিলের মধ্যে {a} আদায় \u2022 বাকি {c}',
+  newLnk: 'নতুন কাস্টমার: এই মাস বনাম গত মাস', newH: 'নতুন কাস্টমার', newThis: 'এই মাস (এখন পর্যন্ত)', newSame: 'গত মাসের একই দিন পর্যন্ত', newLast: 'গত মাস (পুরো)', newChg: 'গত মাসের একই দিনের তুলনায়', newNoDate: '{n} জন কাস্টমারের তারিখ সেভ করা নেই, তাই গোনা হয়নি।', newNone: 'কাস্টমার ডেটায় যোগ করার তারিখ নেই, তাই নতুন কাস্টমার ঠিকভাবে গোনা যাচ্ছে না।', newSnap: 'গত মাসের শেষের স্ন্যাপশটের পর কাস্টমার সংখ্যার নিট পরিবর্তন:', newList: 'এই মাসে যোগ হয়েছে', newNoThis: 'এই মাসে এখনো নতুন কাস্টমার নেই।',
+  logLnk: 'অ্যাডমিন অ্যাক্টিভিটি লগ', logH: 'অ্যাডমিন অ্যাক্টিভিটি লগ', logNote: 'এই অ্যাডমিন প্যানেলের সাম্প্রতিক কাজ (সর্বোচ্চ ১০০টি)।', logNone: 'এখনো কোনো কাজ রেকর্ড হয়নি।', logPend: 'এখনো ক্লাউডে সেভ হয়নি', logFail: 'সেভ করা লগ পড়া যায়নি।',
+  lg_unlock: 'সাইন ইন (অ্যাক্সেস কী সঠিক)', lg_keyFail: '৫ বার ভুল অ্যাক্সেস কী দেওয়া হয়েছে', lg_lock: 'প্যানেল লক করা হয়েছে', lg_logout: 'সাইন আউট', lg_rpPrint: 'রিপোর্ট প্রিন্ট করা হয়েছে', lg_cmPrint: 'তুলনা প্রিন্ট করা হয়েছে', lg_rpDel: 'অনলাইন রিপোর্ট কপি মোছা হয়েছে', lg_snap: 'মাসের স্ন্যাপশট সেভ করা হয়েছে', lg_snapDel: 'স্ন্যাপশট মোছা হয়েছে', lg_notice: 'নোটিশ / টিকার বদলানো হয়েছে', lg_maint: 'রক্ষণাবেক্ষণ মোড বদলানো হয়েছে', lg_pass: 'পাসওয়ার্ড বদলানো হয়েছে', lg_chatDel: 'চ্যাট মোছা হয়েছে', lg_chatExt: 'চ্যাট মোছার সময় বাড়ানো হয়েছে',
+  stH: 'স্টোরেজের অবস্থা', stNote: 'এই প্যানেলের ক্লাউড ডেটা কতটা ভরেছে। Firestore-এর প্রতিটি ডকুমেন্টে প্রায় ১ MB ধরে।', stShop: 'দোকানের ডেটা (কাস্টমার, ইনভয়েস)', stCfg: 'সেটিংস ও ইতিহাস (নোটিশ, স্ন্যাপশট, রিপোর্ট তালিকা, লগ)', stRoom: 'আরও প্রায় {n} জন কাস্টমারের জায়গা আছে', stGood: 'ঠিক আছে', stWatch: 'ভরে আসছে', stCrit: 'প্রায় ভর্তি',
+  stCopies: 'অনলাইন রিপোর্ট কপি', stCopiesV: '{a}টি সেভ \u2022 {b}টির মেয়াদ শেষ', stSnaps: 'মাসের স্ন্যাপশট', stChats: 'চ্যাট', stChatsV: '{a}টি জমা \u2022 {b}টি মোছার অপেক্ষায়', stLog: 'অ্যাক্টিভিটি লগের সংখ্যা', stRef: 'রিফ্রেশ', stClean: 'মেয়াদ শেষ কপি মুছুন', stFail: 'স্টোরেজের তথ্য পড়া যায়নি।', stNoExp: 'মেয়াদ শেষ হওয়া কপি নেই।', stDone: 'মেয়াদ শেষ কপি মুছে ফেলা হয়েছে।', stAsk: 'মেয়াদ শেষ {n}টি অনলাইন রিপোর্ট কপি মুছবেন? এগুলোর QR লিংক আর খুলবে না।' });
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (s, r) => (r || document).querySelector(s);
 const pad = n => ('0' + n).slice(-2);
@@ -370,6 +389,103 @@ const app = $('#app');
 
 /* ============ password helpers (identical scheme to the main app: salted PBKDF2 hashes in private_config/<uid>) ============ */
 const cfgRef = () => doc(db, 'private_config', user.uid);
+
+/* ---------- modal ---------- */
+let mdlClose = null;
+function closeModal() { if (mdlClose) mdlClose(); }
+function openModal(title, html) {
+  closeModal();
+  const back = document.createElement('div'); back.className = 'mdl-back';
+  back.innerHTML = '<div class="mdl" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><div class="mdl-h"><h2>' + esc(title) + '</h2><button type="button" class="sb-close" id="mdlX" aria-label="' + esc(t('mdlClose')) + '">' + ico('x') + '</button></div><div class="mdl-b" id="mdlB">' + html + '</div></div>';
+  document.body.appendChild(back);
+  const prev = document.activeElement;
+  const onKey = e => { if (e.key === 'Escape') closeModal(); };
+  mdlClose = () => { document.removeEventListener('keydown', onKey); back.remove(); mdlClose = null; if (prev && prev.focus) { try { prev.focus(); } catch (x) {} } };
+  document.addEventListener('keydown', onKey);
+  back.addEventListener('mousedown', e => { if (e.target === back) closeModal(); });
+  $('#mdlX').addEventListener('click', closeModal); $('#mdlX').focus();
+  return $('#mdlB');
+}
+/* ---------- admin activity log (kept in private_config/<uid>.adminLog, newest first, max 100) ---------- */
+const LOG_MAX = 100;
+let LOGQ = [], logTimer = 0;
+function logAct(a, d) {
+  const now = Date.now(), last = LOGQ[0];
+  if (last && last.a === a && now - last.at < 15000 && (a === 'chatDel' || a === 'chatExt' || a === 'notice')) last.n = (last.n || 1) + 1;
+  else { const e = { at: now, a: a, d: d == null ? '' : String(d).slice(0, 80) }; LOGQ.unshift(e); }
+  clearTimeout(logTimer); logTimer = setTimeout(flushLog, 2000);
+}
+async function flushLog() {
+  clearTimeout(logTimer); if (!LOGQ.length || !user) return;
+  const q = LOGQ.splice(0), ref = cfgRef();
+  try { const s = await getFresh(ref); const dd = s.exists() ? (s.data() || {}) : {}; const cur = Array.isArray(dd.adminLog) ? dd.adminLog : []; await setDoc(ref, { adminLog: q.concat(cur).slice(0, LOG_MAX) }, { merge: true }); }
+  catch (e) { console.warn('activity log', e); LOGQ = q.concat(LOGQ).slice(0, 50); }
+}
+async function showLog() {
+  const body = openModal(t('logH'), '<span class="spin"></span>');
+  let list = [], ok = true;
+  try { await flushLog(); const s = await getFresh(cfgRef()); const d = s.exists() ? (s.data() || {}) : {}; list = Array.isArray(d.adminLog) ? d.adminLog : []; } catch (e) { console.warn(e); ok = false; }
+  const row = (x, pend) => '<div class="row"><div class="t"><b>' + esc(t('lg_' + x.a)) + ((x.n || 0) > 1 ? ' \u00D7' + x.n : '') + '</b>' + (x.d ? '<small>' + esc(x.d) + '</small>' : '') + (pend ? '<small>' + esc(t('logPend')) + '</small>' : '') + '</div><small class="muted">' + esc(fmtDT(x.at)) + '</small></div>';
+  const all = LOGQ.map(x => row(x, true)).concat(list.map(x => row(x, false)));
+  if (!$('#mdlB')) return;
+  $('#mdlB').innerHTML = '<p class="muted" style="margin-top:0">' + esc(t('logNote')) + '</p>' + (ok ? '' : '<div class="msg">' + esc(t('logFail')) + '</div>') + (all.length ? all.join('') : '<div class="row"><span class="muted">' + esc(t('logNone')) + '</span></div>');
+}
+/* ---------- new customers: this month vs last month ---------- */
+const cNew = c => { let v = c.createdAt || c.created || c.addedAt || c.date; if (!v) return null; if (v.toDate) v = v.toDate(); else if (v.seconds) v = v.seconds * 1000; const x = new Date(v); return isNaN(x) ? null : x.getTime(); };
+async function showNew(cs) {
+  openModal(t('newH'), '<span class="spin"></span>');
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
+  const s0 = new Date(y, m, 1).getTime(), l0 = new Date(y, m - 1, 1).getTime();
+  const lSame = new Date(y, m - 1, Math.min(day, new Date(y, m, 0).getDate()), 23, 59, 59, 999).getTime();
+  let dated = 0, thisN = 0, lastN = 0, sameN = 0; const fresh = [];
+  cs.forEach(c => { const x = cNew(c); if (x == null) return; dated++; if (x >= s0) { thisN++; fresh.push({ n: String(c.name || '').trim(), x: x }); } else if (x >= l0) { lastN++; if (x <= lSame) sameN++; } });
+  const st = (l, v) => '<div class="stat"><small>' + esc(l) + '</small><b>' + esc(v) + '</b></div>';
+  let h = '';
+  if (!dated) {
+    h = '<p class="muted" style="margin-top:0">' + esc(t('newNone')) + '</p>';
+    try { const snaps = await snapIdx(); const prev = snaps.find(s => s.at < s0); if (prev && prev.tot) { const net = cs.length - prev.tot.n; h += '<p>' + esc(t('newSnap')) + ' <b>' + (net > 0 ? '+' : '') + net + '</b></p>'; } } catch (e) { console.warn(e); }
+  } else {
+    const diff = thisN - sameN, pct = sameN > 0 ? ' (' + (diff >= 0 ? '+' : '') + Math.round(diff * 100 / sameN) + '%)' : '';
+    fresh.sort((a, b) => b.x - a.x);
+    h = '<div class="grid">' + st(t('newThis'), thisN) + st(t('newSame'), sameN) + st(t('newLast'), lastN) + '</div>'
+      + '<p style="margin:4px 0 12px"><b>' + esc(t('newChg')) + ':</b> ' + (diff > 0 ? '\u25B2 +' : diff < 0 ? '\u25BC ' : '') + diff + esc(pct) + '</p>'
+      + '<h3 style="margin-top:6px">' + esc(t('newList')) + '</h3>'
+      + (fresh.length ? fresh.slice(0, 10).map(f => '<div class="row"><span>' + esc(f.n || '-') + '</span><small class="muted">' + esc(fmtDT(f.x)) + '</small></div>').join('') : '<div class="row"><span class="muted">' + esc(t('newNoThis')) + '</span></div>')
+      + (cs.length > dated ? '<p class="muted" style="margin-bottom:0">' + esc(t('newNoDate').replace('{n}', cs.length - dated)) + '</p>' : '');
+  }
+  if ($('#mdlB')) $('#mdlB').innerHTML = h;
+}
+/* ---------- storage health ---------- */
+const bytesOf = o => { try { return new Blob([JSON.stringify(o)]).size; } catch (e) { return 0; } };
+async function storageHealth() {
+  const box = $('#stBody'); if (!box) return; setMsg('stMsg', ''); box.innerHTML = '<span class="spin"></span>';
+  try {
+    const [sp, cp] = await Promise.all([getFresh(doc(db, 'shops', user.uid)), getFresh(cfgRef())]);
+    const sd = sp.exists() ? (sp.data() || {}) : {}, cd = cp.exists() ? (cp.data() || {}) : {};
+    const LIM = 1048576, sb = bytesOf(sd), cb = bytesOf(cd), n = Array.isArray(sd.customers) ? sd.customers.length : 0;
+    const copies = Array.isArray(cd.dcuReports) ? cd.dcuReports : [], exp = copies.filter(x => (+x.exp || 0) <= Date.now()).length;
+    const snaps = Array.isArray(cd.dcuSnaps) ? cd.dcuSnaps.length : 0, logN = Array.isArray(cd.adminLog) ? cd.adminLog.length : 0;
+    const chatsN = CH.started ? (CH.list.length >= 300 ? '300+' : CH.list.length) : '\u2014', dueN = CH.started ? CH.due.length : '\u2014';
+    const lvl = p => p >= 85 ? ['stCrit', 'var(--danger)'] : p >= 60 ? ['stWatch', 'var(--warn)'] : ['stGood', 'var(--success)'];
+    const bar = (label, b, extra) => { const p = Math.min(100, b * 100 / LIM), l = lvl(p); return '<div style="margin:14px 0"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>' + esc(label) + '</b><span style="color:' + l[1] + ';font-weight:600">' + esc(t(l[0])) + ' \u2022 ' + p.toFixed(1) + '%</span></div><div class="pbar"><i style="width:' + Math.max(p, 1) + '%;background:' + l[1] + '"></i></div><small class="muted">' + Math.round(b / 1024) + ' KB / 1024 KB (approx.)' + (extra ? ' \u2022 ' + esc(extra) : '') + '</small></div>'; };
+    const per = n ? sb / n : 0, room = per ? Math.max(0, Math.floor((LIM * 0.9 - sb) / per)) : 0;
+    box.innerHTML = bar(t('stShop'), sb, per ? t('stRoom').replace('{n}', room.toLocaleString('en-US')) : '') + bar(t('stCfg'), cb, '')
+      + '<div class="kv" style="margin-top:6px"><b>' + esc(t('stCopies')) + '</b><span>' + esc(t('stCopiesV').replace('{a}', copies.length).replace('{b}', exp)) + (exp ? ' <button type="button" class="lnk" id="stExp">' + esc(t('stClean')) + '</button>' : '') + '</span>'
+      + '<b>' + esc(t('stSnaps')) + '</b><span>' + snaps + '</span>'
+      + '<b>' + esc(t('stChats')) + '</b><span>' + esc(t('stChatsV').replace('{a}', chatsN).replace('{b}', dueN)) + '</span>'
+      + '<b>' + esc(t('stLog')) + '</b><span>' + logN + ' / ' + LOG_MAX + '</span></div>';
+    const eb = $('#stExp');
+    if (eb) eb.addEventListener('click', async () => {
+      const ids = copies.filter(x => (+x.exp || 0) <= Date.now()).map(x => x.id); if (!ids.length) return setMsg('stMsg', t('stNoExp'));
+      if (!confirm(t('stAsk').replace('{n}', ids.length))) return;
+      eb.disabled = true;
+      try { const gone = new Set(); for (const id of ids) { await rptKill(id); gone.add(id); } const cur = (await rptIdx()).filter(x => !gone.has(x.id)); await rptPut(cur); logAct('rpDel', gone.size + ''); setMsg('stMsg', t('stDone'), 'ok'); }
+      catch (e) { console.warn(e); setMsg('stMsg', t('stFail')); }
+      storageHealth();
+    });
+  } catch (e) { console.warn(e); box.innerHTML = ''; setMsg('stMsg', t('stFail')); }
+}
+
 const b64 = bytes => { let s = ''; bytes.forEach(b => { s += String.fromCharCode(b); }); return btoa(s); };
 async function derive(pw, saltB64, iter) {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(String(pw)), 'PBKDF2', false, ['deriveBits']);
@@ -389,6 +505,7 @@ async function getFresh(ref) {
 async function changePassword(role, pw) {
   const data = { updatedAt: serverTimestamp() }; data[role] = await makeEntry(pw);
   await setDoc(cfgRef(), data, { merge: true });
+  logAct('pass', role);
 }
 
 /* ============ notices (same documents and fields the main app reads) ============ */
@@ -403,6 +520,7 @@ async function loadNotices() {
 async function saveNotices() {
   if (!N.loaded) throw new Error('notices not loaded');   // never overwrite the cloud list with an empty one
   await setDoc(cfgRef(), { dcuNotices: N.list, dcuTickerOn: !!N.on }, { merge: true });
+  logAct('notice');
   try {
     await setDoc(doc(db, 'site_public', PUB_ID), { ownerUid: user.uid, shopName: SHOP_NAME, notices: N.list.filter(n => n.active), tickerOn: !!N.on, updatedAt: serverTimestamp() });
     N.pubErr = false;
@@ -484,8 +602,8 @@ document.addEventListener('click', async e => {
     const nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', nx);
     try { localStorage.setItem('rgce_admin_theme', nx); } catch (x) {}
   }
-  else if (a === 'lock') { unlocked = false; sessDel('rgce_adm_ok'); render(); }
-  else if (a === 'logout') { unlocked = false; sessDel('rgce_adm_ok'); try { history.replaceState(null, '', BASE); } catch (x) {} try { await signOut(auth); } catch (x) {} }
+  else if (a === 'lock') { logAct('lock'); flushLog(); unlocked = false; sessDel('rgce_adm_ok'); render(); }
+  else if (a === 'logout') { logAct('logout'); try { await Promise.race([flushLog(), new Promise(r => setTimeout(r, 2500))]); } catch (x) {} unlocked = false; sessDel('rgce_adm_ok'); try { history.replaceState(null, '', BASE); } catch (x) {} try { await signOut(auth); } catch (x) {} }
 });
 try { const th = localStorage.getItem('rgce_admin_theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
 try { if (localStorage.getItem('rgce_side_open') === '1') document.body.classList.add('side-open'); } catch (e) {}
@@ -529,9 +647,9 @@ function renderGate() {
     let ok = false;
     try { ok = (await sha256Hex(KEY_SALT + v)) === KEY_HASH; }
     catch (e) { console.warn(e); btn.disabled = false; setMsg('gkM', t('gateErr')); return; }
-    if (ok) { gateFails = 0; unlocked = true; sessSet('rgce_adm_ok', user.uid); openPanel(); return; }
+    if (ok) { gateFails = 0; unlocked = true; sessSet('rgce_adm_ok', user.uid); logAct('unlock'); openPanel(); return; }
     gateFails++;
-    if (gateFails >= 5) { gateFails = 0; gateUntil = Date.now() + 60000; setMsg('gkM', t('gateLocked')); } else setMsg('gkM', t('gateBad'));
+    if (gateFails >= 5) { gateFails = 0; logAct('keyFail'); gateUntil = Date.now() + 60000; setMsg('gkM', t('gateLocked')); } else setMsg('gkM', t('gateBad'));
     $('#gkIn').value = ''; btn.disabled = false; $('#gkIn').focus();
   };
   $('#gkGo').addEventListener('click', go);
@@ -602,9 +720,13 @@ async function tabOverview() {
       let billed = 0, recv = 0, out = 0, withDue = 0;
       cs.forEach(c => { const due = +c.due || 0, paid = +c.paid || 0, o = Math.max(0, due - paid); billed += due; recv += paid; out += o; if (o > 0) withDue++; });
       const st = (l, v, bad) => '<div class="stat' + (bad ? ' bad' : '') + '"><small>' + esc(l) + '</small><b>' + esc(v) + '</b></div>';
+      const coll = billed - out, pct = billed > 0 ? Math.round(coll * 1000 / billed) / 10 : 0, rc = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warn)' : 'var(--danger)';
+      const rate = '<div class="stat"><small>' + esc(t('rateH')) + '</small><b style="color:' + rc + '">' + pct + '%</b><div class="pbar"><i style="width:' + Math.min(100, Math.max(pct, 0.5)) + '%;background:' + rc + '"></i></div><small>' + esc(t('rateSub').replace('{a}', money(coll)).replace('{b}', money(billed)).replace('{c}', money(out))) + '</small></div>';
       box.innerHTML = '<div class="grid">' + st(t('ovCust'), cs.length) + st(t('ovInv'), d.invoiceCount != null ? d.invoiceCount : (Array.isArray(d.invoices) ? d.invoices.length : 0))
         + st(t('ovOut'), money(out), out > 0) + st(t('ovWith'), withDue) + st(t('ovBilled'), money(billed)) + st(t('ovRecv'), money(recv))
-        + st(t('ovSync'), fmtDT(d.updatedAt)) + st(t('ovVer'), d.appVersion || '—') + '</div>';
+        + st(t('ovSync'), fmtDT(d.updatedAt)) + st(t('ovVer'), d.appVersion || '—') + '</div>' + rate
+        + '<p style="margin:14px 0 0"><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></p>';
+      $('#ovNew').addEventListener('click', () => showNew(cs));
     } catch (e) { console.warn(e); box.innerHTML = ''; setMsg('ovMsg', t('ovFail')); }
   };
   $('#ovRef').addEventListener('click', load); load();
@@ -791,6 +913,7 @@ async function tabReports() {
         try { const li = await rptIdx(); li.unshift({ id: rpDoc.id, ty: rpDoc.typeId, no: rpDoc.no, gen: rpDoc.gen, n: rpDoc.rows.length, at: Date.now(), exp: rpExp }); await rptPut(li.slice(0, RPT_MAX)); if ($('#rpList')) rptList(); } catch (e) { console.warn(e); }
       }
       $('#rpLink').innerHTML = esc(rl('rLink')) + ': <a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>';
+      logAct('rpPrint', rl('ty_' + rpDoc.typeId) + ' ' + rpDoc.no);
       printHtml(rpHtml, rpName);
     } catch (e) { console.warn(e); setMsg('rpMsg', rl('rSaveFail') + ' [' + ((e && e.code) || (e && e.message) || 'error') + ']'); }
     if ($('#rpPr')) $('#rpPr').disabled = false;
@@ -820,7 +943,7 @@ async function rptList() {
   const load = async () => { setMsg('rlMsg', ''); try { list = await rptIdx(); } catch (e) { console.warn(e); setMsg('rlMsg', rl('rFail')); } if ($('#rlRows')) draw(); };
   const drop = async ids => {
     setMsg('rlMsg', ''); const gone = new Set();
-    try { for (const id of ids) { await rptKill(id); gone.add(id); } setMsg('rlMsg', rl('lDone'), 'ok'); }
+    try { for (const id of ids) { await rptKill(id); gone.add(id); } logAct('rpDel', gone.size + ''); setMsg('rlMsg', rl('lDone'), 'ok'); }
     catch (e) { console.warn(e); setMsg('rlMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
     try { if (gone.size) { const cur = (await rptIdx()).filter(x => !gone.has(x.id)); await rptPut(cur); list = cur; } } catch (e) { console.warn(e); list = list.filter(x => !gone.has(x.id)); }
     if ($('#rlRows')) draw();
@@ -892,16 +1015,16 @@ async function tabCompare() {
   });
   $('#cmSnap').addEventListener('click', async () => {
     if (!live) return; setMsg('cmMsg', ''); $('#cmSnap').disabled = true;
-    try { const cur = await snapIdx(); cur.unshift(snapOf(live)); await setDoc(cfgRef(), { dcuSnaps: cur.slice(0, SNAP_MAX) }, { merge: true }); setMsg('cmMsg', rl('cmSaved'), 'ok'); await load(); }
+    try { const cur = await snapIdx(); cur.unshift(snapOf(live)); await setDoc(cfgRef(), { dcuSnaps: cur.slice(0, SNAP_MAX) }, { merge: true }); logAct('snap'); setMsg('cmMsg', rl('cmSaved'), 'ok'); await load(); }
     catch (e) { console.warn(e); setMsg('cmMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
     if ($('#cmSnap')) $('#cmSnap').disabled = !live;
   });
   $('#cmDel').addEventListener('click', async () => {
     const v = $('#cmA').value; if (!v || !confirm(rl('cmAsk'))) return; setMsg('cmMsg', '');
-    try { const cur = (await snapIdx()).filter(s => String(s.at) !== v); await setDoc(cfgRef(), { dcuSnaps: cur }, { merge: true }); await load(); setMsg('cmMsg', rl('lDone'), 'ok'); }
+    try { const cur = (await snapIdx()).filter(s => String(s.at) !== v); await setDoc(cfgRef(), { dcuSnaps: cur }, { merge: true }); logAct('snapDel'); await load(); setMsg('cmMsg', rl('lDone'), 'ok'); }
     catch (e) { console.warn(e); setMsg('cmMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
   });
-  $('#cmPr').addEventListener('click', () => { if (html) printHtml(html, name); });
+  $('#cmPr').addEventListener('click', () => { if (html) { logAct('cmPrint', name); printHtml(html, name); } });
   load();
 }
 
@@ -918,7 +1041,7 @@ function mntCard() {
   const paint = () => { const p = $('#mState'); if (!p) return; p.textContent = rl(on ? 'mntOn' : 'mntOff'); p.className = 'pill ' + (on ? 'off' : 'on'); const b = $('#mSwitch'); b.textContent = rl(on ? 'mntTurnOff' : 'mntTurnOn'); b.className = 'btn btn-sm' + (on ? '' : ' btn-danger'); b.disabled = !ready; $('#mSave').disabled = !ready; };
   const write = async next => {
     setMsg('mMsg', ''); $('#mSwitch').disabled = true; $('#mSave').disabled = true;
-    try { await setDoc(ref(), { ownerUid: user.uid, shopName: SHOP_NAME, on: next, msgEn: $('#mEn').value.trim(), msgBn: $('#mBn').value.trim(), updatedAt: serverTimestamp() }); on = next; setMsg('mMsg', rl('mntDone'), 'ok'); }
+    try { await setDoc(ref(), { ownerUid: user.uid, shopName: SHOP_NAME, on: next, msgEn: $('#mEn').value.trim(), msgBn: $('#mBn').value.trim(), updatedAt: serverTimestamp() }); on = next; logAct('maint', next ? 'ON' : 'OFF'); setMsg('mMsg', rl('mntDone'), 'ok'); }
     catch (e) { console.warn(e); setMsg('mMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
     paint();
   };
@@ -934,7 +1057,11 @@ function tabAccount() {
     + '<b>' + esc(t('acLast')) + '</b><span>' + esc(fmtDT(user.metadata && user.metadata.lastSignInTime)) + '</span>'
     + '<b>' + esc(t('acCreated')) + '</b><span>' + esc(fmtDT(user.metadata && user.metadata.creationTime)) + '</span>'
     + '<b>' + esc(t('accCloud')) + '</b><span style="color:var(--success);font-weight:600">' + esc(t('accCloudV')) + '</span>'
-    + '<b>' + esc(t('accScope')) + '</b><span>' + esc(t('accScopeV')) + '</span></div></div>';
+    + '<b>' + esc(t('accScope')) + '</b><span>' + esc(t('accScopeV')) + '</span></div>'
+    + '<p style="margin:14px 0 0"><button type="button" class="lnk" id="acLog">' + esc(t('logLnk')) + '</button></p></div>'
+    + '<div class="card"><h2>' + esc(t('stH')) + '</h2><p class="muted">' + esc(t('stNote')) + '</p><div id="stBody"><span class="spin"></span></div><div class="msg" id="stMsg" role="status"></div><button class="btn btn-sm" id="stRef" type="button">' + esc(t('stRef')) + '</button></div>';
+  $('#acLog').addEventListener('click', showLog);
+  $('#stRef').addEventListener('click', storageHealth); storageHealth();
 }
 
 /* ---------- tab: passwords ---------- */
@@ -1162,12 +1289,14 @@ async function wipeChat(id) {         // messages first (batches of 400), then t
     if (s.size < 400) break;
   }
   await deleteDoc(doc(db, 'chats', id));
+  logAct('chatDel');
   if (CH.sel === id) { CH.sel = ''; if (CH.unsubMsgs) CH.unsubMsgs(); CH.unsubMsgs = null; CH.msgs = []; }
 }
 async function extendChat(id) {
   const c = chatById(id); if (!c) return;
   const base = Math.max(Date.now(), tms(c.deletionScheduledAt));
   await updateDoc(doc(db, 'chats', id), { deletionScheduledAt: Timestamp.fromMillis(base + H72), extensionCount: increment(1), deletionPromptedAt: deleteField() });
+  logAct('chatExt');
 }
 async function guarded(fn, msgId) {
   if (CH.busy) return; CH.busy = true;
