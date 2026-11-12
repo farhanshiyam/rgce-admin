@@ -114,7 +114,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .mdl-back{position:fixed;inset:0;z-index:200;background:rgba(10,16,24,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .mdl{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;width:100%;max-width:580px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
 .mdl-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}.mdl-h h2{margin:0;font-size:17px}
-.mdl-b{padding:16px 18px;overflow:auto}.mdl-b .row .t small{display:block}
+.mdl.wide{max-width:1000px}.mdl-b{padding:16px 18px;overflow:auto}
+.wd{border-collapse:collapse;width:100%;font:14px Calibri,Arial,sans-serif;color:var(--text);background:transparent}.wd th,.wd td{border:1px solid var(--text);padding:4px 8px;text-align:right}.wd th{text-align:center;font-weight:700}.wd th:first-child,.wd td:first-child{text-align:left}.wd tfoot td{font-weight:700}
+.bz-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:8px 0}.bz-in label{display:block;font-size:12.5px;color:var(--muted)}.bz-in input{width:100%}.mdl-b .row .t small{display:block}
 /* hamburger + sidebar (standard) */
 .top .left{display:flex;align-items:center;gap:12px;min-width:0}
 .brand-ic{width:40px;height:40px;flex:none;display:block;border-radius:10px;-webkit-user-drag:none}
@@ -341,6 +343,8 @@ Object.assign(T.en, { mdlClose: 'Close', rateH: 'Collection rate', rateSub: '{a}
   stCopies: 'Online report copies', stCopiesV: '{a} saved \u2022 {b} expired', stSnaps: 'Month snapshots', stChats: 'Chats', stChatsV: '{a} stored \u2022 {b} waiting for deletion', stLog: 'Activity log entries', stRef: 'Refresh', stClean: 'Delete expired copies', stFail: 'Could not read storage details.', stNoExp: 'There are no expired copies.', stDone: 'Expired copies deleted.', stAsk: 'Delete {n} expired online report copies? Their QR links will stop working.' });
 Object.assign(T.en, { staLnk: 'Customer status split', staH: 'Customers by status', staDue: 'Due', staHid: 'Hidden due (nothing due, nothing paid)', staPart: 'Partly paid', staPaid: 'Paid', staOut: 'still due', staTotal: 'customers in total',
   recLnk: 'Recent activity', recH: 'Recent activity', recNote: 'The latest payments and dues from your customers\u2019 transaction history.', recNone: 'No activity found in the customer data yet.', recDue: 'Due added', recPay: 'Payment received', recAdj: 'Adjustment' });
+Object.assign(T.en, { bizLnk: 'Daily products added & selling amount (by category)', bizH: 'Daily products & sales', bzC: 'Crockery', bzE: 'Electrics', bzS: 'Stationery', bzM: 'Cosmetics', bzTot: 'Total', bzAdded: 'Products added (value)', bzSold: 'Selling amount', bzDate: 'Date', bzShow: 'Show editing', bzHide: 'Hide editing', bzSave: 'Save this day', bzDel: 'Delete this day', bzSaved: 'Saved.', bzDeleted: 'Deleted.', bzFail: 'Could not save.', bzAsk: 'Delete all entries of {d}?', bzNone: 'No entries this month yet.', bzDiff: 'Sold minus added', bzEdit: 'Edit', bzDaily: 'Daily chart', bzCat: 'By category', bzHint: 'Amounts in BDT. Saving a date again replaces that day. Saving all zeros removes the day.', bzLoadFail: 'Could not load the saved entries.', bzTA: 'Total added', bzTS: 'Total sold', lg_biz: 'Saved a daily products / sales entry', lg_bizDel: 'Deleted a daily products / sales entry' });
+Object.assign(T.bn, { bizLnk: 'দৈনিক পণ্য যোগ ও বিক্রির পরিমাণ (ক্যাটাগরি অনুযায়ী)', bizH: 'দৈনিক পণ্য ও বিক্রি', bzC: 'ক্রোকারিজ', bzE: 'ইলেকট্রিক্স', bzS: 'স্টেশনারি', bzM: 'কসমেটিকস', bzTot: 'মোট', bzAdded: 'পণ্য যোগ (মূল্য)', bzSold: 'বিক্রির পরিমাণ', bzDate: 'তারিখ', bzShow: 'এডিট দেখান', bzHide: 'এডিট লুকান', bzSave: 'এই দিন সেভ করুন', bzDel: 'এই দিন মুছুন', bzSaved: 'সেভ হয়েছে।', bzDeleted: 'মুছে ফেলা হয়েছে।', bzFail: 'সেভ করা যায়নি।', bzAsk: '{d} তারিখের সব এন্ট্রি মুছবেন?', bzNone: 'এই মাসে এখনো কোনো এন্ট্রি নেই।', bzDiff: 'বিক্রি বাদ যোগ', bzEdit: 'এডিট', bzDaily: 'দৈনিক চার্ট', bzCat: 'ক্যাটাগরি অনুযায়ী', bzHint: 'টাকায় লিখুন। একই তারিখ আবার সেভ করলে ওই দিনের তথ্য বদলে যাবে। সব শূন্য সেভ করলে দিনটি মুছে যাবে।', bzLoadFail: 'সেভ করা এন্ট্রি লোড করা যায়নি।', bzTA: 'মোট যোগ', bzTS: 'মোট বিক্রি', lg_biz: 'দৈনিক পণ্য / বিক্রির এন্ট্রি সেভ করা হয়েছে', lg_bizDel: 'দৈনিক পণ্য / বিক্রির এন্ট্রি মোছা হয়েছে' });
 Object.assign(T.bn, { staLnk: 'কাস্টমারের অবস্থা ভাগ', staH: 'অবস্থা অনুযায়ী কাস্টমার', staDue: 'বাকি', staHid: 'গোপন বাকি (বাকিও নেই, পরিশোধও নেই)', staPart: 'আংশিক পরিশোধ', staPaid: 'পরিশোধিত', staOut: 'এখনো বাকি', staTotal: 'মোট কাস্টমার',
   recLnk: 'সাম্প্রতিক কার্যকলাপ', recH: 'সাম্প্রতিক কার্যকলাপ', recNote: 'কাস্টমারদের লেনদেনের ইতিহাস থেকে সাম্প্রতিক পেমেন্ট ও বাকি।', recNone: 'কাস্টমার ডেটায় এখনো কোনো কার্যকলাপ নেই।', recDue: 'বাকি যোগ', recPay: 'পেমেন্ট পাওয়া গেছে', recAdj: 'সংশোধন' });
 Object.assign(T.bn, { mdlClose: 'বন্ধ করুন', rateH: 'আদায়ের হার', rateSub: '{b} বিলের মধ্যে {a} আদায় \u2022 বাকি {c}',
@@ -397,10 +401,10 @@ const cfgRef = () => doc(db, 'private_config', user.uid);
 /* ---------- modal ---------- */
 let mdlClose = null;
 function closeModal() { if (mdlClose) mdlClose(); }
-function openModal(title, html) {
+function openModal(title, html, wide) {
   closeModal();
   const back = document.createElement('div'); back.className = 'mdl-back';
-  back.innerHTML = '<div class="mdl" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><div class="mdl-h"><h2>' + esc(title) + '</h2><button type="button" class="sb-close" id="mdlX" aria-label="' + esc(t('mdlClose')) + '">' + ico('x') + '</button></div><div class="mdl-b" id="mdlB">' + html + '</div></div>';
+  back.innerHTML = '<div class="mdl' + (wide ? ' wide' : '') + '" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><div class="mdl-h"><h2>' + esc(title) + '</h2><button type="button" class="sb-close" id="mdlX" aria-label="' + esc(t('mdlClose')) + '">' + ico('x') + '</button></div><div class="mdl-b" id="mdlB">' + html + '</div></div>';
   document.body.appendChild(back);
   const prev = document.activeElement;
   const onKey = e => { if (e.key === 'Escape') closeModal(); };
@@ -506,6 +510,94 @@ function showRecent(cs) {
     return '<div class="row"><div class="t"><b>' + esc(it.n || '-') + '</b><small>' + esc(lab) + (it.note ? ' \u2022 ' + esc(it.note) : '') + '</small><small>' + esc(it.ts != null ? fmtDT(it.ts) : it.raw) + '</small></div><b style="color:' + k[1] + '">' + k[2] + money(it.a) + '</b></div>';
   }).join('') : '<div class="row"><span class="muted">' + esc(t('recNone')) + '</span></div>');
   openModal(t('recH'), h);
+}
+
+/* ---------- daily products added + selling amount, by category (private_config/<uid>.dailyBiz[YYYY-MM-DD] = { a:[4], s:[4] }) ---------- */
+const BZ_KEYS = ['bzC', 'bzE', 'bzS', 'bzM'];
+let BIZ = { d: {}, ym: '', edit: false, date: '', msg: '' };
+const bzN = x => { const n = parseFloat(bnDigits(String(x == null ? '' : x)).replace(/,/g, '')); return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0; };
+const bzSum = a => (a || []).reduce((s, x) => s + (+x || 0), 0);
+const bzShort = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1) + 'k' : String(Math.round(n));
+const bzNice = n => { if (n <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(n))), f = n / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; };
+function bzDaily(vals, days) {
+  const W = 720, H = 230, L = 46, B = 26, T = 14, R = 6, pw = W - L - R, ph = H - B - T, step = pw / days;
+  const mx = bzNice(Math.max(1, ...vals.a, ...vals.s)); let o = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" role="img" aria-label="' + esc(t('bzDaily')) + '">';
+  for (let i = 0; i <= 4; i++) { const y = T + ph - ph * i / 4; o += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--border)"/><text x="' + (L - 5) + '" y="' + (y + 3) + '" text-anchor="end" font-size="10" style="fill:var(--muted)">' + bzShort(mx * i / 4) + '</text>'; }
+  for (let d = 0; d < days; d++) {
+    const x = L + d * step, bw = Math.max(2, step * 0.38), a = vals.a[d], s = vals.s[d];
+    if (a > 0) o += '<rect x="' + (x + step * 0.1) + '" y="' + (T + ph - ph * a / mx) + '" width="' + bw + '" height="' + (ph * a / mx) + '" style="fill:var(--primary)"><title>' + (d + 1) + ': ' + esc(t('bzAdded')) + ' ' + money(a) + '</title></rect>';
+    if (s > 0) o += '<rect x="' + (x + step * 0.1 + bw) + '" y="' + (T + ph - ph * s / mx) + '" width="' + bw + '" height="' + (ph * s / mx) + '" style="fill:var(--success)"><title>' + (d + 1) + ': ' + esc(t('bzSold')) + ' ' + money(s) + '</title></rect>';
+    o += '<text x="' + (x + step / 2) + '" y="' + (H - 9) + '" text-anchor="middle" font-size="9" style="fill:var(--muted)">' + (d + 1) + '</text>';
+  }
+  return o + '</svg>';
+}
+function bzCats(A, S) {
+  const W = 720, L = 96, R = 90, gh = 52, H = gh * 4 + 6, pw = W - L - R, mx = bzNice(Math.max(1, ...A, ...S));
+  let o = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" role="img" aria-label="' + esc(t('bzCat')) + '">';
+  BZ_KEYS.forEach((k, i) => {
+    const y = 4 + i * gh, wa = pw * A[i] / mx, ws = pw * S[i] / mx;
+    o += '<text x="' + (L - 8) + '" y="' + (y + 28) + '" text-anchor="end" font-size="12" style="fill:var(--text)">' + esc(t(k)) + '</text>'
+      + '<rect x="' + L + '" y="' + (y + 5) + '" width="' + Math.max(A[i] ? 2 : 0, wa) + '" height="16" rx="3" style="fill:var(--primary)"/><text x="' + (L + wa + 6) + '" y="' + (y + 17) + '" font-size="11" style="fill:var(--text)">' + money(A[i]) + '</text>'
+      + '<rect x="' + L + '" y="' + (y + 25) + '" width="' + Math.max(S[i] ? 2 : 0, ws) + '" height="16" rx="3" style="fill:var(--success)"/><text x="' + (L + ws + 6) + '" y="' + (y + 37) + '" font-size="11" style="fill:var(--text)">' + money(S[i]) + '</text>';
+  });
+  return o + '</svg>';
+}
+function bzTable(title, which, keys, edit) {
+  const tot = [0, 0, 0, 0];
+  const rows = keys.map(k => { const a = (BIZ.d[k] && BIZ.d[k][which]) || []; for (let i = 0; i < 4; i++) tot[i] += +a[i] || 0; return '<tr><td>' + esc(fmtDate(k)) + '</td>' + [0, 1, 2, 3].map(i => '<td>' + (+a[i] ? money(+a[i]) : '-') + '</td>').join('') + '<td>' + money(bzSum(a)) + '</td>' + (edit ? '<td style="text-align:center"><button type="button" class="lnk" data-bz-edit="' + k + '">' + esc(t('bzEdit')) + '</button></td>' : '') + '</tr>'; }).join('');
+  return '<h3 style="margin:18px 0 6px">' + esc(title) + '</h3><div style="overflow-x:auto"><table class="wd"><thead><tr><th>' + esc(t('bzDate')) + '</th>' + BZ_KEYS.map(k => '<th>' + esc(t(k)) + '</th>').join('') + '<th>' + esc(t('bzTot')) + '</th>' + (edit ? '<th></th>' : '') + '</tr></thead><tbody>'
+    + (rows || '<tr><td colspan="' + (edit ? 7 : 6) + '" style="text-align:center">' + esc(t('bzNone')) + '</td></tr>') + '</tbody><tfoot><tr><td>' + esc(t('bzTot')) + '</td>' + tot.map(x => '<td>' + money(x) + '</td>').join('') + '<td>' + money(bzSum(tot)) + '</td>' + (edit ? '<td></td>' : '') + '</tr></tfoot></table></div>';
+}
+function bzRender() {
+  const body = $('#mdlB'); if (!body) return;
+  const [y, m] = BIZ.ym.split('-').map(Number), days = new Date(y, m, 0).getDate();
+  const keys = Object.keys(BIZ.d).filter(k => k.slice(0, 7) === BIZ.ym).sort();
+  const A = [0, 0, 0, 0], S = [0, 0, 0, 0], va = new Array(days).fill(0), vs = new Array(days).fill(0);
+  keys.forEach(k => { const a = BIZ.d[k].a || [], s = BIZ.d[k].s || [], di = +k.slice(8, 10) - 1; for (let i = 0; i < 4; i++) { A[i] += +a[i] || 0; S[i] += +s[i] || 0; } if (di >= 0 && di < days) { va[di] += bzSum(a); vs[di] += bzSum(s); } });
+  const ta = bzSum(A), ts = bzSum(S), df = ts - ta;
+  const st = (l, val, col) => '<div class="stat"><small>' + esc(l) + '</small><b' + (col ? ' style="color:' + col + '"' : '') + '>' + esc(val) + '</b></div>';
+  const cur = BIZ.date || todayStr(), ex = BIZ.d[cur] || {}, fv = (w, i) => { const x = +((ex[w] || [])[i]) || 0; return x ? x : ''; };
+  const inp = (w, i) => '<div><label for="bz_' + w + i + '">' + esc(t(BZ_KEYS[i])) + '</label><input id="bz_' + w + i + '" type="text" inputmode="decimal" autocomplete="off" value="' + fv(w, i) + '"></div>';
+  const form = BIZ.edit ? '<div class="card" style="margin:0 0 14px;padding:14px"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end"><div><label for="bzDate" style="font-size:12.5px;color:var(--muted);display:block">' + esc(t('bzDate')) + '</label><input id="bzDate" type="date" value="' + esc(cur) + '"></div></div>'
+    + '<h3 style="margin:12px 0 0">' + esc(t('bzAdded')) + '</h3><div class="bz-in">' + [0, 1, 2, 3].map(i => inp('a', i)).join('') + '</div>'
+    + '<h3 style="margin:8px 0 0">' + esc(t('bzSold')) + '</h3><div class="bz-in">' + [0, 1, 2, 3].map(i => inp('s', i)).join('') + '</div>'
+    + '<p class="muted" style="margin:4px 0">' + esc(t('bzHint')) + '</p><div class="msg" id="bzMsg" role="status">' + esc(BIZ.msg || '') + '</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="btn btn-primary btn-sm" id="bzSave">' + esc(t('bzSave')) + '</button><button type="button" class="btn btn-sm btn-danger" id="bzDel">' + esc(t('bzDel')) + '</button></div></div>' : '';
+  const lg = '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;margin:4px 0 6px"><span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--primary);vertical-align:-1px"></i> ' + esc(t('bzAdded')) + '</span><span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--success);vertical-align:-1px"></i> ' + esc(t('bzSold')) + '</span></div>';
+  body.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px"><button type="button" class="btn btn-sm" id="bzPrev" aria-label="Previous month">\u2039</button><b style="min-width:120px;text-align:center">' + esc(t('mon')[m - 1] + ' ' + y) + '</b><button type="button" class="btn btn-sm" id="bzNext" aria-label="Next month">\u203A</button></div><button type="button" class="lnk" id="bzTog">' + esc(t(BIZ.edit ? 'bzHide' : 'bzShow')) + '</button></div>'
+    + form + '<div class="grid">' + st(t('bzTA'), money(ta)) + st(t('bzTS'), money(ts)) + st(t('bzDiff'), (df > 0 ? '+' : '') + money(df), df >= 0 ? 'var(--success)' : 'var(--danger)') + '</div>'
+    + '<h3 style="margin:14px 0 2px">' + esc(t('bzDaily')) + '</h3>' + lg + bzDaily({ a: va, s: vs }, days)
+    + '<h3 style="margin:18px 0 2px">' + esc(t('bzCat')) + '</h3>' + lg + bzCats(A, S)
+    + bzTable(t('bzAdded'), 'a', keys, BIZ.edit) + bzTable(t('bzSold'), 's', keys, BIZ.edit);
+}
+async function showBiz() {
+  const body = openModal(t('bizH'), '<span class="spin"></span>', true);
+  BIZ = { d: {}, ym: todayStr().slice(0, 7), edit: false, date: '', msg: '' };
+  try { const s = await getFresh(cfgRef()); const d = s.exists() ? (s.data() || {}) : {}; BIZ.d = d.dailyBiz && typeof d.dailyBiz === 'object' ? d.dailyBiz : {}; }
+  catch (e) { console.warn(e); if ($('#mdlB')) $('#mdlB').innerHTML = '<div class="msg">' + esc(t('bzLoadFail')) + '</div>'; return; }
+  bzRender();
+  body.addEventListener('click', async e => {
+    const b = e.target.closest && e.target.closest('button'); if (!b) return;
+    const go = n => { const [y, m] = BIZ.ym.split('-').map(Number), dt = new Date(y, m - 1 + n, 1); BIZ.ym = dt.getFullYear() + '-' + pad(dt.getMonth() + 1); bzRender(); };
+    if (b.id === 'bzPrev') return go(-1);
+    if (b.id === 'bzNext') return go(1);
+    if (b.id === 'bzTog') { BIZ.edit = !BIZ.edit; BIZ.msg = ''; if (BIZ.edit && !BIZ.date) BIZ.date = todayStr(); return bzRender(); }
+    if (b.hasAttribute('data-bz-edit')) { BIZ.date = b.getAttribute('data-bz-edit'); BIZ.msg = ''; bzRender(); const f = $('#bzDate'); if (f) f.scrollIntoView({ block: 'center' }); return; }
+    if (b.id === 'bzSave' || b.id === 'bzDel') {
+      const date = $('#bzDate').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+      const rd = w => [0, 1, 2, 3].map(i => bzN($('#bz_' + w + i).value));
+      const a = rd('a'), s = rd('s'), del = b.id === 'bzDel' || (!bzSum(a) && !bzSum(s));
+      if (b.id === 'bzDel' && !confirm(t('bzAsk').replace('{d}', fmtDate(date)))) return;
+      b.disabled = true;
+      try {
+        await setDoc(cfgRef(), { dailyBiz: { [date]: del ? SDK.deleteField() : { a: a, s: s } } }, { merge: true });
+        if (del) delete BIZ.d[date]; else BIZ.d[date] = { a: a, s: s };
+        logAct(del ? 'bizDel' : 'biz', date); BIZ.date = date; BIZ.ym = date.slice(0, 7); BIZ.msg = t(del ? 'bzDeleted' : 'bzSaved');
+      } catch (x) { console.warn(x); BIZ.msg = t('bzFail') + ((x && x.code) ? ' (' + x.code + ')' : ''); }
+      bzRender();
+    }
+  });
+  body.addEventListener('change', e => { if (e.target && e.target.id === 'bzDate') { BIZ.date = e.target.value; BIZ.msg = ''; bzRender(); } });
 }
 /* ---------- storage health ---------- */
 const bytesOf = o => { try { return new Blob([JSON.stringify(o)]).size; } catch (e) { return 0; } };
@@ -777,9 +869,10 @@ async function tabOverview() {
       box.innerHTML = '<div class="grid">' + st(t('ovCust'), cs.length) + st(t('ovInv'), d.invoiceCount != null ? d.invoiceCount : (Array.isArray(d.invoices) ? d.invoices.length : 0))
         + st(t('ovOut'), money(out), out > 0) + st(t('ovWith'), withDue) + st(t('ovBilled'), money(billed)) + st(t('ovRecv'), money(recv))
         + st(t('ovSync'), fmtDT(d.updatedAt)) + st(t('ovVer'), d.appVersion || '—') + '</div>' + rate
-        + '<div style="margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:10px"><button type="button" class="lnk" id="ovSta">' + esc(t('staLnk')) + '</button><button type="button" class="lnk" id="ovRec">' + esc(t('recLnk')) + '</button><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></div>';
+        + '<div style="margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:10px"><button type="button" class="lnk" id="ovBiz">' + esc(t('bizLnk')) + '</button><button type="button" class="lnk" id="ovSta">' + esc(t('staLnk')) + '</button><button type="button" class="lnk" id="ovRec">' + esc(t('recLnk')) + '</button><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></div>';
       $('#ovNew').addEventListener('click', () => showNew(cs));
       $('#ovSta').addEventListener('click', () => showStatus(cs));
+      $('#ovBiz').addEventListener('click', showBiz);
       $('#ovRec').addEventListener('click', () => showRecent(cs));
     } catch (e) { console.warn(e); box.innerHTML = ''; setMsg('ovMsg', t('ovFail')); }
   };
