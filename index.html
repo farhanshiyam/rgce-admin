@@ -114,7 +114,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .mdl-back{position:fixed;inset:0;z-index:200;background:rgba(10,16,24,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .mdl{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;width:100%;max-width:580px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
 .mdl-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}.mdl-h h2{margin:0;font-size:17px}
-.mdl.wide{max-width:1000px}.mdl-b{padding:16px 18px;overflow:auto}
+.mdl.wide{max-width:1000px}.bz-host{margin-top:16px;border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--panel)}.bz-host[hidden]{display:none}.mdl-b{padding:16px 18px;overflow:auto}
 .wd{border-collapse:collapse;width:100%;font:14px Calibri,Arial,sans-serif;color:var(--text);background:transparent}.wd th,.wd td{border:1px solid var(--text);padding:4px 8px;text-align:right}.wd th{text-align:center;font-weight:700}.wd th:first-child,.wd td:first-child{text-align:left}.wd tfoot td{font-weight:700}
 .bz-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:8px 0}.bz-in label{display:block;font-size:12.5px;color:var(--muted)}.bz-in input{width:100%}.mdl-b .row .t small{display:block}
 /* hamburger + sidebar (standard) */
@@ -345,6 +345,8 @@ Object.assign(T.en, { staLnk: 'Customer status split', staH: 'Customers by statu
   recLnk: 'Recent activity', recH: 'Recent activity', recNote: 'The latest payments and dues from your customers\u2019 transaction history.', recNone: 'No activity found in the customer data yet.', recDue: 'Due added', recPay: 'Payment received', recAdj: 'Adjustment' });
 Object.assign(T.en, { bizLnk: 'Daily products added & selling amount (by category)', bizH: 'Daily products & sales', bzC: 'Crockery', bzE: 'Electrics', bzS: 'Stationery', bzM: 'Cosmetics', bzTot: 'Total', bzAdded: 'Products added (value)', bzSold: 'Selling amount', bzDate: 'Date', bzShow: 'Show editing', bzHide: 'Hide editing', bzSave: 'Save this day', bzDel: 'Delete this day', bzSaved: 'Saved.', bzDeleted: 'Deleted.', bzFail: 'Could not save.', bzAsk: 'Delete all entries of {d}?', bzNone: 'No entries this month yet.', bzDiff: 'Sold minus added', bzEdit: 'Edit', bzDaily: 'Daily chart', bzCat: 'By category', bzHint: 'Amounts in BDT. Saving a date again replaces that day. Saving all zeros removes the day.', bzLoadFail: 'Could not load the saved entries.', bzTA: 'Total added', bzTS: 'Total sold', lg_biz: 'Saved a daily products / sales entry', lg_bizDel: 'Deleted a daily products / sales entry' });
 Object.assign(T.bn, { bizLnk: 'দৈনিক পণ্য যোগ ও বিক্রির পরিমাণ (ক্যাটাগরি অনুযায়ী)', bizH: 'দৈনিক পণ্য ও বিক্রি', bzC: 'ক্রোকারিজ', bzE: 'ইলেকট্রিক্স', bzS: 'স্টেশনারি', bzM: 'কসমেটিকস', bzTot: 'মোট', bzAdded: 'পণ্য যোগ (মূল্য)', bzSold: 'বিক্রির পরিমাণ', bzDate: 'তারিখ', bzShow: 'এডিট দেখান', bzHide: 'এডিট লুকান', bzSave: 'এই দিন সেভ করুন', bzDel: 'এই দিন মুছুন', bzSaved: 'সেভ হয়েছে।', bzDeleted: 'মুছে ফেলা হয়েছে।', bzFail: 'সেভ করা যায়নি।', bzAsk: '{d} তারিখের সব এন্ট্রি মুছবেন?', bzNone: 'এই মাসে এখনো কোনো এন্ট্রি নেই।', bzDiff: 'বিক্রি বাদ যোগ', bzEdit: 'এডিট', bzDaily: 'দৈনিক চার্ট', bzCat: 'ক্যাটাগরি অনুযায়ী', bzHint: 'টাকায় লিখুন। একই তারিখ আবার সেভ করলে ওই দিনের তথ্য বদলে যাবে। সব শূন্য সেভ করলে দিনটি মুছে যাবে।', bzLoadFail: 'সেভ করা এন্ট্রি লোড করা যায়নি।', bzTA: 'মোট যোগ', bzTS: 'মোট বিক্রি', lg_biz: 'দৈনিক পণ্য / বিক্রির এন্ট্রি সেভ করা হয়েছে', lg_bizDel: 'দৈনিক পণ্য / বিক্রির এন্ট্রি মোছা হয়েছে' });
+Object.assign(T.en, { bzHint: 'Amounts in BDT. Saving a date again replaces that day. Saving all zeros removes the day. The date can be any past day.', bzSoldDay: 'Selling amount (total for the day)', bzXL: 'Added \u2013 total only (not split)', bzX: 'Total only', bzOther: 'Other / total only', bzPrevH: 'Month total entry', bzPrevHint: 'For months before this software, or any month where you only know the total. It is added to that month\u2019s totals and to the year summary.', bzMonth: 'Month', bzNote: 'Note', bzSaveM: 'Save month total', bzDelM: 'Delete month total', bzAskM: 'Delete the month total of {d}?', bzYear: 'By month', bzPrintM: 'Print this month', bzPrintY: 'Print year', bzClose: 'Close', bzLump: 'Month total entry', bzDayH: 'Daily entry', bzMonthBad: 'Enter the month as YYYY-MM.', bzTitleM: 'Daily products added & selling amount', bzTitleY: 'Products added & selling amount by month', lg_bizM: 'Saved a month total (products / sales)', lg_bizMDel: 'Deleted a month total (products / sales)' });
+Object.assign(T.bn, { bzHint: 'টাকায় লিখুন। একই তারিখ আবার সেভ করলে ওই দিনের তথ্য বদলে যাবে। সব শূন্য সেভ করলে দিনটি মুছে যাবে। যেকোনো আগের তারিখ দেওয়া যাবে।', bzSoldDay: 'বিক্রির পরিমাণ (দিনের মোট)', bzXL: 'যোগ \u2013 শুধু মোট (ভাগ ছাড়া)', bzX: 'শুধু মোট', bzOther: 'অন্যান্য / শুধু মোট', bzPrevH: 'মাসের মোট এন্ট্রি', bzPrevHint: 'এই সফটওয়্যারের আগের মাস, বা যে মাসের শুধু মোট জানা আছে। এটি ওই মাসের মোট ও বছরের সারাংশে যোগ হবে।', bzMonth: 'মাস', bzNote: 'নোট', bzSaveM: 'মাসের মোট সেভ করুন', bzDelM: 'মাসের মোট মুছুন', bzAskM: '{d} মাসের মোট মুছবেন?', bzYear: 'মাস অনুযায়ী', bzPrintM: 'এই মাস প্রিন্ট', bzPrintY: 'বছর প্রিন্ট', bzClose: 'বন্ধ করুন', bzLump: 'মাসের মোট এন্ট্রি', bzDayH: 'দৈনিক এন্ট্রি', bzMonthBad: 'মাস লিখুন YYYY-MM আকারে।', bzTitleM: 'দৈনিক পণ্য যোগ ও বিক্রির পরিমাণ', bzTitleY: 'মাস অনুযায়ী পণ্য যোগ ও বিক্রির পরিমাণ', lg_bizM: 'মাসের মোট (পণ্য / বিক্রি) সেভ করা হয়েছে', lg_bizMDel: 'মাসের মোট (পণ্য / বিক্রি) মোছা হয়েছে' });
 Object.assign(T.bn, { staLnk: 'কাস্টমারের অবস্থা ভাগ', staH: 'অবস্থা অনুযায়ী কাস্টমার', staDue: 'বাকি', staHid: 'গোপন বাকি (বাকিও নেই, পরিশোধও নেই)', staPart: 'আংশিক পরিশোধ', staPaid: 'পরিশোধিত', staOut: 'এখনো বাকি', staTotal: 'মোট কাস্টমার',
   recLnk: 'সাম্প্রতিক কার্যকলাপ', recH: 'সাম্প্রতিক কার্যকলাপ', recNote: 'কাস্টমারদের লেনদেনের ইতিহাস থেকে সাম্প্রতিক পেমেন্ট ও বাকি।', recNone: 'কাস্টমার ডেটায় এখনো কোনো কার্যকলাপ নেই।', recDue: 'বাকি যোগ', recPay: 'পেমেন্ট পাওয়া গেছে', recAdj: 'সংশোধন' });
 Object.assign(T.bn, { mdlClose: 'বন্ধ করুন', rateH: 'আদায়ের হার', rateSub: '{b} বিলের মধ্যে {a} আদায় \u2022 বাকি {c}',
@@ -512,92 +514,164 @@ function showRecent(cs) {
   openModal(t('recH'), h);
 }
 
-/* ---------- daily products added + selling amount, by category (private_config/<uid>.dailyBiz[YYYY-MM-DD] = { a:[4], s:[4] }) ---------- */
+/* ---------- daily products added (by category or total) + selling amount (day total); shown inline on Overview ----------
+   private_config/<uid>.dailyBiz[YYYY-MM-DD] = { a:[crockery,electrics,stationery,cosmetics], x: added-total-only, s: selling total }
+   private_config/<uid>.bizPrev[YYYY-MM]     = { a: month added total, s: month selling total, n: note }   (months entered only as a total) */
 const BZ_KEYS = ['bzC', 'bzE', 'bzS', 'bzM'];
-let BIZ = { d: {}, ym: '', edit: false, date: '', msg: '' };
+let BIZ = { d: {}, p: {}, ym: '', edit: false, date: '', lm: '', msg: '', msgM: '', loaded: false };
 const bzN = x => { const n = parseFloat(bnDigits(String(x == null ? '' : x)).replace(/,/g, '')); return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0; };
 const bzSum = a => (a || []).reduce((s, x) => s + (+x || 0), 0);
+const bzDay = k => { const r = BIZ.d[k] || {}, a = (Array.isArray(r.a) ? r.a : []).map(n => +n || 0); while (a.length < 4) a.push(0); return { a: a.slice(0, 4), x: +r.x || 0, s: Array.isArray(r.s) ? bzSum(r.s) : (+r.s || 0) }; };
+const bzAddT = r => bzSum(r.a) + r.x;
 const bzShort = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1) + 'k' : String(Math.round(n));
 const bzNice = n => { if (n <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(n))), f = n / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; };
-function bzDaily(vals, days) {
-  const W = 720, H = 230, L = 46, B = 26, T = 14, R = 6, pw = W - L - R, ph = H - B - T, step = pw / days;
-  const mx = bzNice(Math.max(1, ...vals.a, ...vals.s)); let o = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" role="img" aria-label="' + esc(t('bzDaily')) + '">';
-  for (let i = 0; i <= 4; i++) { const y = T + ph - ph * i / 4; o += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--border)"/><text x="' + (L - 5) + '" y="' + (y + 3) + '" text-anchor="end" font-size="10" style="fill:var(--muted)">' + bzShort(mx * i / 4) + '</text>'; }
-  for (let d = 0; d < days; d++) {
-    const x = L + d * step, bw = Math.max(2, step * 0.38), a = vals.a[d], s = vals.s[d];
-    if (a > 0) o += '<rect x="' + (x + step * 0.1) + '" y="' + (T + ph - ph * a / mx) + '" width="' + bw + '" height="' + (ph * a / mx) + '" style="fill:var(--primary)"><title>' + (d + 1) + ': ' + esc(t('bzAdded')) + ' ' + money(a) + '</title></rect>';
-    if (s > 0) o += '<rect x="' + (x + step * 0.1 + bw) + '" y="' + (T + ph - ph * s / mx) + '" width="' + bw + '" height="' + (ph * s / mx) + '" style="fill:var(--success)"><title>' + (d + 1) + ': ' + esc(t('bzSold')) + ' ' + money(s) + '</title></rect>';
-    o += '<text x="' + (x + step / 2) + '" y="' + (H - 9) + '" text-anchor="middle" font-size="9" style="fill:var(--muted)">' + (d + 1) + '</text>';
+const BZV = { a: 'var(--primary)', s: 'var(--success)', t: 'var(--text)', m: 'var(--muted)', g: 'var(--border)' }, BZP = { a: '#1f4e79', s: '#2e9e5b', t: '#1a2330', m: '#5d6b7a', g: '#d5dbe3' };
+function bzMonthData(ym) {
+  const y = +ym.slice(0, 4), m = +ym.slice(5, 7), days = new Date(y, m, 0).getDate(), keys = Object.keys(BIZ.d).filter(k => k.slice(0, 7) === ym).sort();
+  const A = [0, 0, 0, 0], va = new Array(days).fill(0), vs = new Array(days).fill(0); let X = 0, S = 0;
+  keys.forEach(k => { const r = bzDay(k), di = +k.slice(8, 10) - 1; for (let i = 0; i < 4; i++) A[i] += r.a[i]; X += r.x; S += r.s; if (di >= 0 && di < days) { va[di] += bzAddT(r); vs[di] += r.s; } });
+  const lp = BIZ.p[ym] || null, la = lp ? +lp.a || 0 : 0, ls = lp ? +lp.s || 0 : 0;
+  return { y, m, days, keys, A, X, S, va, vs, lp, la, ls, add: bzSum(A) + X + la, sell: S + ls };
+}
+function bzBars(labels, va, vs, P, title) {
+  const n = labels.length, W = 720, H = 230, L = 46, B = 26, T = 14, R = 6, pw = W - L - R, ph = H - B - T, step = pw / n;
+  const mx = bzNice(Math.max(4, ...va, ...vs)); let o = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" role="img" aria-label="' + esc(title) + '">';
+  for (let i = 0; i <= 4; i++) { const y = T + ph - ph * i / 4; o += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" style="stroke:' + P.g + '"/><text x="' + (L - 5) + '" y="' + (y + 3) + '" text-anchor="end" font-size="10" style="fill:' + P.m + '">' + bzShort(mx * i / 4) + '</text>'; }
+  for (let d = 0; d < n; d++) {
+    const x = L + d * step, bw = Math.max(2, step * 0.38), a = va[d], s = vs[d];
+    if (a > 0) o += '<rect x="' + (x + step * 0.1) + '" y="' + (T + ph - ph * a / mx) + '" width="' + bw + '" height="' + (ph * a / mx) + '" style="fill:' + P.a + '"><title>' + esc(labels[d]) + ': ' + esc(t('bzAdded')) + ' ' + money(a) + '</title></rect>';
+    if (s > 0) o += '<rect x="' + (x + step * 0.1 + bw) + '" y="' + (T + ph - ph * s / mx) + '" width="' + bw + '" height="' + (ph * s / mx) + '" style="fill:' + P.s + '"><title>' + esc(labels[d]) + ': ' + esc(t('bzSold')) + ' ' + money(s) + '</title></rect>';
+    o += '<text x="' + (x + step / 2) + '" y="' + (H - 9) + '" text-anchor="middle" font-size="9" style="fill:' + P.m + '">' + esc(labels[d]) + '</text>';
   }
   return o + '</svg>';
 }
-function bzCats(A, S) {
-  const W = 720, L = 96, R = 90, gh = 52, H = gh * 4 + 6, pw = W - L - R, mx = bzNice(Math.max(1, ...A, ...S));
+function bzCats(vals, P) {
+  const names = BZ_KEYS.map(k => t(k)).concat([t('bzOther')]), W = 720, L = 110, R = 90, gh = 36, H = gh * names.length + 6, pw = W - L - R, mx = bzNice(Math.max(4, ...vals));
   let o = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" role="img" aria-label="' + esc(t('bzCat')) + '">';
-  BZ_KEYS.forEach((k, i) => {
-    const y = 4 + i * gh, wa = pw * A[i] / mx, ws = pw * S[i] / mx;
-    o += '<text x="' + (L - 8) + '" y="' + (y + 28) + '" text-anchor="end" font-size="12" style="fill:var(--text)">' + esc(t(k)) + '</text>'
-      + '<rect x="' + L + '" y="' + (y + 5) + '" width="' + Math.max(A[i] ? 2 : 0, wa) + '" height="16" rx="3" style="fill:var(--primary)"/><text x="' + (L + wa + 6) + '" y="' + (y + 17) + '" font-size="11" style="fill:var(--text)">' + money(A[i]) + '</text>'
-      + '<rect x="' + L + '" y="' + (y + 25) + '" width="' + Math.max(S[i] ? 2 : 0, ws) + '" height="16" rx="3" style="fill:var(--success)"/><text x="' + (L + ws + 6) + '" y="' + (y + 37) + '" font-size="11" style="fill:var(--text)">' + money(S[i]) + '</text>';
-  });
+  names.forEach((nm, i) => { const y = 4 + i * gh, w = pw * vals[i] / mx;
+    o += '<text x="' + (L - 8) + '" y="' + (y + 19) + '" text-anchor="end" font-size="12" style="fill:' + P.t + '">' + esc(nm) + '</text><rect x="' + L + '" y="' + (y + 6) + '" width="' + Math.max(vals[i] ? 2 : 0, w) + '" height="18" rx="3" style="fill:' + P.a + '"/><text x="' + (L + w + 6) + '" y="' + (y + 19) + '" font-size="11" style="fill:' + P.t + '">' + money(vals[i]) + '</text>'; });
   return o + '</svg>';
 }
-function bzTable(title, which, keys, edit) {
-  const tot = [0, 0, 0, 0];
-  const rows = keys.map(k => { const a = (BIZ.d[k] && BIZ.d[k][which]) || []; for (let i = 0; i < 4; i++) tot[i] += +a[i] || 0; return '<tr><td>' + esc(fmtDate(k)) + '</td>' + [0, 1, 2, 3].map(i => '<td>' + (+a[i] ? money(+a[i]) : '-') + '</td>').join('') + '<td>' + money(bzSum(a)) + '</td>' + (edit ? '<td style="text-align:center"><button type="button" class="lnk" data-bz-edit="' + k + '">' + esc(t('bzEdit')) + '</button></td>' : '') + '</tr>'; }).join('');
-  return '<h3 style="margin:18px 0 6px">' + esc(title) + '</h3><div style="overflow-x:auto"><table class="wd"><thead><tr><th>' + esc(t('bzDate')) + '</th>' + BZ_KEYS.map(k => '<th>' + esc(t(k)) + '</th>').join('') + '<th>' + esc(t('bzTot')) + '</th>' + (edit ? '<th></th>' : '') + '</tr></thead><tbody>'
-    + (rows || '<tr><td colspan="' + (edit ? 7 : 6) + '" style="text-align:center">' + esc(t('bzNone')) + '</td></tr>') + '</tbody><tfoot><tr><td>' + esc(t('bzTot')) + '</td>' + tot.map(x => '<td>' + money(x) + '</td>').join('') + '<td>' + money(bzSum(tot)) + '</td>' + (edit ? '<td></td>' : '') + '</tr></tfoot></table></div>';
+function bzTables(D, edit) {
+  const totA = [0, 0, 0, 0]; let totX = 0, totS = 0;
+  const rowsA = D.keys.map(k => { const r = bzDay(k); for (let i = 0; i < 4; i++) totA[i] += r.a[i]; totX += r.x;
+    return '<tr><td>' + esc(fmtDate(k)) + '</td>' + r.a.map(x => '<td>' + (x ? money(x) : '-') + '</td>').join('') + '<td>' + (r.x ? money(r.x) : '-') + '</td><td>' + money(bzAddT(r)) + '</td>' + (edit ? '<td style="text-align:center"><button type="button" class="lnk" data-bz-edit="' + k + '">' + esc(t('bzEdit')) + '</button></td>' : '') + '</tr>'; }).join('');
+  const lumpA = D.lp ? '<tr><td>' + esc(t('bzLump')) + (D.lp.n ? ' (' + esc(D.lp.n) + ')' : '') + '</td><td>-</td><td>-</td><td>-</td><td>-</td><td>' + money(D.la) + '</td><td>' + money(D.la) + '</td>' + (edit ? '<td style="text-align:center"><button type="button" class="lnk" data-bz-medit="' + D.y + '-' + pad(D.m) + '">' + esc(t('bzEdit')) + '</button></td>' : '') + '</tr>' : '';
+  const rowsS = D.keys.map(k => { const r = bzDay(k); totS += r.s;
+    return '<tr><td>' + esc(fmtDate(k)) + '</td><td>' + (r.s ? money(r.s) : '-') + '</td>' + (edit ? '<td style="text-align:center"><button type="button" class="lnk" data-bz-edit="' + k + '">' + esc(t('bzEdit')) + '</button></td>' : '') + '</tr>'; }).join('');
+  const lumpS = D.lp ? '<tr><td>' + esc(t('bzLump')) + (D.lp.n ? ' (' + esc(D.lp.n) + ')' : '') + '</td><td>' + money(D.ls) + '</td>' + (edit ? '<td style="text-align:center"><button type="button" class="lnk" data-bz-medit="' + D.y + '-' + pad(D.m) + '">' + esc(t('bzEdit')) + '</button></td>' : '') + '</tr>' : '';
+  const none = c => '<tr><td colspan="' + c + '" style="text-align:center">' + esc(t('bzNone')) + '</td></tr>', e1 = edit ? '<th></th>' : '';
+  const h = x => '<h3 style="margin:18px 0 6px">' + esc(x) + '</h3><div style="overflow-x:auto">';
+  const t1 = h(t('bzAdded')) + '<table class="wd"><thead><tr><th>' + esc(t('bzDate')) + '</th>' + BZ_KEYS.map(k => '<th>' + esc(t(k)) + '</th>').join('') + '<th>' + esc(t('bzX')) + '</th><th>' + esc(t('bzTot')) + '</th>' + e1 + '</tr></thead><tbody>' + ((rowsA || lumpA) ? rowsA + lumpA : none(edit ? 8 : 7))
+    + '</tbody><tfoot><tr><td>' + esc(t('bzTot')) + '</td>' + totA.map(x => '<td>' + money(x) + '</td>').join('') + '<td>' + money(totX + D.la) + '</td><td>' + money(bzSum(totA) + totX + D.la) + '</td>' + (edit ? '<td></td>' : '') + '</tr></tfoot></table></div>';
+  const t2 = h(t('bzSold')) + '<table class="wd"><thead><tr><th>' + esc(t('bzDate')) + '</th><th>' + esc(t('bzSold')) + '</th>' + e1 + '</tr></thead><tbody>' + ((rowsS || lumpS) ? rowsS + lumpS : none(edit ? 3 : 2))
+    + '</tbody><tfoot><tr><td>' + esc(t('bzTot')) + '</td><td>' + money(totS + D.ls) + '</td>' + (edit ? '<td></td>' : '') + '</tr></tfoot></table></div>';
+  return t1 + t2;
 }
+function bzYearData(y) { const rows = []; for (let m = 1; m <= 12; m++) { const D = bzMonthData(y + '-' + pad(m)); rows.push({ m, add: D.add, sell: D.sell }); } return rows; }
+function bzYearTable(rows) {
+  let ta = 0, ts = 0;
+  const body = rows.map(r => { ta += r.add; ts += r.sell; const df = r.sell - r.add; return '<tr><td>' + esc(t('mon')[r.m - 1]) + '</td><td>' + (r.add ? money(r.add) : '-') + '</td><td>' + (r.sell ? money(r.sell) : '-') + '</td><td>' + ((r.add || r.sell) ? (df > 0 ? '+' : '') + money(df) : '-') + '</td></tr>'; }).join('');
+  return '<div style="overflow-x:auto"><table class="wd"><thead><tr><th>' + esc(t('bzMonth')) + '</th><th>' + esc(t('bzAdded')) + '</th><th>' + esc(t('bzSold')) + '</th><th>' + esc(t('bzDiff')) + '</th></tr></thead><tbody>' + body + '</tbody><tfoot><tr><td>' + esc(t('bzTot')) + '</td><td>' + money(ta) + '</td><td>' + money(ts) + '</td><td>' + (ts - ta > 0 ? '+' : '') + money(ts - ta) + '</td></tr></tfoot></table></div>';
+}
+const bzLegend = (cats) => '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;margin:4px 0 6px"><span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--primary);vertical-align:-1px"></i> ' + esc(t('bzAdded')) + '</span>' + (cats ? '' : '<span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--success);vertical-align:-1px"></i> ' + esc(t('bzSold')) + '</span>') + '</div>';
 function bzRender() {
-  const body = $('#mdlB'); if (!body) return;
-  const [y, m] = BIZ.ym.split('-').map(Number), days = new Date(y, m, 0).getDate();
-  const keys = Object.keys(BIZ.d).filter(k => k.slice(0, 7) === BIZ.ym).sort();
-  const A = [0, 0, 0, 0], S = [0, 0, 0, 0], va = new Array(days).fill(0), vs = new Array(days).fill(0);
-  keys.forEach(k => { const a = BIZ.d[k].a || [], s = BIZ.d[k].s || [], di = +k.slice(8, 10) - 1; for (let i = 0; i < 4; i++) { A[i] += +a[i] || 0; S[i] += +s[i] || 0; } if (di >= 0 && di < days) { va[di] += bzSum(a); vs[di] += bzSum(s); } });
-  const ta = bzSum(A), ts = bzSum(S), df = ts - ta;
+  const host = $('#bizHost'); if (!host) return;
+  const D = bzMonthData(BIZ.ym), ym = BIZ.ym, edit = BIZ.edit, df = D.sell - D.add;
   const st = (l, val, col) => '<div class="stat"><small>' + esc(l) + '</small><b' + (col ? ' style="color:' + col + '"' : '') + '>' + esc(val) + '</b></div>';
-  const cur = BIZ.date || todayStr(), ex = BIZ.d[cur] || {}, fv = (w, i) => { const x = +((ex[w] || [])[i]) || 0; return x ? x : ''; };
-  const inp = (w, i) => '<div><label for="bz_' + w + i + '">' + esc(t(BZ_KEYS[i])) + '</label><input id="bz_' + w + i + '" type="text" inputmode="decimal" autocomplete="off" value="' + fv(w, i) + '"></div>';
-  const form = BIZ.edit ? '<div class="card" style="margin:0 0 14px;padding:14px"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end"><div><label for="bzDate" style="font-size:12.5px;color:var(--muted);display:block">' + esc(t('bzDate')) + '</label><input id="bzDate" type="date" value="' + esc(cur) + '"></div></div>'
-    + '<h3 style="margin:12px 0 0">' + esc(t('bzAdded')) + '</h3><div class="bz-in">' + [0, 1, 2, 3].map(i => inp('a', i)).join('') + '</div>'
-    + '<h3 style="margin:8px 0 0">' + esc(t('bzSold')) + '</h3><div class="bz-in">' + [0, 1, 2, 3].map(i => inp('s', i)).join('') + '</div>'
+  const cur = BIZ.date || todayStr(), ex = bzDay(cur), has = !!BIZ.d[cur], fv = x => x ? x : '';
+  const inp = (id, lab, val) => '<div><label for="' + id + '">' + esc(lab) + '</label><input id="' + id + '" type="text" inputmode="decimal" autocomplete="off" value="' + val + '"></div>';
+  const lmk = BIZ.lm || ym, lp = BIZ.p[lmk] || {};
+  const form = edit ? '<div class="card" style="margin:0 0 14px;padding:14px"><h3 style="margin:0 0 6px">' + esc(t('bzDayH')) + '</h3><div><label for="bzDate" class="muted" style="display:block;font-size:12.5px">' + esc(t('bzDate')) + '</label><input id="bzDate" type="date" value="' + esc(cur) + '"></div>'
+    + '<h4 style="margin:12px 0 0">' + esc(t('bzAdded')) + '</h4><div class="bz-in">' + BZ_KEYS.map((k, i) => inp('bz_a' + i, t(k), has ? fv(ex.a[i]) : '')).join('') + inp('bz_x', t('bzXL'), has ? fv(ex.x) : '') + '</div>'
+    + '<h4 style="margin:8px 0 0">' + esc(t('bzSold')) + '</h4><div class="bz-in">' + inp('bz_s', t('bzSoldDay'), has ? fv(ex.s) : '') + '</div>'
     + '<p class="muted" style="margin:4px 0">' + esc(t('bzHint')) + '</p><div class="msg" id="bzMsg" role="status">' + esc(BIZ.msg || '') + '</div>'
-    + '<div style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="btn btn-primary btn-sm" id="bzSave">' + esc(t('bzSave')) + '</button><button type="button" class="btn btn-sm btn-danger" id="bzDel">' + esc(t('bzDel')) + '</button></div></div>' : '';
-  const lg = '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;margin:4px 0 6px"><span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--primary);vertical-align:-1px"></i> ' + esc(t('bzAdded')) + '</span><span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--success);vertical-align:-1px"></i> ' + esc(t('bzSold')) + '</span></div>';
-  body.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px"><button type="button" class="btn btn-sm" id="bzPrev" aria-label="Previous month">\u2039</button><b style="min-width:120px;text-align:center">' + esc(t('mon')[m - 1] + ' ' + y) + '</b><button type="button" class="btn btn-sm" id="bzNext" aria-label="Next month">\u203A</button></div><button type="button" class="lnk" id="bzTog">' + esc(t(BIZ.edit ? 'bzHide' : 'bzShow')) + '</button></div>'
-    + form + '<div class="grid">' + st(t('bzTA'), money(ta)) + st(t('bzTS'), money(ts)) + st(t('bzDiff'), (df > 0 ? '+' : '') + money(df), df >= 0 ? 'var(--success)' : 'var(--danger)') + '</div>'
-    + '<h3 style="margin:14px 0 2px">' + esc(t('bzDaily')) + '</h3>' + lg + bzDaily({ a: va, s: vs }, days)
-    + '<h3 style="margin:18px 0 2px">' + esc(t('bzCat')) + '</h3>' + lg + bzCats(A, S)
-    + bzTable(t('bzAdded'), 'a', keys, BIZ.edit) + bzTable(t('bzSold'), 's', keys, BIZ.edit);
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="btn btn-primary btn-sm" id="bzSave">' + esc(t('bzSave')) + '</button><button type="button" class="btn btn-sm btn-danger" id="bzDel">' + esc(t('bzDel')) + '</button></div></div>'
+    + '<div class="card" style="margin:0 0 14px;padding:14px"><h3 style="margin:0 0 4px">' + esc(t('bzPrevH')) + '</h3><p class="muted" style="margin:0 0 6px">' + esc(t('bzPrevHint')) + '</p>'
+    + '<div class="bz-in"><div><label for="bzLm">' + esc(t('bzMonth')) + ' (YYYY-MM)</label><input id="bzLm" type="month" placeholder="YYYY-MM" value="' + esc(lmk) + '"></div>' + inp('bz_ma', t('bzAdded'), fv(+lp.a || 0)) + inp('bz_ms', t('bzSold'), fv(+lp.s || 0)) + '<div><label for="bz_mn">' + esc(t('bzNote')) + '</label><input id="bz_mn" type="text" maxlength="60" value="' + esc(lp.n || '') + '"></div></div>'
+    + '<div class="msg" id="bzMsgM" role="status">' + esc(BIZ.msgM || '') + '</div><div style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="btn btn-primary btn-sm" id="bzSaveM">' + esc(t('bzSaveM')) + '</button><button type="button" class="btn btn-sm btn-danger" id="bzDelM">' + esc(t('bzDelM')) + '</button></div></div>' : '';
+  const yr = bzYearData(D.y), lb = Array.from({ length: D.days }, (_, i) => String(i + 1));
+  host.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px"><h3 style="margin:0">' + esc(t('bzTitleM')) + '</h3><div style="display:flex;flex-wrap:wrap;gap:14px"><button type="button" class="lnk" id="bzTog">' + esc(t(edit ? 'bzHide' : 'bzShow')) + '</button><button type="button" class="lnk" id="bzPrM">' + esc(t('bzPrintM')) + '</button><button type="button" class="lnk" id="bzPrY">' + esc(t('bzPrintY')) + '</button><button type="button" class="lnk" id="bzCls">' + esc(t('bzClose')) + '</button></div></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><button type="button" class="btn btn-sm" id="bzPrev" aria-label="Previous month">\u2039</button><b style="min-width:120px;text-align:center">' + esc(t('mon')[D.m - 1] + ' ' + D.y) + '</b><button type="button" class="btn btn-sm" id="bzNext" aria-label="Next month">\u203A</button></div>'
+    + form + '<div class="grid">' + st(t('bzTA'), money(D.add)) + st(t('bzTS'), money(D.sell)) + st(t('bzDiff'), (df > 0 ? '+' : '') + money(df), df >= 0 ? 'var(--success)' : 'var(--danger)') + '</div>'
+    + '<h3 style="margin:14px 0 2px">' + esc(t('bzDaily')) + '</h3>' + bzLegend(false) + bzBars(lb, D.va, D.vs, BZV, t('bzDaily'))
+    + '<h3 style="margin:18px 0 2px">' + esc(t('bzCat')) + ' \u2013 ' + esc(t('bzAdded')) + '</h3>' + bzCats(D.A.concat([D.X + D.la]), BZV)
+    + bzTables(D, edit)
+    + '<h3 style="margin:22px 0 2px">' + esc(t('bzYear')) + ' ' + D.y + '</h3>' + bzLegend(false) + bzBars(t('mon'), yr.map(r => r.add), yr.map(r => r.sell), BZV, t('bzYear')) + '<div style="height:8px"></div>' + bzYearTable(yr);
 }
-async function showBiz() {
-  const body = openModal(t('bizH'), '<span class="spin"></span>', true);
-  BIZ = { d: {}, ym: todayStr().slice(0, 7), edit: false, date: '', msg: '' };
-  try { const s = await getFresh(cfgRef()); const d = s.exists() ? (s.data() || {}) : {}; BIZ.d = d.dailyBiz && typeof d.dailyBiz === 'object' ? d.dailyBiz : {}; }
-  catch (e) { console.warn(e); if ($('#mdlB')) $('#mdlB').innerHTML = '<div class="msg">' + esc(t('bzLoadFail')) + '</div>'; return; }
-  bzRender();
-  body.addEventListener('click', async e => {
+/* ---- take-out print (same Roza header as the reports) ---- */
+const BZ_PCSS = '<style>.rp .wd{border-collapse:collapse;width:100%;font:11.5px Calibri,Arial,sans-serif;color:#000;margin:4px 0 12px}.rp .wd th,.rp .wd td{border:1px solid #000;padding:3px 7px;text-align:right}.rp .wd th{text-align:center}.rp .wd th:first-child,.rp .wd td:first-child{text-align:left}.rp .wd tfoot td{font-weight:700}.rp h3{font-size:13px;margin:12px 0 4px}.rp svg{break-inside:avoid;max-width:100%}.rp .stg{display:flex;gap:18px;margin:6px 0 10px;font-size:12px}.rp .stg b{font-size:15px;display:block}</style>';
+function bzPrintHead(gen) { return '<div class="rp"><div class="lh"><img class="lgi" src="' + esc(REPORT_ICON) + '" alt="' + esc(SHOP_NAME) + '" onerror="this.style.display=\'none\';this.parentNode.className+=\' nologo\'"><div class="lg">RGCE</div><div class="lt"><h1 class="nm">' + esc(SHOP_NAME) + '</h1><p class="tg">' + esc(SHOP_TAG) + '</p><p>' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '</p></div><div class="rn"><b>REPORT</b><span>' + esc(rl('cDate')) + ': ' + esc(gen) + '</span></div></div>'; }
+const bzPrintFoot = () => '<div class="ft"><div class="l"><b>' + esc(SHOP_NAME) + '</b> \u2022 ' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '<br>Powered by Farhan Tanzid Shiyam</div></div></div>';
+function bzPrint(kind) {
+  const gen = stamp(), D = bzMonthData(BIZ.ym), df = D.sell - D.add; let html;
+  if (kind === 'm') {
+    html = BZ_PCSS + bzPrintHead(gen) + '<h2>' + esc(t('bzTitleM')) + ' \u2013 ' + esc(t('mon')[D.m - 1] + ' ' + D.y) + '</h2>'
+      + '<div class="stg"><div>' + esc(t('bzTA')) + '<b>' + money(D.add) + '</b></div><div>' + esc(t('bzTS')) + '<b>' + money(D.sell) + '</b></div><div>' + esc(t('bzDiff')) + '<b>' + (df > 0 ? '+' : '') + money(df) + '</b></div></div>'
+      + '<h3>' + esc(t('bzDaily')) + '</h3>' + bzBars(Array.from({ length: D.days }, (_, i) => String(i + 1)), D.va, D.vs, BZP, t('bzDaily'))
+      + '<h3>' + esc(t('bzCat')) + ' \u2013 ' + esc(t('bzAdded')) + '</h3>' + bzCats(D.A.concat([D.X + D.la]), BZP) + bzTables(D, false) + bzPrintFoot();
+    printHtml(html, 'RGCE-Daily-' + BIZ.ym);
+  } else {
+    const yr = bzYearData(D.y), ta = yr.reduce((s, r) => s + r.add, 0), ts = yr.reduce((s, r) => s + r.sell, 0);
+    html = BZ_PCSS + bzPrintHead(gen) + '<h2>' + esc(t('bzTitleY')) + ' \u2013 ' + D.y + '</h2>'
+      + '<div class="stg"><div>' + esc(t('bzTA')) + '<b>' + money(ta) + '</b></div><div>' + esc(t('bzTS')) + '<b>' + money(ts) + '</b></div><div>' + esc(t('bzDiff')) + '<b>' + (ts - ta > 0 ? '+' : '') + money(ts - ta) + '</b></div></div>'
+      + bzBars(t('mon'), yr.map(r => r.add), yr.map(r => r.sell), BZP, t('bzYear')) + '<div style="height:8px"></div>' + bzYearTable(yr) + bzPrintFoot();
+    printHtml(html, 'RGCE-Year-' + D.y);
+  }
+}
+async function toggleBiz() {
+  const host = $('#bizHost'); if (!host) return;
+  if (!host.hidden) { host.hidden = true; const l = $('#ovBiz'); if (l) l.setAttribute('aria-expanded', 'false'); return; }
+  host.hidden = false; const l = $('#ovBiz'); if (l) l.setAttribute('aria-expanded', 'true');
+  BIZ.ym = BIZ.ym || todayStr().slice(0, 7);
+  if (!BIZ.loaded) {
+    host.innerHTML = '<span class="spin"></span>';
+    try { const s = await getFresh(cfgRef()); const d = s.exists() ? (s.data() || {}) : {}; BIZ.d = d.dailyBiz && typeof d.dailyBiz === 'object' ? d.dailyBiz : {}; BIZ.p = d.bizPrev && typeof d.bizPrev === 'object' ? d.bizPrev : {}; BIZ.loaded = true; }
+    catch (e) { console.warn(e); host.innerHTML = '<div class="msg">' + esc(t('bzLoadFail')) + '</div>'; return; }
+  }
+  bzRender(); host.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (host._bz) return; host._bz = true;
+  host.addEventListener('click', async e => {
     const b = e.target.closest && e.target.closest('button'); if (!b) return;
-    const go = n => { const [y, m] = BIZ.ym.split('-').map(Number), dt = new Date(y, m - 1 + n, 1); BIZ.ym = dt.getFullYear() + '-' + pad(dt.getMonth() + 1); bzRender(); };
+    const go = n => { const dt = new Date(+BIZ.ym.slice(0, 4), +BIZ.ym.slice(5, 7) - 1 + n, 1); BIZ.ym = dt.getFullYear() + '-' + pad(dt.getMonth() + 1); BIZ.lm = ''; bzRender(); };
     if (b.id === 'bzPrev') return go(-1);
     if (b.id === 'bzNext') return go(1);
-    if (b.id === 'bzTog') { BIZ.edit = !BIZ.edit; BIZ.msg = ''; if (BIZ.edit && !BIZ.date) BIZ.date = todayStr(); return bzRender(); }
+    if (b.id === 'bzCls') return toggleBiz();
+    if (b.id === 'bzPrM') return bzPrint('m');
+    if (b.id === 'bzPrY') return bzPrint('y');
+    if (b.id === 'bzTog') { BIZ.edit = !BIZ.edit; BIZ.msg = ''; BIZ.msgM = ''; if (BIZ.edit && !BIZ.date) BIZ.date = todayStr(); return bzRender(); }
     if (b.hasAttribute('data-bz-edit')) { BIZ.date = b.getAttribute('data-bz-edit'); BIZ.msg = ''; bzRender(); const f = $('#bzDate'); if (f) f.scrollIntoView({ block: 'center' }); return; }
+    if (b.hasAttribute('data-bz-medit')) { BIZ.lm = b.getAttribute('data-bz-medit'); BIZ.msgM = ''; bzRender(); const f = $('#bzLm'); if (f) f.scrollIntoView({ block: 'center' }); return; }
     if (b.id === 'bzSave' || b.id === 'bzDel') {
       const date = $('#bzDate').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
-      const rd = w => [0, 1, 2, 3].map(i => bzN($('#bz_' + w + i).value));
-      const a = rd('a'), s = rd('s'), del = b.id === 'bzDel' || (!bzSum(a) && !bzSum(s));
+      const a = [0, 1, 2, 3].map(i => bzN($('#bz_a' + i).value)), x = bzN($('#bz_x').value), s = bzN($('#bz_s').value);
+      const del = b.id === 'bzDel' || (!bzSum(a) && !x && !s);
       if (b.id === 'bzDel' && !confirm(t('bzAsk').replace('{d}', fmtDate(date)))) return;
       b.disabled = true;
       try {
-        await setDoc(cfgRef(), { dailyBiz: { [date]: del ? SDK.deleteField() : { a: a, s: s } } }, { merge: true });
-        if (del) delete BIZ.d[date]; else BIZ.d[date] = { a: a, s: s };
+        await setDoc(cfgRef(), { dailyBiz: { [date]: del ? SDK.deleteField() : { a: a, x: x, s: s } } }, { merge: true });
+        if (del) delete BIZ.d[date]; else BIZ.d[date] = { a: a, x: x, s: s };
         logAct(del ? 'bizDel' : 'biz', date); BIZ.date = date; BIZ.ym = date.slice(0, 7); BIZ.msg = t(del ? 'bzDeleted' : 'bzSaved');
-      } catch (x) { console.warn(x); BIZ.msg = t('bzFail') + ((x && x.code) ? ' (' + x.code + ')' : ''); }
-      bzRender();
+      } catch (er) { console.warn(er); BIZ.msg = t('bzFail') + ((er && er.code) ? ' (' + er.code + ')' : ''); }
+      return bzRender();
+    }
+    if (b.id === 'bzSaveM' || b.id === 'bzDelM') {
+      const mk = ($('#bzLm').value || '').trim(); if (!/^\d{4}-\d{2}$/.test(mk)) { BIZ.msgM = t('bzMonthBad'); return bzRender(); }
+      const a = bzN($('#bz_ma').value), s = bzN($('#bz_ms').value), n = $('#bz_mn').value.trim().slice(0, 60), del = b.id === 'bzDelM' || (!a && !s && !n);
+      if (b.id === 'bzDelM' && !confirm(t('bzAskM').replace('{d}', mk))) return;
+      b.disabled = true;
+      try {
+        await setDoc(cfgRef(), { bizPrev: { [mk]: del ? SDK.deleteField() : { a: a, s: s, n: n } } }, { merge: true });
+        if (del) delete BIZ.p[mk]; else BIZ.p[mk] = { a: a, s: s, n: n };
+        logAct(del ? 'bizMDel' : 'bizM', mk); BIZ.lm = mk; BIZ.ym = mk; BIZ.msgM = t(del ? 'bzDeleted' : 'bzSaved');
+      } catch (er) { console.warn(er); BIZ.msgM = t('bzFail') + ((er && er.code) ? ' (' + er.code + ')' : ''); }
+      return bzRender();
     }
   });
-  body.addEventListener('change', e => { if (e.target && e.target.id === 'bzDate') { BIZ.date = e.target.value; BIZ.msg = ''; bzRender(); } });
+  host.addEventListener('change', e => {
+    if (e.target && e.target.id === 'bzDate') { BIZ.date = e.target.value; BIZ.msg = ''; bzRender(); }
+    else if (e.target && e.target.id === 'bzLm' && /^\d{4}-\d{2}$/.test(e.target.value)) { BIZ.lm = e.target.value; BIZ.msgM = ''; bzRender(); }
+  });
 }
 /* ---------- storage health ---------- */
 const bytesOf = o => { try { return new Blob([JSON.stringify(o)]).size; } catch (e) { return 0; } };
@@ -869,10 +943,10 @@ async function tabOverview() {
       box.innerHTML = '<div class="grid">' + st(t('ovCust'), cs.length) + st(t('ovInv'), d.invoiceCount != null ? d.invoiceCount : (Array.isArray(d.invoices) ? d.invoices.length : 0))
         + st(t('ovOut'), money(out), out > 0) + st(t('ovWith'), withDue) + st(t('ovBilled'), money(billed)) + st(t('ovRecv'), money(recv))
         + st(t('ovSync'), fmtDT(d.updatedAt)) + st(t('ovVer'), d.appVersion || '—') + '</div>' + rate
-        + '<div style="margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:10px"><button type="button" class="lnk" id="ovBiz">' + esc(t('bizLnk')) + '</button><button type="button" class="lnk" id="ovSta">' + esc(t('staLnk')) + '</button><button type="button" class="lnk" id="ovRec">' + esc(t('recLnk')) + '</button><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></div>';
+        + '<div style="margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:10px"><button type="button" class="lnk" id="ovBiz" aria-expanded="false" aria-controls="bizHost">' + esc(t('bizLnk')) + '</button><button type="button" class="lnk" id="ovSta">' + esc(t('staLnk')) + '</button><button type="button" class="lnk" id="ovRec">' + esc(t('recLnk')) + '</button><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></div><div id="bizHost" class="bz-host" hidden></div>';
       $('#ovNew').addEventListener('click', () => showNew(cs));
       $('#ovSta').addEventListener('click', () => showStatus(cs));
-      $('#ovBiz').addEventListener('click', showBiz);
+      $('#ovBiz').addEventListener('click', toggleBiz);
       $('#ovRec').addEventListener('click', () => showRecent(cs));
     } catch (e) { console.warn(e); box.innerHTML = ''; setMsg('ovMsg', t('ovFail')); }
   };
