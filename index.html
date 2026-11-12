@@ -339,6 +339,10 @@ Object.assign(T.en, { mdlClose: 'Close', rateH: 'Collection rate', rateSub: '{a}
   lg_unlock: 'Signed in (access key accepted)', lg_keyFail: 'Wrong access key entered 5 times', lg_lock: 'Panel locked', lg_logout: 'Signed out', lg_rpPrint: 'Printed a report', lg_cmPrint: 'Printed a comparison', lg_rpDel: 'Deleted online report copies', lg_snap: 'Saved a month snapshot', lg_snapDel: 'Deleted a snapshot', lg_notice: 'Changed notices / ticker', lg_maint: 'Changed maintenance mode', lg_pass: 'Changed a password', lg_chatDel: 'Deleted chat(s)', lg_chatExt: 'Extended chat deletion',
   stH: 'Storage health', stNote: 'How full the cloud data behind this panel is. Each Firestore document can hold about 1 MB.', stShop: 'Shop data (customers, invoices)', stCfg: 'Settings and history (notices, snapshots, report list, log)', stRoom: 'Room for about {n} more customers', stGood: 'Healthy', stWatch: 'Getting full', stCrit: 'Almost full',
   stCopies: 'Online report copies', stCopiesV: '{a} saved \u2022 {b} expired', stSnaps: 'Month snapshots', stChats: 'Chats', stChatsV: '{a} stored \u2022 {b} waiting for deletion', stLog: 'Activity log entries', stRef: 'Refresh', stClean: 'Delete expired copies', stFail: 'Could not read storage details.', stNoExp: 'There are no expired copies.', stDone: 'Expired copies deleted.', stAsk: 'Delete {n} expired online report copies? Their QR links will stop working.' });
+Object.assign(T.en, { staLnk: 'Customer status split', staH: 'Customers by status', staDue: 'Due', staHid: 'Hidden due (nothing due, nothing paid)', staPart: 'Partly paid', staPaid: 'Paid', staOut: 'still due', staTotal: 'customers in total',
+  recLnk: 'Recent activity', recH: 'Recent activity', recNote: 'The latest payments and dues from your customers\u2019 transaction history.', recNone: 'No activity found in the customer data yet.', recDue: 'Due added', recPay: 'Payment received', recAdj: 'Adjustment' });
+Object.assign(T.bn, { staLnk: 'কাস্টমারের অবস্থা ভাগ', staH: 'অবস্থা অনুযায়ী কাস্টমার', staDue: 'বাকি', staHid: 'গোপন বাকি (বাকিও নেই, পরিশোধও নেই)', staPart: 'আংশিক পরিশোধ', staPaid: 'পরিশোধিত', staOut: 'এখনো বাকি', staTotal: 'মোট কাস্টমার',
+  recLnk: 'সাম্প্রতিক কার্যকলাপ', recH: 'সাম্প্রতিক কার্যকলাপ', recNote: 'কাস্টমারদের লেনদেনের ইতিহাস থেকে সাম্প্রতিক পেমেন্ট ও বাকি।', recNone: 'কাস্টমার ডেটায় এখনো কোনো কার্যকলাপ নেই।', recDue: 'বাকি যোগ', recPay: 'পেমেন্ট পাওয়া গেছে', recAdj: 'সংশোধন' });
 Object.assign(T.bn, { mdlClose: 'বন্ধ করুন', rateH: 'আদায়ের হার', rateSub: '{b} বিলের মধ্যে {a} আদায় \u2022 বাকি {c}',
   newLnk: 'নতুন কাস্টমার: এই মাস বনাম গত মাস', newH: 'নতুন কাস্টমার', newThis: 'এই মাস (এখন পর্যন্ত)', newSame: 'গত মাসের একই দিন পর্যন্ত', newLast: 'গত মাস (পুরো)', newChg: 'গত মাসের একই দিনের তুলনায়', newNoDate: '{n} জন কাস্টমারের তারিখ সেভ করা নেই, তাই গোনা হয়নি।', newNone: 'কাস্টমার ডেটায় যোগ করার তারিখ নেই, তাই নতুন কাস্টমার ঠিকভাবে গোনা যাচ্ছে না।', newSnap: 'গত মাসের শেষের স্ন্যাপশটের পর কাস্টমার সংখ্যার নিট পরিবর্তন:', newList: 'এই মাসে যোগ হয়েছে', newNoThis: 'এই মাসে এখনো নতুন কাস্টমার নেই।',
   logLnk: 'অ্যাডমিন অ্যাক্টিভিটি লগ', logH: 'অ্যাডমিন অ্যাক্টিভিটি লগ', logNote: 'এই অ্যাডমিন প্যানেলের সাম্প্রতিক কাজ (সর্বোচ্চ ১০০টি)।', logNone: 'এখনো কোনো কাজ রেকর্ড হয়নি।', logPend: 'এখনো ক্লাউডে সেভ হয়নি', logFail: 'সেভ করা লগ পড়া যায়নি।',
@@ -459,6 +463,49 @@ async function showNew(cs) {
       + (cs.length > dated ? '<p class="muted" style="margin-bottom:0">' + esc(t('newNoDate').replace('{n}', cs.length - dated)) + '</p>' : '');
   }
   if ($('#mdlB')) $('#mdlB').innerHTML = h;
+}
+
+/* ---------- overview popups: status split + recent activity ---------- */
+function custStatus(c) { const due = +c.due || 0, paid = +c.paid || 0, cd = Math.max(0, due - paid); if (due === 0 && paid === 0) return 'hid'; if (cd > 0 && paid === 0) return 'due'; if (cd > 0 && paid > 0) return 'part'; return 'paid'; }
+function showStatus(cs) {
+  const order = [['due', 'staDue', 'var(--danger)'], ['part', 'staPart', 'var(--warn)'], ['paid', 'staPaid', 'var(--success)'], ['hid', 'staHid', 'var(--muted)']];
+  const cnt = { due: 0, part: 0, paid: 0, hid: 0 }, out = { due: 0, part: 0, paid: 0, hid: 0 };
+  cs.forEach(c => { const s = custStatus(c); cnt[s]++; out[s] += Math.max(0, (+c.due || 0) - (+c.paid || 0)); });
+  const tot = cs.length || 1;
+  const h = '<p class="muted" style="margin-top:0"><b>' + cs.length + '</b> ' + esc(t('staTotal')) + '</p>' + order.map(o => {
+    const p = cnt[o[0]] * 100 / tot;
+    return '<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>' + esc(t(o[1])) + '</b><span><b>' + cnt[o[0]] + '</b> \u2022 ' + p.toFixed(1) + '%</span></div>'
+      + '<div class="pbar"><i style="width:' + (cnt[o[0]] ? Math.max(p, 1.5) : 0) + '%;background:' + o[2] + '"></i></div>'
+      + (out[o[0]] > 0 ? '<small class="muted">' + money(out[o[0]]) + ' ' + esc(t('staOut')) + '</small>' : '') + '</div>';
+  }).join('');
+  openModal(t('staH'), h);
+}
+const bnDigits2 = s => String(s).replace(/[\u09E6-\u09EF]/g, ch => String(ch.charCodeAt(0) - 0x09E6));
+const TX_RE = /(\d{1,4})[\/.\-](\d{1,2})[\/.\-](\d{1,4}),?\s*(?:(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AaPp][Mm])?)?/;
+function showRecent(cs) {
+  const items = []; let mdy = false, dmy = false;
+  cs.forEach(c => (Array.isArray(c.transactionHistory) ? c.transactionHistory : []).forEach((x, i) => {
+    const raw = bnDigits2(x && x.date || ''), m = raw.match(TX_RE);
+    if (m && m[1].length <= 2) { if (+m[1] > 12) dmy = true; if (+m[2] > 12) mdy = true; }
+    items.push({ n: String(c.name || '').trim(), p: c.phone || '', ty: String(x && x.type || ''), a: +(x && x.amount) || 0, note: String(x && x.note || ''), raw: raw, m: m, i: i });
+  }));
+  const dayFirst = dmy || !mdy;   // main app saves toLocaleString(); if the format cannot be told from the data, assume day/month (Bangladesh)
+  items.forEach(it => {
+    it.ts = null; const m = it.m; if (!m) return;
+    let y, mo, d;
+    if (m[1].length === 4) { y = +m[1]; mo = +m[2]; d = +m[3]; } else { y = +m[3]; if (dayFirst) { d = +m[1]; mo = +m[2]; } else { mo = +m[1]; d = +m[2]; } }
+    let hh = m[4] ? +m[4] : 0; const mm = m[5] ? +m[5] : 0, ss = m[6] ? +m[6] : 0;
+    if (m[7]) { const pm = /p/i.test(m[7]); if (pm && hh < 12) hh += 12; if (!pm && hh === 12) hh = 0; }
+    const x = new Date(y, mo - 1, d, hh, mm, ss).getTime(); it.ts = isNaN(x) ? null : x;
+  });
+  items.sort((a, b) => (b.ts == null ? -1 : b.ts) - (a.ts == null ? -1 : a.ts) || a.i - b.i);
+  const ty = x => /payment/i.test(x) ? ['recPay', 'var(--success)', '+'] : /due/i.test(x) ? ['recDue', 'var(--danger)', ''] : ['recAdj', 'var(--muted)', ''];
+  const top = items.slice(0, 15);
+  const h = '<p class="muted" style="margin-top:0">' + esc(t('recNote')) + '</p>' + (top.length ? top.map(it => {
+    const k = ty(it.ty), lab = it.ty && !/payment|due/i.test(it.ty) ? it.ty : t(k[0]);
+    return '<div class="row"><div class="t"><b>' + esc(it.n || '-') + '</b><small>' + esc(lab) + (it.note ? ' \u2022 ' + esc(it.note) : '') + '</small><small>' + esc(it.ts != null ? fmtDT(it.ts) : it.raw) + '</small></div><b style="color:' + k[1] + '">' + k[2] + money(it.a) + '</b></div>';
+  }).join('') : '<div class="row"><span class="muted">' + esc(t('recNone')) + '</span></div>');
+  openModal(t('recH'), h);
 }
 /* ---------- storage health ---------- */
 const bytesOf = o => { try { return new Blob([JSON.stringify(o)]).size; } catch (e) { return 0; } };
@@ -730,8 +777,10 @@ async function tabOverview() {
       box.innerHTML = '<div class="grid">' + st(t('ovCust'), cs.length) + st(t('ovInv'), d.invoiceCount != null ? d.invoiceCount : (Array.isArray(d.invoices) ? d.invoices.length : 0))
         + st(t('ovOut'), money(out), out > 0) + st(t('ovWith'), withDue) + st(t('ovBilled'), money(billed)) + st(t('ovRecv'), money(recv))
         + st(t('ovSync'), fmtDT(d.updatedAt)) + st(t('ovVer'), d.appVersion || '—') + '</div>' + rate
-        + '<p style="margin:14px 0 0"><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></p>';
+        + '<div style="margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:10px"><button type="button" class="lnk" id="ovSta">' + esc(t('staLnk')) + '</button><button type="button" class="lnk" id="ovRec">' + esc(t('recLnk')) + '</button><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></div>';
       $('#ovNew').addEventListener('click', () => showNew(cs));
+      $('#ovSta').addEventListener('click', () => showStatus(cs));
+      $('#ovRec').addEventListener('click', () => showRecent(cs));
     } catch (e) { console.warn(e); box.innerHTML = ''; setMsg('ovMsg', t('ovFail')); }
   };
   $('#ovRef').addEventListener('click', load); load();
