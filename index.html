@@ -113,11 +113,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .lnk{background:none;border:0;padding:0;color:var(--primary);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit;font-weight:600;text-align:left}
 .lnk:hover{opacity:.8}
 .pbar{height:12px;border-radius:999px;background:var(--border);overflow:hidden;margin:6px 0 4px}.pbar>i{display:block;height:100%;border-radius:999px}
-/* modals fill the whole screen beside the single sidebar */
-.mdl-back{position:fixed;top:0;left:64px;right:0;bottom:0;z-index:45;background:var(--bg)}
-body.side-open .mdl-back{left:260px}
-@media(max-width:720px){body.side-open .mdl-back{left:64px}}
-.mdl{background:var(--panel);color:var(--text);width:100%;height:100%;display:flex;flex-direction:column}
+.mdl-back{position:fixed;inset:0;z-index:200;background:rgba(10,16,24,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.mdl{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;width:100%;max-width:580px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
 .log-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px}
 .mdl-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}.mdl-h h2{margin:0;font-size:17px}
 .mask{-webkit-text-security:disc;text-security:disc;font-family:Verdana,sans-serif;letter-spacing:2px}
