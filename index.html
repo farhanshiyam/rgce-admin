@@ -655,22 +655,22 @@ function bzRender() {
 }
 /* ---- take-out print (same Roza header as the reports) ---- */
 const BZ_PCSS = '<style>.rp .wd{border-collapse:collapse;width:100%;font:11.5px Calibri,Arial,sans-serif;color:#000;margin:4px 0 12px}.rp .wd th,.rp .wd td{border:1px solid #000;padding:3px 7px;text-align:right}.rp .wd th{text-align:center}.rp .wd th:first-child,.rp .wd td:first-child{text-align:left}.rp .wd tfoot td{font-weight:700}.rp h3{font-size:13px;margin:12px 0 4px}.rp svg{break-inside:avoid;max-width:100%}.rp .stg{display:flex;gap:18px;margin:6px 0 10px;font-size:12px}.rp .stg b{font-size:15px;display:block}</style>';
-function bzPrintHead(gen) { return '<div class="rp"><div class="lh"><img class="lgi" src="' + esc(REPORT_ICON) + '" alt="' + esc(SHOP_NAME) + '" onerror="this.style.display=\'none\';this.parentNode.className+=\' nologo\'"><div class="lg">RGCE</div><div class="lt"><h1 class="nm">' + esc(SHOP_NAME) + '</h1><p class="tg">' + esc(SHOP_TAG) + '</p><p>' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '</p></div><div class="rn"><b>REPORT</b><span>' + esc(rl('cDate')) + ': ' + esc(gen) + '</span></div></div>'; }
+function bzPrintHead(gen, no) { return '<div class="rp"><div class="lh"><img class="lgi" src="' + esc(REPORT_ICON) + '" alt="' + esc(SHOP_NAME) + '" onerror="this.style.display=\'none\';this.parentNode.className+=\' nologo\'"><div class="lg">RGCE</div><div class="lt"><h1 class="nm">' + esc(SHOP_NAME) + '</h1><p class="tg">' + esc(SHOP_TAG) + '</p><p>' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '</p></div><div class="rn"><b>REPORT</b><span>No: ' + esc(no) + '</span><span>' + esc(rl('cDate')) + ': ' + esc(gen) + '</span></div></div>'; }
 const bzPrintFoot = () => '<div class="ft"><div class="l"><b>' + esc(SHOP_NAME) + '</b> \u2022 ' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '<br>Powered by Farhan Tanzid Shiyam</div></div></div>';
 function bzPrint(kind) {
-  const gen = stamp(), D = bzMonthData(BIZ.ym), df = D.sell - D.add; let html;
+  const gen = stamp(), D = bzMonthData(BIZ.ym), df = D.sell - D.add, no = docNo(kind === 'm' ? 'DLY' : 'YR'); let html;
   if (kind === 'm') {
-    html = BZ_PCSS + bzPrintHead(gen) + '<h2>' + esc(t('bzTitleM')) + ' \u2013 ' + esc(t('mon')[D.m - 1] + ' ' + D.y) + '</h2>'
+    html = BZ_PCSS + bzPrintHead(gen, no) + '<h2>' + esc(t('bzTitleM')) + ' \u2013 ' + esc(t('mon')[D.m - 1] + ' ' + D.y) + '</h2>'
       + '<div class="stg"><div>' + esc(t('bzTA')) + '<b>' + money(D.add) + '</b></div><div>' + esc(t('bzTS')) + '<b>' + money(D.sell) + '</b></div><div>' + esc(t('bzDiff')) + '<b>' + (df > 0 ? '+' : '') + money(df) + '</b></div></div>'
       + '<h3>' + esc(t('bzDaily')) + '</h3>' + bzBars(Array.from({ length: D.days }, (_, i) => String(i + 1)), D.va, D.vs, BZP, t('bzDaily'))
       + '<h3>' + esc(t('bzCat')) + ' \u2013 ' + esc(t('bzAdded')) + '</h3>' + bzCats(D.A.concat([D.X + D.la]), BZP) + bzTables(D, false) + bzPrintFoot();
-    printHtml(html, 'RGCE-Daily-' + BIZ.ym);
+    printHtml(html, docFile(no, t('bzTitleM') + ' ' + BIZ.ym));
   } else {
     const yr = bzYearData(D.y), ta = yr.reduce((s, r) => s + r.add, 0), ts = yr.reduce((s, r) => s + r.sell, 0);
-    html = BZ_PCSS + bzPrintHead(gen) + '<h2>' + esc(t('bzTitleY')) + ' \u2013 ' + D.y + '</h2>'
+    html = BZ_PCSS + bzPrintHead(gen, no) + '<h2>' + esc(t('bzTitleY')) + ' \u2013 ' + D.y + '</h2>'
       + '<div class="stg"><div>' + esc(t('bzTA')) + '<b>' + money(ta) + '</b></div><div>' + esc(t('bzTS')) + '<b>' + money(ts) + '</b></div><div>' + esc(t('bzDiff')) + '<b>' + (ts - ta > 0 ? '+' : '') + money(ts - ta) + '</b></div></div>'
       + bzBars(t('mon'), yr.map(r => r.add), yr.map(r => r.sell), BZP, t('bzYear')) + '<div style="height:8px"></div>' + bzYearTable(yr) + bzPrintFoot();
-    printHtml(html, 'RGCE-Year-' + D.y);
+    printHtml(html, docFile(no, t('bzTitleY') + ' ' + D.y));
   }
 }
 async function toggleBiz() {
@@ -1020,9 +1020,12 @@ const SLIP_CSS = ".sd{background:#fff;color:#000;font:13px/1.45 'Noto Sans Benga
   + ".sd .sy{text-align:center;font-size:11px;font-style:italic;color:#444;margin:12px 0 4px}.sd .pw{text-align:center;font-size:10.5px;color:#444;border-top:1px solid #bbb;padding-top:7px;margin-top:14px}"
   + ".sd .hd,.sd .am,.sd .pw{break-inside:avoid;page-break-inside:avoid}";
 const SLIP_PAGE = "@page{size:A5;margin:10mm;@bottom-right{content:\"\"}}@media print{html,body{margin:0;background:#fff!important}}";
+/* every printed or saved paper gets a number and a file name like "<number> - <type>" (Save as PDF uses it as the file name) */
+function docNo(prefix) { const n = new Date(); return prefix + '-' + n.getFullYear() + pad(n.getMonth() + 1) + pad(n.getDate()) + '-' + pad(n.getHours()) + pad(n.getMinutes()) + pad(n.getSeconds()); }
+const docFile = (no, type) => (String(no) + ' - ' + String(type || '')).replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').replace(/[ .-]+$/, '').trim();
 function slipMeta() {
   const n = new Date(), ymd = n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate());
-  return { ymd: ymd, no: 'SL-' + ymd.replace(/-/g, '') + '-' + pad(n.getHours()) + pad(n.getMinutes()) + pad(n.getSeconds()) };
+  return { ymd: ymd, no: docNo('SL') };
 }
 function slipHtml(c, m) {
   const due = +c.due || 0, paid = +c.paid || 0, bal = Math.max(0, due - paid);
@@ -1035,7 +1038,7 @@ function slipHtml(c, m) {
     + '<div class="sy">' + esc(t('slipSys')) + '</div>'
     + '<div class="pw">Powered by Farhan Tanzid Shiyam</div></div>';
 }
-const slipName = (c, m) => m.no + ' - ' + (String(c.name || 'customer').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim() || 'customer');
+const slipName = (c, m) => docFile(m.no, c.name || 'customer');
 function printSlip(c, m) { if (c) { m = m || slipMeta(); printHtml(slipHtml(c, m), slipName(c, m), SLIP_CSS + SLIP_PAGE); } }
 /* real PDF download: the slip is drawn by the browser (so Bangla text is exact), then saved as an A5 PDF */
 const loadJs = src => new Promise((ok, no) => { const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error(src)); document.head.appendChild(el); });
@@ -1236,7 +1239,7 @@ async function tabReports() {
     const id = rid(), url = REPORT_VIEW_URL + '?r=' + id, g = typ.g || '', gs = stamp();
     rpDoc = { id, typeId: typ.id, g, notes, gen: gs, no: id.slice(0, 6).toUpperCase(), rows, gt: $('#rpG').checked }; rpSaved = false;
     rpHtml = reportHtml({ typeId: typ.id, g, gt: rpDoc.gt, rows, notes, gen: gs, no: rpDoc.no, url, qr: qrSvg(url) });
-    rpName = 'RGCE-Report-' + typ.id + '-' + gs.replace(/[: ]/g, '-');
+    rpName = docFile('RPT-' + rpDoc.no, rl('ty_' + typ.id));
     $('#rpOut').innerHTML = '<div style="overflow-x:auto;border-radius:8px">' + rpHtml + '</div>'; $('#rpPr').disabled = false;
   };
   const load = async () => {
@@ -1318,7 +1321,7 @@ function compareHtml(o) {
   let n = 0; const none = rl(o.g === 'addr' ? 'cNoAddr' : 'cNoSrc');
   const tr = x => '<tr><td class="sl">' + (++n) + '</td><td>' + esc(x.k || none) + '</td><td class="n">' + money(x.a) + '</td><td class="n">' + money(x.b) + '</td><td class="n">' + sgn(x.b - x.a) + '</td><td class="n">' + pct(x.a, x.b) + '</td><td class="n">' + x.ca + ' \u2192 ' + x.cb + '</td></tr>';
   const th = (l, c) => '<th' + (c ? ' class="' + c + '"' : '') + '>' + esc(rl(l)) + '</th>';
-  return '<div class="rp"><div class="lh"><img class="lgi" src="' + esc(REPORT_ICON) + '" alt="' + esc(SHOP_NAME) + '" onerror="this.style.display=\'none\';this.parentNode.className+=\' nologo\'"><div class="lg">RGCE</div><div class="lt"><h1 class="nm">' + esc(SHOP_NAME) + '</h1><p class="tg">' + esc(SHOP_TAG) + '</p><p>' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '</p></div><div class="rn"><b>REPORT</b><span>' + esc(rl('cDate')) + ': ' + esc(o.gen) + '</span></div></div>'
+  return '<div class="rp"><div class="lh"><img class="lgi" src="' + esc(REPORT_ICON) + '" alt="' + esc(SHOP_NAME) + '" onerror="this.style.display=\'none\';this.parentNode.className+=\' nologo\'"><div class="lg">RGCE</div><div class="lt"><h1 class="nm">' + esc(SHOP_NAME) + '</h1><p class="tg">' + esc(SHOP_TAG) + '</p><p>' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '</p></div><div class="rn"><b>REPORT</b><span>No: ' + esc(o.no) + '</span><span>' + esc(rl('cDate')) + ': ' + esc(o.gen) + '</span></div></div>'
     + '<h2>' + esc(rl('cmTitle')) + ' (' + esc(rl(o.g === 'addr' ? 'rAddr' : 'rSrc')) + ')</h2><div class="meta">' + esc(rl('cBefore')) + ': ' + esc(o.aLabel) + ' \u2022 ' + esc(rl('cAfter')) + ': ' + esc(o.bLabel) + '</div>'
     + '<table class="dt"><colgroup><col style="width:7%"><col style="width:28%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:10%"><col style="width:13%"></colgroup>'
     + '<thead><tr>' + th('cSL', 'sl') + th(o.g === 'addr' ? 'cAddr' : 'cSrc') + '<th class="n">' + esc(rl('cDue') + ' (' + rl('cBefore') + ')') + '</th><th class="n">' + esc(rl('cDue') + ' (' + rl('cAfter') + ')') + '</th>' + th('cChg', 'n') + '<th class="n">%</th>' + th('cDueC', 'n') + '</tr></thead><tbody>'
@@ -1358,8 +1361,8 @@ async function tabCompare() {
     const rows = Array.from(new Set(Object.keys(ma).concat(Object.keys(mb)))).map(k => ({ k, a: ma[k] ? ma[k].b : 0, b: mb[k] ? mb[k].b : 0, ca: ma[k] ? ma[k].c : 0, cb: mb[k] ? mb[k].c : 0 }));
     rows.sort($('#cmS').value === 'chg' ? (x, y) => (y.b - y.a) - (x.b - x.a) : (x, y) => y.b - x.b);
     const sl = s => s === $('#cmB').value && s === 'live' ? rl('cmLive') + ' (' + msStamp(Date.now()) + ')' : msStamp(+s);
-    const gs = stamp(); html = compareHtml({ g, rows, gen: gs, aLabel: sl($('#cmA').value), bLabel: sl($('#cmB').value), ta: A.tot.b, tb: B.tot.b, tca: A.tot.c, tcb: B.tot.c });
-    name = 'RGCE-Compare-' + g + '-' + gs.replace(/[: ]/g, '-'); $('#cmOut').innerHTML = '<div style="overflow-x:auto;border-radius:8px">' + html + '</div>'; $('#cmPr').disabled = false;
+    const gs = stamp(), no = docNo('CMP'); html = compareHtml({ g, rows, no, gen: gs, aLabel: sl($('#cmA').value), bLabel: sl($('#cmB').value), ta: A.tot.b, tb: B.tot.b, tca: A.tot.c, tcb: B.tot.c });
+    name = docFile(no, rl('cmTitle') + ' ' + rl(g === 'addr' ? 'rAddr' : 'rSrc')); $('#cmOut').innerHTML = '<div style="overflow-x:auto;border-radius:8px">' + html + '</div>'; $('#cmPr').disabled = false;
   });
   $('#cmSnap').addEventListener('click', async () => {
     if (!live) return; setMsg('cmMsg', ''); $('#cmSnap').disabled = true;
