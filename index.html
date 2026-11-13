@@ -385,8 +385,8 @@ const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.
 let user = null, tab = 'overview', booted = false;
 /* One clean address per section: .../rgce-admin/customers, .../rgce-admin/public-due ... (no # and no ?).
    GitHub Pages has no rewrites, so a tiny 404.html hands deep links back to this page (see 404.html). */
-const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', chats: 'chats', pass: 'passwords', account: 'account' };
-const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', chats: 'tChats', pass: 'tPass', account: 'tAccount' };
+const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', chats: 'chats', pass: 'passwords', account: 'account', products: 'products' };
+const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', chats: 'tChats', pass: 'tPass', account: 'tAccount', products: 'tProd' };
 const BASE = (() => {
   const seg = location.pathname.split('/'); const last = seg[seg.length - 1];
   if (Object.values(ROUTE).includes(last.toLowerCase()) || last.indexOf('.') > -1) seg.pop();
@@ -847,7 +847,7 @@ const ico = k => '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" st
 function renderSide() {
   const s = $('#side'); if (!s) return;
   if (!user) { s.innerHTML = ''; return; }
-  const keys = ['overview', 'customers', 'chats', 'reports', 'compare', 'notices', 'due', 'pass', 'account'];
+  const keys = ['overview', 'customers', 'chats', 'reports', 'compare', 'notices', 'due', 'products', 'pass', 'account'];
   const mail = user.email || '', isBn = lang() === 'bn';
   const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
   s.innerHTML = '<div class="sb-head"><button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="' + (document.body.classList.contains('side-open') ? 'true' : 'false') + '"><span></span><span></span><span></span></button>'
@@ -979,7 +979,97 @@ function renderPanel() {
   if (location.pathname !== want || location.search || location.hash) { try { history.replaceState(null, '', want); } catch (e) {} }
   document.title = t(LABEL[tab]) + ' - ' + t('title');
   app.innerHTML = '<div id="tabBody"></div>';
-  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, chats: tabChats, account: tabAccount })[tab]();
+  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, chats: tabChats, account: tabAccount, products: tabProducts })[tab]();
+}
+
+/* ---------- tab: products (images + products.json live in a GitHub repo folder; no Firebase Storage) ---------- */
+T.en.tProd = 'Products'; T.bn.tProd = 'পণ্য';
+ICON.box = '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/>';
+const pt = (en, bn) => lang() === 'bn' ? bn : en;
+const PR = { cfg: null, list: [], editing: '', loaded: false };
+const b64u = s => btoa(unescape(encodeURIComponent(s)));
+async function gh(p, method, body) {
+  const c = PR.cfg, u = 'https://api.github.com/repos/' + c.owner + '/' + c.repo + '/contents/' + p + (method ? '' : '?ref=' + encodeURIComponent(c.branch));
+  const r = await fetch(u, { method: method || 'GET', cache: 'no-store', headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: body ? JSON.stringify(Object.assign({ branch: c.branch }, body)) : undefined });
+  if (r.status === 404 && !method) return null;
+  if (!r.ok) { const e = new Error('GitHub ' + r.status); e.status = r.status; throw e; }
+  return r.json();
+}
+async function prLoad() {
+  const d = await getDoc(cfgRef()); PR.cfg = (d.exists() && d.data().ghCfg) || null;
+  if (!PR.cfg || !PR.cfg.token) return;
+  const f = await gh('products.json');
+  PR.list = f ? JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, ''))))) : [];
+  PR.loaded = true;
+}
+async function prSave(msg) {
+  const f = await gh('products.json');
+  await gh('products.json', 'PUT', { message: msg, content: b64u(JSON.stringify(PR.list)), sha: f ? f.sha : undefined });
+}
+function prResize(file) {
+  return new Promise((ok, no) => {
+    const im = new Image(), u = URL.createObjectURL(file);
+    im.onload = () => { const k = Math.min(1, 900 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', 0.8).split(',')[1]); };
+    im.onerror = () => no(new Error('image')); im.src = u;
+  });
+}
+async function prDelImg(p) { if (!p) return; try { const f = await gh(p); if (f) await gh(p, 'DELETE', { message: 'remove image', sha: f.sha }); } catch (e) { console.warn(e); } }
+const prErr = e => e.status === 401 ? pt('Token is wrong or expired.', 'টোকেন ভুল বা মেয়াদ শেষ।') : (e.status === 403 || e.status === 404) ? pt('No access: check owner, repo name and token permission (Contents: Read and write).', 'অ্যাক্সেস নেই: owner, repo নাম ও টোকেনের Contents Read/Write অনুমতি দেখুন।') : e.message === 'image' ? pt('This image could not be read.', 'ছবিটি পড়া যায়নি।') : pt('Failed: ', 'ব্যর্থ: ') + (e.message || e);
+async function tabProducts() {
+  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('tProd')) + '</h2><span class="spin"></span></div>';
+  let err = '';
+  try { if (!PR.loaded) await prLoad(); } catch (e) { console.warn(e); err = prErr(e); }
+  if (tab !== 'products' || !$('#tabBody')) return;
+  prBuild(err);
+}
+function prBuild(err) {
+  const c = PR.cfg || { owner: 'farhanshiyam', repo: 'shop', branch: 'main', token: '' }, site = 'https://' + c.owner + '.github.io/' + c.repo + '/';
+  const fg = (id, l, v, ty) => '<div class="fg"><label for="' + id + '">' + esc(l) + '</label><input id="' + id + '" type="' + (ty || 'text') + '" value="' + esc(v) + '" autocomplete="off" spellcheck="false"></div>';
+  let h = '<div class="card"><h2>' + esc(t('tProd')) + '</h2><details' + (PR.loaded ? '' : ' open') + '><summary>' + esc(pt('GitHub connection', 'GitHub সংযোগ')) + '</summary>'
+    + fg('gOwner', 'GitHub username (owner)', c.owner) + fg('gRepo', pt('Repository (shop folder)', 'রিপোজিটরি (শপ ফোল্ডার)'), c.repo) + fg('gBr', 'Branch', c.branch) + fg('gTok', 'Token (fine-grained, Contents: Read and write)', c.token, 'password')
+    + '<button class="btn btn-sm" id="gSave">' + esc(pt('Save connection', 'সংযোগ সেভ করুন')) + '</button> <span class="muted">' + esc(pt('Token is stored only in your private cloud settings.', 'টোকেন শুধু আপনার প্রাইভেট ক্লাউড সেটিংসে থাকে।')) + '</span></details>'
+    + '<div class="msg" id="gMsg" role="status">' + esc(err || '') + '</div></div>';
+  if (PR.loaded) {
+    h += '<div class="card"><h3 id="pHead">' + esc(pt('Add product', 'নতুন পণ্য')) + '</h3>' + fg('pName', pt('Product name', 'পণ্যের নাম'), '') + fg('pPrice', pt('Price (৳)', 'দাম (৳)'), '', 'number')
+      + '<div class="fg"><label for="pDesc">' + esc(pt('Description', 'বিবরণ')) + '</label><textarea id="pDesc" rows="3"></textarea></div>'
+      + '<div class="fg"><label for="pImg">' + esc(pt('Photo (auto-resized)', 'ছবি (অটো ছোট হবে)')) + '</label><input id="pImg" type="file" accept="image/*"></div>'
+      + '<label class="chk"><input type="checkbox" id="pOn" checked><span>' + esc(pt('Show on landing page', 'ল্যান্ডিং পেজে দেখাও')) + '</span></label>'
+      + '<button class="btn btn-primary" id="pSave">' + esc(pt('Publish', 'পাবলিশ')) + '</button> <button class="btn" id="pCancel" hidden>' + esc(t('admCancel')) + '</button><div class="msg" id="pMsg" role="status"></div></div>'
+      + '<div class="card"><h3>' + esc(pt('Products', 'পণ্য তালিকা')) + ' (' + PR.list.length + ')</h3><p class="muted">' + esc(pt('Changes appear on the shop page after about a minute.', 'শপ পেজে পরিবর্তন আসতে প্রায় ১ মিনিট লাগে।')) + '</p>'
+      + PR.list.map(p => '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(128,128,128,.25)"><img src="' + esc(site + p.img) + '" alt="" width="52" height="52" style="object-fit:cover;border-radius:8px" onerror="this.style.visibility=\'hidden\'"><div style="flex:1;min-width:0"><b>' + esc(p.name) + '</b><br><span class="muted">৳' + esc(p.price) + (p.on ? '' : ' • ' + pt('hidden', 'লুকানো')) + '</span></div>'
+        + '<button class="btn btn-sm" data-pa="edit" data-id="' + esc(p.id) + '">' + esc(pt('Edit', 'এডিট')) + '</button><button class="btn btn-sm" data-pa="vis" data-id="' + esc(p.id) + '">' + esc(p.on ? pt('Hide', 'লুকান') : pt('Show', 'দেখান')) + '</button><button class="btn btn-sm" data-pa="del" data-id="' + esc(p.id) + '">' + esc(pt('Delete', 'মুছুন')) + '</button></div>').join('') + '</div>';
+  }
+  $('#tabBody').innerHTML = h;
+  $('#gSave').addEventListener('click', async () => {
+    const v = id => $('#' + id).value.trim(), cfg = { owner: v('gOwner'), repo: v('gRepo'), branch: v('gBr') || 'main', token: v('gTok') };
+    if (!cfg.owner || !cfg.repo || !cfg.token) { setMsg('gMsg', pt('Fill all fields.', 'সব ঘর পূরণ করুন।')); return; }
+    try { await setDoc(cfgRef(), { ghCfg: cfg }, { merge: true }); PR.cfg = cfg; PR.loaded = false; tabProducts(); } catch (e) { setMsg('gMsg', pt('Could not save.', 'সেভ করা যায়নি।')); }
+  });
+  if (!PR.loaded) return;
+  const fill = p => { $('#pName').value = p ? p.name : ''; $('#pPrice').value = p ? p.price : ''; $('#pDesc').value = p ? p.desc : ''; $('#pOn').checked = p ? !!p.on : true; $('#pImg').value = ''; $('#pCancel').hidden = !p; $('#pHead').textContent = p ? pt('Edit product', 'পণ্য এডিট') : pt('Add product', 'নতুন পণ্য'); };
+  $('#pCancel').addEventListener('click', () => { PR.editing = ''; fill(null); });
+  $('#pSave').addEventListener('click', async () => {
+    const name = $('#pName').value.trim(), price = Number($('#pPrice').value) || 0, desc = $('#pDesc').value.trim(), on = $('#pOn').checked, file = $('#pImg').files[0];
+    const old = PR.list.find(x => x.id === PR.editing);
+    if (!name) { setMsg('pMsg', pt('Enter a name.', 'নাম দিন।')); return; }
+    if (!old && !file) { setMsg('pMsg', pt('Choose a photo.', 'একটা ছবি বাছুন।')); return; }
+    const btn = $('#pSave'), backup = JSON.stringify(PR.list); btn.disabled = true; setMsg('pMsg', pt('Publishing…', 'পাবলিশ হচ্ছে…'));
+    try {
+      let img = old ? old.img : '';
+      if (file) { const nm = 'images/p' + Date.now().toString(36) + '.jpg'; await gh(nm, 'PUT', { message: 'add image', content: await prResize(file) }); if (old) await prDelImg(old.img); img = nm; }
+      if (old) Object.assign(old, { name, price, desc, on, img }); else PR.list.unshift({ id: 'p' + Date.now().toString(36), name, price, desc, on, img });
+      await prSave('update products'); PR.editing = ''; prBuild(); setMsg('pMsg', pt('Published.', 'পাবলিশ হয়েছে।'), 'ok');
+    } catch (e) { console.warn(e); PR.list = JSON.parse(backup); btn.disabled = false; setMsg('pMsg', prErr(e)); }
+  });
+  $('#tabBody').addEventListener('click', async e => {
+    const b = e.target.closest('[data-pa]'); if (!b) return;
+    const id = b.getAttribute('data-id'), p = PR.list.find(x => x.id === id), a = b.getAttribute('data-pa'); if (!p) return;
+    if (a === 'edit') { PR.editing = id; fill(p); scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (a === 'del' && !confirm(pt('Delete this product?', 'পণ্যটি মুছবেন?'))) return;
+    const backup = JSON.stringify(PR.list); b.disabled = true;
+    try { if (a === 'vis') p.on = !p.on; else PR.list = PR.list.filter(x => x.id !== id); await prSave('update products'); if (a === 'del') await prDelImg(p.img); prBuild(); }
+    catch (x) { console.warn(x); PR.list = JSON.parse(backup); b.disabled = false; setMsg('gMsg', prErr(x)); }
+  });
 }
 
 /* ---------- tab: overview (read-only, from shops/<uid>) ---------- */
