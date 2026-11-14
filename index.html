@@ -1095,54 +1095,119 @@ function paintOrderBadge() {
   if (!b) { b = document.createElement('span'); b.className = 'cbd'; a.appendChild(b); }
   b.textContent = n > 99 ? '99+' : n;
 }
-function ordersChanged() { paintOrderBadge(); if (tab === 'orders' && $('#odList')) drawOrders(); }
-function odRules() {
-  return "match /orders/{id} {\n  allow create: if request.resource.data.keys().hasOnly(['orderNo','name','phone','area','address','note','items','subtotal','delivery','total','payment','status','source','createdAt'])\n"
-    + "    && request.resource.data.name is string && request.resource.data.name.size() > 1 && request.resource.data.name.size() < 81\n"
-    + "    && request.resource.data.phone is string && request.resource.data.phone.matches('^01[3-9][0-9]{8}$')\n"
-    + "    && request.resource.data.area is string && request.resource.data.area.size() < 101\n"
-    + "    && request.resource.data.address is string && request.resource.data.address.size() > 4 && request.resource.data.address.size() < 301\n"
-    + "    && request.resource.data.note is string && request.resource.data.note.size() < 401\n"
-    + "    && request.resource.data.items is list && request.resource.data.items.size() > 0 && request.resource.data.items.size() < 41\n"
-    + "    && request.resource.data.payment == 'cod' && request.resource.data.status == 'new'\n"
-    + "    && request.resource.data.createdAt == request.time;\n"
-    + "  allow read, update, delete: if request.auth != null && request.auth.uid == '" + user.uid + "';\n}";
-}
+function ordersChanged() { paintOrderBadge(); if (tab === 'orders' && $('#odList') && !OD.edit) drawOrders(); }
 async function tabOrders() {
-  startOrders();
+  OD.edit = ''; OD.draft = null; startOrders();
   $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('tOrd')) + '</h2><p class="muted">' + esc(pt('Cash-on-delivery orders from the shop site arrive here live.', 'শপ সাইট থেকে ক্যাশ অন ডেলিভারি অর্ডার এখানে সাথে সাথে আসে।')) + '</p>'
-    + '<div id="odChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0"></div><div id="odList"></div><div class="msg" id="odMsg" role="status"></div></div>'
-    + '<div class="card"><details><summary>' + esc(pt('Firestore rules for orders (publish once)', 'অর্ডারের Firestore রুলস (একবার পাবলিশ করুন)')) + '</summary>'
-    + '<p class="muted">' + esc(pt('Add this block inside "match /databases/{database}/documents { ... }" in Firebase Console > Firestore > Rules, then Publish.', 'Firebase Console > Firestore > Rules-এ "match /databases/{database}/documents { ... }" এর ভেতরে এই অংশ যোগ করে Publish করুন।')) + '</p>'
-    + '<textarea id="odRules" rows="14" readonly style="width:100%;font:12px/1.4 monospace"></textarea><button class="btn btn-sm" id="odCopy">' + esc(pt('Copy', 'কপি')) + '</button></details></div>';
-  $('#odRules').value = odRules();
-  $('#odCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(odRules()); setMsg('odMsg', pt('Copied.', 'কপি হয়েছে।'), 'ok'); } catch (e) { $('#odRules').select(); } });
+    + '<div id="odChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0"></div><div id="odList"></div><div class="msg" id="odMsg" role="status"></div></div>';
   drawOrders();
+}
+const odFmt = n => Number(n || 0).toLocaleString('en-US');
+const odSub = it => it.reduce((t, i) => t + (Number(i.qty) || 0) * (Number(i.price) || 0), 0);
+const odShop = () => PR && PR.cfg && PR.cfg.owner ? 'https://' + PR.cfg.owner + '.github.io/' + PR.cfg.repo + '/' : 'https://farhanshiyam.github.io/shop/';
+function odCard(o) {
+  const ms = o.createdAt && o.createdAt.toMillis ? o.createdAt.toMillis() : 0, when = ms ? new Date(ms).toLocaleString() : '', its = Array.isArray(o.items) ? o.items : [], dl = Number(o.delivery) || 0;
+  const bt = (k, v, l) => '<button class="btn btn-sm" ' + k + '="' + esc(v) + '">' + esc(l) + '</button> ';
+  return '<div style="border-top:1px solid rgba(128,128,128,.25);padding:12px 0"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>' + esc(o.orderNo || o.id) + '</b><span class="muted">' + esc(when) + '</span></div>'
+    + '<div><b>' + esc(o.name) + '</b> • <a href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a> • <a href="https://wa.me/88' + esc(o.phone) + '" target="_blank" rel="noopener">WhatsApp</a></div>'
+    + '<div class="muted">' + esc([o.area, o.address].filter(Boolean).join(', ')) + '</div>' + (o.note ? '<div class="muted">' + esc(pt('Note: ', 'নোট: ')) + esc(o.note) + '</div>' : '')
+    + '<div style="margin:6px 0">' + its.map(i => esc(i.name) + ' × ' + esc(i.qty) + ' = ৳' + odFmt(i.qty * i.price)).join('<br>') + '</div>'
+    + '<div class="muted">' + esc(pt('Subtotal', 'সাবটোটাল')) + ' ৳' + odFmt(o.subtotal) + ' • ' + esc(pt('Delivery', 'ডেলিভারি')) + ' ' + (dl ? '৳' + odFmt(dl) : esc(pt('Free', 'ফ্রি'))) + '</div><div><b>' + esc(pt('Total', 'মোট')) + ': ৳' + odFmt(o.total) + '</b></div>'
+    + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px"><select data-os="' + esc(o.id) + '">' + ODS.map(s => '<option value="' + s + '"' + (o.status === s ? ' selected' : '') + '>' + esc(odL(s)) + '</option>').join('') + '</select>'
+    + bt('data-oe', o.id, pt('Edit', 'এডিট')) + bt('data-oinv', o.id + '|png', pt('Invoice (image)', 'ইনভয়েস (ছবি)')) + bt('data-oinv', o.id + '|pdf', pt('Invoice (PDF)', 'ইনভয়েস (PDF)')) + bt('data-od', o.id, pt('Delete', 'মুছুন')) + '</div></div>';
+}
+function odTotText() { const d = OD.draft, s = odSub(d.items), dl = Math.max(0, Number(d.delivery) || 0); return pt('Subtotal', 'সাবটোটাল') + ' ৳' + odFmt(s) + ' + ' + pt('Delivery', 'ডেলিভারি') + ' ৳' + odFmt(dl) + ' = ' + pt('Total', 'মোট') + ' ৳' + odFmt(s + dl); }
+function odEditor(o) {
+  const d = OD.draft, f = (k, l, ty) => '<div class="fg"><label>' + esc(l) + '</label><input data-ef="' + k + '" type="' + (ty || 'text') + '" value="' + esc(d[k]) + '" autocomplete="off"></div>';
+  return '<div style="border-top:1px solid rgba(128,128,128,.25);padding:12px 0"><b>' + esc(pt('Edit order ', 'অর্ডার এডিট ')) + esc(o.orderNo || o.id) + '</b>'
+    + f('name', pt('Name', 'নাম')) + f('phone', pt('Mobile (01XXXXXXXXX)', 'মোবাইল (01XXXXXXXXX)'), 'tel') + f('area', pt('Area', 'এলাকা'))
+    + '<div class="fg"><label>' + esc(pt('Address', 'ঠিকানা')) + '</label><textarea data-ef="address" rows="2">' + esc(d.address) + '</textarea></div>' + f('note', pt('Note', 'নোট'))
+    + '<div class="muted" style="margin:6px 0">' + esc(pt('Items (name, qty, price)', 'পণ্য (নাম, সংখ্যা, দাম)')) + '</div>'
+    + d.items.map((i, n) => '<div style="display:flex;gap:6px;margin-bottom:6px"><input data-ei="' + n + '" data-f="name" style="flex:1;min-width:0" value="' + esc(i.name) + '"><input data-ei="' + n + '" data-f="qty" type="number" min="1" style="width:64px" value="' + esc(i.qty) + '"><input data-ei="' + n + '" data-f="price" type="number" min="0" style="width:88px" value="' + esc(i.price) + '"><button class="btn btn-sm" data-orm="' + n + '" aria-label="remove">×</button></div>').join('')
+    + '<button class="btn btn-sm" data-oadd="1">+ ' + esc(pt('Add item', 'পণ্য যোগ')) + '</button>'
+    + f('delivery', pt('Delivery charge (৳) — 0 = free', 'ডেলিভারি চার্জ (৳) — ০ = ফ্রি'), 'number')
+    + '<div class="fg"><label>' + esc(pt('Status', 'স্ট্যাটাস')) + '</label><select data-ef="status">' + ODS.map(s => '<option value="' + s + '"' + (d.status === s ? ' selected' : '') + '>' + esc(odL(s)) + '</option>').join('') + '</select></div>'
+    + '<p id="odTot"><b>' + esc(odTotText()) + '</b></p><button class="btn btn-primary" data-osave="1">' + esc(pt('Save', 'সেভ')) + '</button> <button class="btn" data-ocancel="1">' + esc(pt('Cancel', 'বাতিল')) + '</button></div>';
 }
 function drawOrders() {
   const chips = $('#odChips'), box = $('#odList'); if (!chips || !box) return;
   chips.innerHTML = ['all'].concat(ODS).map(s => '<button class="btn btn-sm' + (OD.f === s ? ' btn-primary' : '') + '" data-of="' + s + '">' + esc(odL(s)) + ' (' + (s === 'all' ? OD.list.length : OD.list.filter(o => o.status === s).length) + ')</button>').join('');
-  if (OD.err) { box.innerHTML = '<p class="muted">' + esc(pt('Could not load orders (', 'অর্ডার লোড হয়নি (') + OD.err + pt('). Publish the orders rules below and sign in with the owner account.', ')। নিচের অর্ডার রুলস পাবলিশ করুন এবং মালিকের অ্যাকাউন্টে লগইন করুন।')) + '</p>'; return; }
-  const v = OD.list.filter(o => OD.f === 'all' || o.status === OD.f);
+  if (OD.err) { box.innerHTML = '<p class="muted">' + esc(pt('Could not load orders (', 'অর্ডার লোড হয়নি (') + OD.err + pt('). Sign in with the owner account.', ')। মালিকের অ্যাকাউন্টে লগইন করুন।')) + '</p>'; return; }
+  const v = OD.list.filter(o => OD.f === 'all' || o.status === OD.f || o.id === OD.edit);
   if (!v.length) { box.innerHTML = '<p class="muted">' + esc(pt('No orders yet.', 'এখনো কোনো অর্ডার নেই।')) + '</p>'; return; }
-  box.innerHTML = v.map(o => {
-    const ms = o.createdAt && o.createdAt.toMillis ? o.createdAt.toMillis() : 0, when = ms ? new Date(ms).toLocaleString() : '';
-    const its = (Array.isArray(o.items) ? o.items : []).map(i => esc(i.name) + ' × ' + esc(i.qty) + ' (' + esc(i.price * i.qty) + ')').join('<br>');
-    return '<div style="border-top:1px solid rgba(128,128,128,.25);padding:12px 0"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>' + esc(o.orderNo || o.id) + '</b><span class="muted">' + esc(when) + '</span></div>'
-      + '<div><b>' + esc(o.name) + '</b> • <a href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a> • <a href="https://wa.me/88' + esc(o.phone) + '" target="_blank" rel="noopener">WhatsApp</a></div>'
-      + '<div class="muted">' + esc([o.area, o.address].filter(Boolean).join(', ')) + '</div>'
-      + (o.note ? '<div class="muted">' + esc(pt('Note: ', 'নোট: ')) + esc(o.note) + '</div>' : '')
-      + '<div style="margin:6px 0">' + its + '</div><div><b>' + esc(pt('Total (cash on delivery): ', 'মোট (ক্যাশ অন ডেলিভারি): ')) + esc(o.total) + '</b></div>'
-      + '<div style="display:flex;gap:6px;align-items:center;margin-top:8px"><select data-os="' + esc(o.id) + '">' + ODS.map(s => '<option value="' + s + '"' + (o.status === s ? ' selected' : '') + '>' + esc(odL(s)) + '</option>').join('') + '</select>'
-      + '<button class="btn btn-sm" data-od="' + esc(o.id) + '">' + esc(pt('Delete', 'মুছুন')) + '</button></div></div>';
-  }).join('');
+  box.innerHTML = v.map(o => o.id === OD.edit && OD.draft ? odEditor(o) : odCard(o)).join('');
+}
+const odImg = src => new Promise(r => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
+function odWrap(c, t, w) { const out = []; String(t || '').split(/\n/).forEach(p => { let l = ''; p.split(/\s+/).forEach(wd => { const x = l ? l + ' ' + wd : wd; if (c.measureText(x).width > w && l) { out.push(l); l = wd; } else l = x; }); out.push(l); }); return out; }
+async function odInvoice(o, withLogo) {
+  const S = 2, W = 794, F = '"Segoe UI","Noto Sans Bengali","Nirmala UI",Arial,sans-serif', NV = '#1c1b45', CO = '#ee6f7b', GR = '#6b7280', H0 = 2800;
+  const cv = document.createElement('canvas'); cv.width = W * S; cv.height = H0 * S; const c = cv.getContext('2d'); c.scale(S, S); c.fillStyle = '#fff'; c.fillRect(0, 0, W, H0);
+  const T = (t, x, y, sz, col, w, al) => { c.font = (w || 400) + ' ' + sz + 'px ' + F; c.fillStyle = col || NV; c.textAlign = al || 'left'; c.fillText(String(t == null ? '' : t), x, y); }, M = n => '৳' + odFmt(n);
+  c.fillStyle = CO; c.fillRect(0, 0, W, 10);
+  const logo = withLogo ? await odImg(odShop() + 'roza-logo.png') : null;
+  if (logo) { const w = 220; c.drawImage(logo, 40, 34, w, w * logo.height / logo.width); } else T('Roza Gift Corner & Electric', 40, 70, 22, NV, 700);
+  const ms = o.createdAt && o.createdAt.toMillis ? o.createdAt.toMillis() : Date.now();
+  T('INVOICE', W - 40, 66, 30, NV, 800, 'right'); T('Invoice no: ' + (o.orderNo || o.id), W - 40, 92, 13, GR, 400, 'right'); T('Date: ' + new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), W - 40, 112, 13, GR, 400, 'right');
+  c.fillStyle = '#e5e7eb'; c.fillRect(40, 140, W - 80, 1);
+  T('BILL TO', 40, 168, 11, GR, 700); T(o.name, 40, 192, 17, NV, 700); T(o.phone, 40, 213, 13);
+  c.font = '400 13px ' + F; let y = 233; odWrap(c, [o.area, o.address].filter(Boolean).join(', '), 340).forEach(l => { T(l, 40, y, 13); y += 19; });
+  T('PAYMENT', W - 250, 168, 11, GR, 700); T('Cash on delivery', W - 250, 192, 14, NV, 600); T('ORDER STATUS', W - 250, 222, 11, GR, 700); T(String(o.status || 'new').replace(/^./, m => m.toUpperCase()), W - 250, 244, 14, NV, 600);
+  y = Math.max(y, 262) + 20; c.fillStyle = NV; c.fillRect(40, y, W - 80, 32);
+  T('#', 52, y + 21, 12, '#fff', 700); T('ITEM', 80, y + 21, 12, '#fff', 700); T('QTY', 520, y + 21, 12, '#fff', 700, 'right'); T('PRICE', 640, y + 21, 12, '#fff', 700, 'right'); T('AMOUNT', W - 52, y + 21, 12, '#fff', 700, 'right'); y += 32;
+  (o.items || []).forEach((it, n) => {
+    c.font = '400 13px ' + F; const ls = odWrap(c, it.name, 380), h = Math.max(32, ls.length * 18 + 14);
+    if (n % 2) { c.fillStyle = '#f9fafb'; c.fillRect(40, y, W - 80, h); }
+    T(n + 1, 52, y + 21, 13, GR); ls.forEach((l, k) => T(l, 80, y + 21 + k * 18, 13)); T(it.qty, 520, y + 21, 13, NV, 400, 'right'); T(M(it.price), 640, y + 21, 13, NV, 400, 'right'); T(M(it.qty * it.price), W - 52, y + 21, 13, NV, 600, 'right'); y += h;
+  });
+  c.fillStyle = '#e5e7eb'; c.fillRect(40, y, W - 80, 1); y += 26; const dl = Number(o.delivery) || 0;
+  T('Subtotal', 640, y, 13, GR, 400, 'right'); T(M(o.subtotal), W - 52, y, 13, NV, 600, 'right'); y += 24;
+  T('Delivery', 640, y, 13, GR, 400, 'right'); T(dl ? M(dl) : 'Free', W - 52, y, 13, NV, 600, 'right'); y += 18;
+  c.fillStyle = CO; c.fillRect(430, y, W - 470, 42); T('TOTAL', 450, y + 27, 13, '#fff', 700); T(M(o.total), W - 52, y + 28, 19, '#fff', 800, 'right'); y += 42 + 60;
+  c.fillStyle = '#e5e7eb'; c.fillRect(40, y, W - 80, 1); T('Thank you for shopping with Roza Gift Corner & Electric.', W / 2, y + 30, 14, NV, 600, 'center'); T('Help & inquiries: WhatsApp 01319362189', W / 2, y + 52, 12, GR, 400, 'center'); y += 80;
+  const H = Math.max(1123, y), out = document.createElement('canvas'); out.width = W * S; out.height = H * S; const x = out.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, out.width, out.height); x.drawImage(cv, 0, 0, W * S, H * S, 0, 0, W * S, H * S); return out;
+}
+function odPdf(jpg, w, h) {
+  const pw = 595.28, ph = pw * h / w, en = new TextEncoder(), parts = [], off = []; let len = 0;
+  const put = b => { const u = typeof b === 'string' ? en.encode(b) : b; parts.push(u); len += u.length; }, obj = (n, body) => { off[n] = len; put(n + ' 0 obj\n' + body + '\nendobj\n'); };
+  put('%PDF-1.4\n'); obj(1, '<< /Type /Catalog /Pages 2 0 R >>'); obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  obj(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pw.toFixed(2) + ' ' + ph.toFixed(2) + '] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>');
+  const cs = 'q ' + pw.toFixed(2) + ' 0 0 ' + ph.toFixed(2) + ' 0 0 cm /Im0 Do Q'; obj(4, '<< /Length ' + cs.length + ' >>\nstream\n' + cs + '\nendstream');
+  off[5] = len; put('5 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + w + ' /Height ' + h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpg.length + ' >>\nstream\n'); put(jpg); put('\nendstream\nendobj\n');
+  const xr = len; let x = 'xref\n0 6\n0000000000 65535 f \n'; for (let i = 1; i <= 5; i++) x += String(off[i]).padStart(10, '0') + ' 00000 n \n';
+  put(x + 'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF'); return new Blob(parts, { type: 'application/pdf' });
+}
+async function odDownload(o, type) {
+  const pdf = type === 'pdf', toB = (cv) => new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error('blob')), pdf ? 'image/jpeg' : 'image/png', 0.92); } catch (e) { rej(e); } });
+  let cv = await odInvoice(o, true), blob; try { blob = await toB(cv); } catch (e) { cv = await odInvoice(o, false); blob = await toB(cv); }
+  if (pdf) blob = odPdf(new Uint8Array(await blob.arrayBuffer()), cv.width, cv.height);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'invoice-' + (o.orderNo || o.id) + (pdf ? '.pdf' : '.png'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+async function odSave() {
+  const d = OD.draft, id = OD.edit, ph = String(d.phone).replace(/[\s-]/g, '').replace(/^\+?88/, ''), msg = m => setMsg('odMsg', m);
+  const items = d.items.map(i => ({ name: String(i.name).trim(), qty: Math.round(Number(i.qty)), price: Number(i.price) })), dl = Math.max(0, Number(d.delivery) || 0);
+  if (String(d.name).trim().length < 2) return msg(pt('Enter a name.', 'নাম দিন।'));
+  if (!/^01[3-9]\d{8}$/.test(ph)) return msg(pt('Enter a valid mobile number.', 'সঠিক মোবাইল নম্বর দিন।'));
+  if (String(d.address).trim().length < 5) return msg(pt('Enter the address.', 'ঠিকানা দিন।'));
+  if (!items.length || items.some(i => !i.name || !(i.qty >= 1) || !(i.price >= 0))) return msg(pt('Check the items (name, qty, price).', 'পণ্যের তথ্য দেখুন (নাম, সংখ্যা, দাম)।'));
+  const sub = odSub(items);
+  try { await setDoc(doc(db, 'orders', id), { name: String(d.name).trim().slice(0, 80), phone: ph, area: String(d.area).trim().slice(0, 100), address: String(d.address).trim().slice(0, 300), note: String(d.note).trim().slice(0, 400), items, subtotal: sub, delivery: dl, total: sub + dl, status: d.status }, { merge: true }); OD.edit = ''; OD.draft = null; drawOrders(); setMsg('odMsg', pt('Saved.', 'সেভ হয়েছে।'), 'ok'); }
+  catch (x) { console.warn(x); msg(pt('Could not save.', 'সেভ হয়নি।')); }
 }
 document.addEventListener('click', async e => {
-  if (tab !== 'orders') return;
-  const c = e.target.closest && e.target.closest('[data-of]'); if (c) { OD.f = c.getAttribute('data-of'); drawOrders(); return; }
-  const d = e.target.closest && e.target.closest('[data-od]'); if (!d) return;
-  if (!confirm(pt('Delete this order?', 'অর্ডারটি মুছবেন?'))) return;
-  try { await SDK.deleteDoc(doc(db, 'orders', d.getAttribute('data-od'))); } catch (x) { console.warn(x); setMsg('odMsg', pt('Failed to delete.', 'মোছা যায়নি।')); }
+  if (tab !== 'orders') return; const g = k => { const n = e.target.closest && e.target.closest('[' + k + ']'); return n ? n.getAttribute(k) : null; };
+  const f = g('data-of'); if (f) { OD.f = f; drawOrders(); return; }
+  const del = g('data-od'); if (del) { if (!confirm(pt('Delete this order?', 'অর্ডারটি মুছবেন?'))) return; try { await SDK.deleteDoc(doc(db, 'orders', del)); } catch (x) { console.warn(x); setMsg('odMsg', pt('Failed to delete.', 'মোছা যায়নি।')); } return; }
+  const ed = g('data-oe'); if (ed) { const o = OD.list.find(x => x.id === ed); if (!o) return; OD.edit = ed; OD.draft = { name: o.name || '', phone: o.phone || '', area: o.area || '', address: o.address || '', note: o.note || '', delivery: Number(o.delivery) || 0, status: o.status || 'new', items: (Array.isArray(o.items) ? o.items : []).map(i => ({ name: i.name, qty: i.qty, price: i.price })) }; drawOrders(); return; }
+  if (g('data-oadd')) { OD.draft.items.push({ name: '', qty: 1, price: 0 }); drawOrders(); return; }
+  const rm = g('data-orm'); if (rm !== null) { OD.draft.items.splice(Number(rm), 1); drawOrders(); return; }
+  if (g('data-ocancel')) { OD.edit = ''; OD.draft = null; drawOrders(); return; }
+  if (g('data-osave')) { await odSave(); return; }
+  const iv = g('data-oinv'); if (iv) { const [id, ty] = iv.split('|'), o = OD.list.find(x => x.id === id); if (!o) return; setMsg('odMsg', pt('Preparing invoice…', 'ইনভয়েস তৈরি হচ্ছে…')); try { await odDownload(o, ty); setMsg('odMsg', ''); } catch (x) { console.warn(x); setMsg('odMsg', pt('Could not create the invoice.', 'ইনভয়েস তৈরি করা যায়নি।')); } }
+});
+document.addEventListener('input', e => {
+  if (tab !== 'orders' || !OD.draft || !e.target.closest || !e.target.closest('#odList')) return; const t = e.target, k = t.getAttribute('data-ef'), n = t.getAttribute('data-ei');
+  if (k) OD.draft[k] = t.value; else if (n !== null) OD.draft.items[Number(n)][t.getAttribute('data-f')] = t.value; else return;
+  const p = $('#odTot'); if (p) p.innerHTML = '<b>' + esc(odTotText()) + '</b>';
 });
 document.addEventListener('change', async e => {
   const sel = e.target.closest && e.target.closest('[data-os]'); if (!sel || tab !== 'orders') return;
