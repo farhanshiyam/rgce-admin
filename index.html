@@ -1614,22 +1614,24 @@ async function tabCompare() {
 /* ---------- due-checker maintenance switch (public doc site_public/due-checker; the page reads it) ---------- */
 Object.assign(RL.en, { mntH: 'Due-checker maintenance mode', mntNote: 'Shows a maintenance message on the due-checker page and hides its search. Customer data is not deleted; switch it off to bring the page back. To remove the public data itself, use the stop switch above.', mntState: 'State', mntOn: 'Maintenance ON', mntOff: 'Site live', mntEn: 'Message (English)', mntBn: 'Message (Bangla)', mntTurnOn: 'Turn maintenance on', mntTurnOff: 'Turn maintenance off', mntSave: 'Save message', mntDone: 'Saved.', mntPhEn: 'Under maintenance. Please try again later.', mntPhBn: 'রক্ষণাবেক্ষণ চলছে। কিছুক্ষণ পর আবার চেষ্টা করুন।' });
 Object.assign(RL.bn, { mntH: 'due-checker রক্ষণাবেক্ষণ মোড', mntNote: 'due-checker পেজে "রক্ষণাবেক্ষণ চলছে" বার্তা দেখায় ও খোঁজার ঘর লুকিয়ে রাখে। কাস্টমারের ডেটা মোছে না; বন্ধ করলেই পেজ ফিরে আসবে। পাবলিক ডেটা সরাতে চাইলে ওপরের স্টপ সুইচ ব্যবহার করুন।', mntState: 'অবস্থা', mntOn: 'রক্ষণাবেক্ষণ চলছে', mntOff: 'সাইট চালু', mntEn: 'বার্তা (ইংরেজি)', mntBn: 'বার্তা (বাংলা)', mntTurnOn: 'রক্ষণাবেক্ষণ চালু করুন', mntTurnOff: 'রক্ষণাবেক্ষণ বন্ধ করুন', mntSave: 'বার্তা সেভ করুন', mntDone: 'সেভ হয়েছে।', mntPhEn: 'Under maintenance. Please try again later.', mntPhBn: 'রক্ষণাবেক্ষণ চলছে। কিছুক্ষণ পর আবার চেষ্টা করুন।' });
-function mntCard() {
+function mntCard(docId, sx, head, note) {
+  docId = docId || 'due-checker'; sx = sx || '';
+  const I = n => n + sx, q = n => $('#' + n + sx);
   const fld = (id, lbl, ph) => '<div class="fg"><label for="' + id + '">' + esc(lbl) + '</label><input id="' + id + '" maxlength="140" placeholder="' + esc(ph) + '"></div>';
-  $('#tabBody').insertAdjacentHTML('beforeend', '<div class="card" style="margin-top:14px"><h2>' + esc(rl('mntH')) + '</h2><p class="muted">' + esc(rl('mntNote')) + '</p>'
-    + '<div class="kv" style="margin:14px 0"><b>' + esc(rl('mntState')) + '</b><span><span class="pill" id="mState">…</span></span></div>'
-    + fld('mEn', rl('mntEn'), rl('mntPhEn')) + fld('mBn', rl('mntBn'), rl('mntPhBn'))
-    + '<div class="msg" id="mMsg" role="status"></div><div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-sm" id="mSwitch" disabled>…</button><button class="btn btn-sm" id="mSave" disabled>' + esc(rl('mntSave')) + '</button></div></div>');
-  const ref = () => doc(db, 'site_public', 'due-checker'); let on = false, ready = false;
-  const paint = () => { const p = $('#mState'); if (!p) return; p.textContent = rl(on ? 'mntOn' : 'mntOff'); p.className = 'pill ' + (on ? 'off' : 'on'); const b = $('#mSwitch'); b.textContent = rl(on ? 'mntTurnOff' : 'mntTurnOn'); b.className = 'btn btn-sm' + (on ? '' : ' btn-danger'); b.disabled = !ready; $('#mSave').disabled = !ready; };
+  $('#tabBody').insertAdjacentHTML('beforeend', '<div class="card" style="margin-top:14px"><h2>' + esc(head || rl('mntH')) + '</h2><p class="muted">' + esc(note || rl('mntNote')) + '</p>'
+    + '<div class="kv" style="margin:14px 0"><b>' + esc(rl('mntState')) + '</b><span><span class="pill" id="' + I('mState') + '">…</span></span></div>'
+    + fld(I('mEn'), rl('mntEn'), rl('mntPhEn')) + fld(I('mBn'), rl('mntBn'), rl('mntPhBn'))
+    + '<div class="msg" id="' + I('mMsg') + '" role="status"></div><div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-sm" id="' + I('mSwitch') + '" disabled>…</button><button class="btn btn-sm" id="' + I('mSave') + '" disabled>' + esc(rl('mntSave')) + '</button></div></div>');
+  const ref = () => doc(db, 'site_public', docId); let on = false, ready = false;
+  const paint = () => { const p = q('mState'); if (!p) return; p.textContent = rl(on ? 'mntOn' : 'mntOff'); p.className = 'pill ' + (on ? 'off' : 'on'); const b = q('mSwitch'); b.textContent = rl(on ? 'mntTurnOff' : 'mntTurnOn'); b.className = 'btn btn-sm' + (on ? '' : ' btn-danger'); b.disabled = !ready; q('mSave').disabled = !ready; };
   const write = async next => {
-    setMsg('mMsg', ''); $('#mSwitch').disabled = true; $('#mSave').disabled = true;
-    try { await setDoc(ref(), { ownerUid: user.uid, shopName: SHOP_NAME, on: next, msgEn: $('#mEn').value.trim(), msgBn: $('#mBn').value.trim(), updatedAt: serverTimestamp() }); on = next; logAct('maint', next ? 'ON' : 'OFF'); setMsg('mMsg', rl('mntDone'), 'ok'); }
-    catch (e) { console.warn(e); setMsg('mMsg', rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
+    setMsg(I('mMsg'), ''); q('mSwitch').disabled = true; q('mSave').disabled = true;
+    try { await setDoc(ref(), { ownerUid: user.uid, shopName: SHOP_NAME, on: next, msgEn: q('mEn').value.trim(), msgBn: q('mBn').value.trim(), updatedAt: serverTimestamp() }); on = next; logAct('maint', docId + ' ' + (next ? 'ON' : 'OFF')); setMsg(I('mMsg'), rl('mntDone'), 'ok'); }
+    catch (e) { console.warn(e); setMsg(I('mMsg'), rl('lFail') + ((e && e.code) ? ' (' + e.code + ')' : '')); }
     paint();
   };
-  $('#mSwitch').addEventListener('click', () => write(!on)); $('#mSave').addEventListener('click', () => write(on));
-  (async () => { try { const s = await getFresh(ref()); const d = s.exists() ? (s.data() || {}) : {}; on = d.on === true; if ($('#mEn')) { $('#mEn').value = d.msgEn || ''; $('#mBn').value = d.msgBn || ''; } ready = true; } catch (e) { console.warn(e); setMsg('mMsg', rl('rFail')); } paint(); })();
+  q('mSwitch').addEventListener('click', () => write(!on)); q('mSave').addEventListener('click', () => write(on));
+  (async () => { try { const s = await getFresh(ref()); const d = s.exists() ? (s.data() || {}) : {}; on = d.on === true; if (q('mEn')) { q('mEn').value = d.msgEn || ''; q('mBn').value = d.msgBn || ''; } ready = true; } catch (e) { console.warn(e); setMsg(I('mMsg'), rl('rFail')); } paint(); })();
 }
 
 /* ---------- tab: account ---------- */
@@ -1757,6 +1759,9 @@ async function tabDue() {
     + '<div style="margin-top:8px"><button class="btn btn-sm" id="dCopy">' + esc(t('dueCopy')) + '</button></div></div>';
   $('#dRules').value = RULES_TEXT;
   mntCard();
+  mntCard('shop-site', 'Shop', lang() === 'bn' ? 'শপ ওয়েবসাইট রক্ষণাবেক্ষণ বার্তা' : 'Shop website maintenance notice',
+    lang() === 'bn' ? 'চালু করলে শপ ওয়েবসাইটের উপরে বার্তাটি ব্যানার হিসেবে দেখাবে। পণ্য বা কাস্টমারের ডেটা মোছে না; বন্ধ করলেই ব্যানার চলে যাবে।'
+                    : 'When on, the message shows as a banner at the top of the shop website. No products or customer data are deleted; switch off to remove the banner.');
   $('#dCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(RULES_TEXT); } catch (e) { $('#dRules').select(); document.execCommand('copy'); } setMsg('dMsg', t('dueCopied'), 'ok'); });
   const load = async (keep) => {
     if (keep !== true) setMsg('dMsg', '');
