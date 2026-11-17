@@ -2068,7 +2068,7 @@ async function purge(doDelete) {
 }
 
 /* ============ POLLS: create / edit / publish / close / delete polls, see who took part, print or save the result report ============ */
-const POLL_RULES = "match /polls/{pid} {\n  allow get, list: if request.auth != null || resource.data.status in ['published', 'closed'];\n  allow create, update, delete: if request.auth != null;\n  match /votes/{vid} {\n    allow read, update, delete: if request.auth != null;\n    allow create: if request.auth != null || (\n      get(/databases/$(database)/documents/polls/$(pid)).data.status == 'published'\n      && request.resource.data.keys().hasOnly(['kind', 'name', 'contact', 'choices', 'at', 'dev'])\n      && request.resource.data.kind in ['named', 'anon', 'walkin']\n      && request.resource.data.name is string && request.resource.data.name.size() <= 80\n      && request.resource.data.contact is string && request.resource.data.contact.size() <= 30\n      && request.resource.data.choices is list && request.resource.data.choices.size() >= 1 && request.resource.data.choices.size() <= 20\n      && request.resource.data.at is timestamp\n    );\n  }\n}";
+const POLL_RULES = "match /polls/{pollId} {\n  allow get, list: if request.auth != null || resource.data.status in ['published', 'closed'];\n  allow create, update, delete: if request.auth != null;\n\n  match /votes/{voteId} {\n    allow read, update, delete: if request.auth != null;\n\n    allow create: if request.auth != null || (\n      get(/databases/$(database)/documents/polls/$(pollId)).data.status == 'published'\n      && request.resource.data.keys().hasOnly(['kind','name','contact','choices','at','dev','ip'])\n      && request.resource.data.keys().hasAll(['kind','name','contact','choices','at','dev'])\n      && request.resource.data.kind in ['named','anon','walkin']\n      && request.resource.data.name is string && request.resource.data.name.size() <= 80\n      && request.resource.data.contact is string && request.resource.data.contact.size() <= 30\n      && request.resource.data.dev is string && request.resource.data.dev.size() <= 24\n      && request.resource.data.get('ip', '') is string && request.resource.data.get('ip', '').size() <= 45\n      && request.resource.data.choices is list\n      && request.resource.data.choices.size() >= 1 && request.resource.data.choices.size() <= 20\n      && request.resource.data.at is timestamp\n      && request.resource.data.at > request.time - duration.value(24, 'h')\n      && request.resource.data.at < request.time + duration.value(24, 'h')\n      && (\n        (request.resource.data.kind == 'named'\n          && voteId.matches('^c[0-9a-f]{40}$')\n          && request.resource.data.name.size() >= 2\n          && request.resource.data.contact.matches('^01[0-9]{9}$'))\n        ||\n        (request.resource.data.kind in ['anon','walkin']\n          && voteId.matches('^a[0-9a-z]{24}$'))\n      )\n    );\n  }\n}";
 const PLT = {
   en: {
     h: 'Polls', sub: 'Create polls for your customers, see who took part, and print the result report.', nw: 'New poll', rules: 'Firestore rules',
@@ -2085,11 +2085,12 @@ const PLT = {
     dBack: 'All polls', dRefresh: 'Refresh', dWalk: 'Add walk-in vote', dSync: 'Update customer results', dPrint: 'Print / PDF', dCsv: 'Download CSV', synced: 'Customer results updated.',
     sTotal: 'Responses', sNamed: 'With name', sAnon: 'Anonymous', sWalk: 'Walk-in', sLead: 'Leading',
     rH: 'Results', pH: 'Who took part', pSearch: 'Search name or number', pAll: 'All types', pNone: 'No votes yet.', pLoad: 'Loading votes...', voteErr: 'Could not load votes (',
+    cIp: 'IP address', cDev: 'Device', sSus: 'Suspicious', pSus: 'Suspicious (same IP / device)', ipTip: 'Click an IP to see every vote from it', rpDup: 'A red \u00d72 or more means the same IP or device was used for more than one vote (shop walk-in votes are not counted).',
     cSL: 'SL', cName: 'Name', cContact: 'Contact', cType: 'Type', cChoice: 'Choice', cTime: 'Date & time', cAct: 'Action', anonName: 'Anonymous', walkName: 'Walk-in', named: 'Named',
     wvH: 'Add walk-in vote', wvName: 'Name (optional)', wvContact: 'Contact (optional)', wvChoice: 'Choice', wvSave: 'Save vote', wvNeed: 'Select a choice.',
     prH: 'Report options', prList: 'Include the participants list (names and contact numbers)', prGo: 'Print / Save as PDF', prNote: 'In the print window choose "Save as PDF" to download the file.',
     rpTitle: 'POLL REPORT', rpPeriod: 'Period', rpStatus: 'Status', rpGen: 'Generated', rpTotal: 'Total responses', rpOpt: 'Option', rpVotes: 'Votes', rpPct: 'Share', rpPart: 'Participants', rpNo: 'Report no.', rpDate: 'Date', rpNoDate: 'No date limit',
-    ruH: 'Firestore rules for polls', ruP: 'Open Firebase console > Firestore Database > Rules. Add this block inside "match /databases/{database}/documents { ... }" and press Publish. Customers can then see published polls and send their vote; only a signed-in admin can read the votes. If your existing rules already use a stricter admin check, replace "request.auth != null" with it.', ruCopy: 'Copy rules', copied: 'Copied.', close: 'Close'
+    ruH: 'Firestore rules for polls', ruP: 'Open Firebase console > Firestore Database > Rules. Add this block inside "match /databases/{database}/documents { ... }" and press Publish. Customers can then see published polls and send their vote; only a signed-in admin can read the votes. If your rules have an owner check such as isOwner(), use it instead of "request.auth != null".', ruCopy: 'Copy rules', copied: 'Copied.', close: 'Close'
   },
   bn: {
     h: 'পোল', sub: 'কাস্টমারদের জন্য পোল বানান, কারা অংশ নিল দেখুন এবং ফলাফল রিপোর্ট প্রিন্ট করুন।', nw: 'নতুন পোল', rules: 'Firestore রুলস',
@@ -2106,6 +2107,7 @@ const PLT = {
     dBack: 'সব পোল', dRefresh: 'রিফ্রেশ', dWalk: 'ওয়াক-ইন ভোট যোগ', dSync: 'কাস্টমারদের ফলাফল আপডেট', dPrint: 'প্রিন্ট / PDF', dCsv: 'CSV ডাউনলোড', synced: 'কাস্টমারদের ফলাফল আপডেট হয়েছে।',
     sTotal: 'মোট অংশগ্রহণ', sNamed: 'নামসহ', sAnon: 'অ্যানোনিমাস', sWalk: 'ওয়াক-ইন', sLead: 'এগিয়ে',
     rH: 'ফলাফল', pH: 'কারা অংশ নিয়েছে', pSearch: 'নাম বা নম্বর খুঁজুন', pAll: 'সব ধরন', pNone: 'এখনো কোনো ভোট নেই।', pLoad: 'ভোট লোড হচ্ছে...', voteErr: 'ভোট লোড হয়নি (',
+    cIp: 'আইপি অ্যাড্রেস', cDev: 'ডিভাইস', sSus: 'সন্দেহজনক', pSus: 'সন্দেহজনক (একই আইপি / ডিভাইস)', ipTip: 'আইপি-তে ক্লিক করলে ওই আইপি-র সব ভোট দেখাবে', rpDup: 'লাল ×২ বা বেশি মানে একই আইপি বা ডিভাইস থেকে একাধিক ভোট (দোকানের ওয়াক-ইন ভোট হিসাবে ধরা হয় না)।',
     cSL: 'ক্রমিক', cName: 'নাম', cContact: 'যোগাযোগ', cType: 'ধরন', cChoice: 'পছন্দ', cTime: 'তারিখ ও সময়', cAct: 'অ্যাকশন', anonName: 'অ্যানোনিমাস', walkName: 'ওয়াক-ইন', named: 'নামসহ',
     wvH: 'ওয়াক-ইন ভোট যোগ', wvName: 'নাম (ঐচ্ছিক)', wvContact: 'যোগাযোগ (ঐচ্ছিক)', wvChoice: 'পছন্দ', wvSave: 'ভোট সেভ', wvNeed: 'একটি পছন্দ বেছে নিন।',
     prH: 'রিপোর্টের অপশন', prList: 'অংশগ্রহণকারীদের তালিকা দিন (নাম ও নম্বরসহ)', prGo: 'প্রিন্ট / PDF সেভ', prNote: 'প্রিন্ট উইন্ডোতে "Save as PDF" বেছে নিলে ফাইল ডাউনলোড হবে।',
@@ -2124,6 +2126,8 @@ const plAc = p => PL_COL[(+p.accent || 0) % PL_COL.length];
 const plDT = v => { if (!v) return ''; const x = new Date(v.toDate ? v.toDate() : v); if (isNaN(x)) return ''; return x.getDate() + ' ' + t('mon')[x.getMonth()] + ' ' + x.getFullYear() + ', ' + pad(x.getHours()) + ':' + pad(x.getMinutes()); };
 const plPeriod = p => (p.startAt || p.endAt) ? ((p.startAt ? fmtDate(p.startAt) : '\u2026') + ' \u2192 ' + (p.endAt ? fmtDate(p.endAt) : '\u2026')) : plt('anyTime');
 const plKindLabel = v => v.kind === 'named' ? plt('named') : v.kind === 'walkin' ? plt('walkName') : plt('anonName');
+function plDup(votes) { const ip = {}, dv = {}; votes.forEach(v => { if (v.kind === 'walkin') return; if (v.ip) ip[v.ip] = (ip[v.ip] || 0) + 1; if (v.dev && v.dev !== 'admin') dv[v.dev] = (dv[v.dev] || 0) + 1; }); return { ip, dv }; }
+const plSus = (v, d) => v.kind !== 'walkin' && !!((v.ip && d.ip[v.ip] > 1) || (v.dev && v.dev !== 'admin' && d.dv[v.dev] > 1));
 const plNameOf = v => (v.name && String(v.name).trim()) || (v.kind === 'walkin' ? plt('walkName') : plt('anonName'));
 function plStyle() {
   if ($('#plCss')) return;
@@ -2136,7 +2140,7 @@ function plStyle() {
     + '.pl-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted)}.pl-meta b{color:var(--text)}.pl-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}'
     + '.pl-bar{margin:12px 0}.pl-bar .lb{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:600}.pl-bar .lb span:last-child{white-space:nowrap}.pl-bar .tr{height:16px;border-radius:999px;background:var(--border);overflow:hidden;margin-top:5px}.pl-bar .tr i{display:block;height:100%;border-radius:999px;background:var(--ac)}.pl-bar.top .lb{color:var(--ac)}'
     + '.pl-tools{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.pl-tools .fg{margin:0;flex:1 1 200px}.pl-sw{display:flex;flex-wrap:wrap;gap:8px}.pl-sw button{width:34px;height:34px;border-radius:10px;border:2px solid var(--border);background:var(--input-bg);cursor:pointer;font-size:18px;line-height:1}.pl-sw button.on{border-color:var(--primary);outline:2px solid var(--primary);outline-offset:1px}.pl-sw.col button{border-radius:50%;border-color:transparent}.pl-opt{display:flex;gap:6px;align-items:center;margin-bottom:6px}.pl-opt input{flex:1;min-width:0}.pl-opt .btn{padding:6px 9px}'
-    + '.pl-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:520px){.pl-two{grid-template-columns:1fr}}';
+    + '.pl-dupe{display:inline-block;background:#c62828;color:#fff;border-radius:999px;padding:0 7px;font-size:11px;font-weight:700;margin-left:4px}.pl-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:520px){.pl-two{grid-template-columns:1fr}}';
   document.head.appendChild(s);
 }
 function startPolls() {
@@ -2206,6 +2210,7 @@ async function plClick(e) {
   if (a === 'sync') return plSync(true);
   if (a === 'print') return plPrintAsk();
   if (a === 'csv') return plCsv();
+  if (a === 'ipf') { PL.vq = b.getAttribute('data-ip') || ''; PL.vk = 'all'; return plDrawDetail(); }
   if (a === 'vdel') {
     const vid = b.getAttribute('data-v'); if (!confirm(plt('askVDel'))) return;
     try { await deleteDoc(doc(db, 'polls', PL.sel, 'votes', vid)); PL.votes = PL.votes.filter(v => v.id !== vid); PL.counts[PL.sel] = PL.votes.length; plDrawDetail(); plAutoSync(); } catch (x) { setMsg('plMsg', plt('fail') + ((x && x.code) || x), ''); }
@@ -2317,7 +2322,7 @@ async function plLoadVotes() {
 function plDrawDetail() {
   const root = $('#plRoot'); if (!root) return;
   const p = PL.list.find(x => x.id === PL.sel); if (!p) { root.innerHTML = '<div class="card"><span class="spin"></span></div>'; return; }
-  const T0 = plTally(p, PL.votes), st = plEff(p), mx = Math.max(0, ...Object.values(T0.c));
+  const T0 = plTally(p, PL.votes), DU = plDup(PL.votes), susN = PL.votes.filter(v => plSus(v, DU)).length, st = plEff(p), mx = Math.max(0, ...Object.values(T0.c));
   const lead = mx > 0 ? (p.options || []).filter(o => T0.c[o.id] === mx).map(o => o.text).join(', ') : '\u2014';
   const stat = (l, v) => '<div class="stat"><small>' + esc(l) + '</small><b>' + esc(v) + '</b></div>';
   let h = '<div class="card" style="border-top:5px solid ' + plAc(p) + '"><div class="pl-head"><div style="min-width:0"><button class="lnk" data-a="back" type="button">\u2190 ' + esc(plt('dBack')) + '</button>'
@@ -2328,11 +2333,11 @@ function plDrawDetail() {
     + '<button class="btn btn-sm" data-a="csv" type="button">' + esc(plt('dCsv')) + '</button><button class="btn btn-sm btn-primary" data-a="print" type="button">' + esc(plt('dPrint')) + '</button></div></div>'
     + '<div class="msg" id="plMsg" role="status"></div>'
     + (PL.verr ? '<div class="msg" role="alert">' + esc(plt('voteErr') + PL.verr + plt('loadErr2')) + '</div>' : '')
-    + '<div class="grid">' + stat(plt('sTotal'), T0.total) + stat(plt('sNamed'), T0.k.named) + stat(plt('sAnon'), T0.k.anon) + stat(plt('sWalk'), T0.k.walkin) + stat(plt('sLead'), lead) + '</div>'
+    + '<div class="grid">' + stat(plt('sTotal'), T0.total) + stat(plt('sNamed'), T0.k.named) + stat(plt('sAnon'), T0.k.anon) + stat(plt('sWalk'), T0.k.walkin) + stat(plt('sSus'), susN) + stat(plt('sLead'), lead) + '</div>'
     + '<h3 style="margin-top:6px">' + esc(plt('rH')) + '</h3>'
     + (p.options || []).map(o => { const n = T0.c[o.id] || 0, pc = T0.total ? Math.round(n * 1000 / T0.total) / 10 : 0; return '<div class="pl-bar' + (mx > 0 && n === mx ? ' top' : '') + '" style="--ac:' + plAc(p) + '"><div class="lb"><span>' + esc(o.text) + '</span><span>' + n + ' \u2022 ' + pc + '%</span></div><div class="tr"><i style="width:' + pc + '%"></i></div></div>'; }).join('')
     + '</div><div class="card"><h2>' + esc(plt('pH')) + '</h2><div class="pl-tools"><div class="fg"><input id="plQ" type="search" autocomplete="off" placeholder="' + esc(plt('pSearch')) + '" aria-label="' + esc(plt('pSearch')) + '" value="' + esc(PL.vq) + '"></div>'
-    + '<div class="fg" style="flex:0 1 180px"><select id="plK" aria-label="' + esc(plt('cType')) + '"><option value="all">' + esc(plt('pAll')) + '</option><option value="named"' + (PL.vk === 'named' ? ' selected' : '') + '>' + esc(plt('named')) + '</option><option value="anon"' + (PL.vk === 'anon' ? ' selected' : '') + '>' + esc(plt('anonName')) + '</option><option value="walkin"' + (PL.vk === 'walkin' ? ' selected' : '') + '>' + esc(plt('walkName')) + '</option></select></div></div>'
+    + '<div class="fg" style="flex:0 1 180px"><select id="plK" aria-label="' + esc(plt('cType')) + '"><option value="all">' + esc(plt('pAll')) + '</option><option value="named"' + (PL.vk === 'named' ? ' selected' : '') + '>' + esc(plt('named')) + '</option><option value="anon"' + (PL.vk === 'anon' ? ' selected' : '') + '>' + esc(plt('anonName')) + '</option><option value="walkin"' + (PL.vk === 'walkin' ? ' selected' : '') + '>' + esc(plt('walkName')) + '</option><option value="sus"' + (PL.vk === 'sus' ? ' selected' : '') + '>' + esc(plt('pSus')) + '</option></select></div></div>'
     + '<div class="tbl-wrap" id="plTbl"></div></div>';
   root.innerHTML = h; plDrawRows();
 }
@@ -2340,11 +2345,11 @@ function plDrawRows() {
   const box = $('#plTbl'); if (!box) return;
   const p = PL.list.find(x => x.id === PL.sel); if (!p) return;
   if (PL.busy && !PL.votes.length) { box.innerHTML = '<div style="padding:14px"><span class="spin"></span> ' + esc(plt('pLoad')) + '</div>'; return; }
-  const q = PL.vq.trim().toLowerCase();
-  const rows = PL.votes.filter(v => (PL.vk === 'all' || v.kind === PL.vk) && (!q || (String(v.name || '') + ' ' + String(v.contact || '')).toLowerCase().indexOf(q) >= 0));
+  const q = PL.vq.trim().toLowerCase(), DU = plDup(PL.votes);
+  const rows = PL.votes.filter(v => (PL.vk === 'all' || (PL.vk === 'sus' ? plSus(v, DU) : v.kind === PL.vk)) && (!q || (String(v.name || '') + ' ' + String(v.contact || '') + ' ' + String(v.ip || '')).toLowerCase().indexOf(q) >= 0));
   if (!rows.length) { box.innerHTML = '<div style="padding:14px" class="muted">' + esc(plt('pNone')) + '</div>'; return; }
-  box.innerHTML = '<table class="tbl"><thead><tr><th>' + esc(plt('cSL')) + '</th><th>' + esc(plt('cName')) + '</th><th>' + esc(plt('cContact')) + '</th><th>' + esc(plt('cType')) + '</th><th>' + esc(plt('cChoice')) + '</th><th>' + esc(plt('cTime')) + '</th><th>' + esc(plt('cAct')) + '</th></tr></thead><tbody>'
-    + rows.map((v, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(plNameOf(v)) + '</td><td>' + esc(v.contact || '\u2014') + '</td><td>' + esc(plKindLabel(v)) + '</td><td>' + esc(plChoiceText(p, v)) + '</td><td style="white-space:nowrap">' + esc(plDT(v.at)) + '</td><td><button class="btn btn-sm btn-danger" data-a="vdel" data-v="' + esc(v.id) + '" type="button" aria-label="' + esc(plt('bDel')) + '">\u2715</button></td></tr>').join('') + '</tbody></table>';
+  box.innerHTML = '<table class="tbl"><thead><tr><th>' + esc(plt('cSL')) + '</th><th>' + esc(plt('cName')) + '</th><th>' + esc(plt('cContact')) + '</th><th>' + esc(plt('cType')) + '</th><th>' + esc(plt('cChoice')) + '</th><th>' + esc(plt('cIp')) + '</th><th>' + esc(plt('cDev')) + '</th><th>' + esc(plt('cTime')) + '</th><th>' + esc(plt('cAct')) + '</th></tr></thead><tbody>'
+    + rows.map((v, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(plNameOf(v)) + '</td><td>' + esc(v.contact || '\u2014') + '</td><td>' + esc(plKindLabel(v)) + '</td><td>' + esc(plChoiceText(p, v)) + '</td><td style="white-space:nowrap">' + (v.ip ? '<button class="lnk" type="button" data-a="ipf" data-ip="' + esc(v.ip) + '" title="' + esc(plt('ipTip')) + '">' + esc(v.ip) + '</button>' + (v.kind !== 'walkin' && DU.ip[v.ip] > 1 ? '<span class="pl-dupe">\u00d7' + DU.ip[v.ip] + '</span>' : '') : '\u2014') + '</td><td style="white-space:nowrap">' + (v.dev === 'admin' ? 'Admin' : v.dev ? esc(String(v.dev).slice(0, 8)) + (v.kind !== 'walkin' && DU.dv[v.dev] > 1 ? '<span class="pl-dupe">\u00d7' + DU.dv[v.dev] + '</span>' : '') : '\u2014') + '</td><td style="white-space:nowrap">' + esc(plDT(v.at)) + '</td><td><button class="btn btn-sm btn-danger" data-a="vdel" data-v="' + esc(v.id) + '" type="button" aria-label="' + esc(plt('bDel')) + '">\u2715</button></td></tr>').join('') + '</tbody></table>';
 }
 /* customer-visible result snapshot (customers cannot read the votes, only this summary) */
 async function plSync(manual) {
@@ -2379,8 +2384,8 @@ function plWalk() {
 function plCsv() {
   const p = PL.list.find(x => x.id === PL.sel); if (!p) return;
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-  const rows = [[plt('cSL'), plt('cName'), plt('cContact'), plt('cType'), plt('cChoice'), plt('cTime')].map(q).join(',')];
-  PL.votes.forEach((v, i) => { rows.push([i + 1, plNameOf(v), v.contact || '', plKindLabel(v), plChoiceText(p, v), plDT(v.at)].map(q).join(',')); });
+  const rows = [[plt('cSL'), plt('cName'), plt('cContact'), plt('cType'), plt('cChoice'), plt('cIp'), plt('cDev'), plt('cTime')].map(q).join(',')];
+  PL.votes.forEach((v, i) => { rows.push([i + 1, plNameOf(v), v.contact || '', plKindLabel(v), plChoiceText(p, v), v.ip || '', v.dev || '', plDT(v.at)].map(q).join(',')); });
   const blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'poll-' + (p.title || 'result').replace(/[^\w\u0980-\u09FF]+/g, '-').slice(0, 40) + '-' + todayStr() + '.csv';
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
@@ -2393,17 +2398,17 @@ function plPrintAsk() {
 }
 function plPrint(withList) {
   const p = PL.list.find(x => x.id === PL.sel); if (!p) return;
-  const T0 = plTally(p, PL.votes), d = new Date(), gen = d.getDate() + ' ' + t('mon')[d.getMonth()] + ' ' + d.getFullYear() + ', ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  const T0 = plTally(p, PL.votes), DU = plDup(PL.votes), d = new Date(), gen = d.getDate() + ' ' + t('mon')[d.getMonth()] + ' ' + d.getFullYear() + ', ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   const no = 'PR-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + rid().slice(0, 4).toUpperCase();
   const sm = (l, v) => '<div><small>' + esc(l) + '</small><b>' + esc(v) + '</b></div>';
   const resRows = (p.options || []).map((o, i) => { const n = T0.c[o.id] || 0, pc = T0.total ? Math.round(n * 1000 / T0.total) / 10 : 0; return '<tr><td class="sl">' + (i + 1) + '</td><td style="text-align:left">' + esc(o.text) + '</td><td class="n">' + n + '</td><td class="n">' + pc + '%</td><td><div class="plb"><i style="width:' + pc + '%"></i></div></td></tr>'; }).join('');
-  const partRows = PL.votes.map((v, i) => '<tr><td class="sl">' + (i + 1) + '</td><td style="text-align:left">' + esc(plNameOf(v)) + '</td><td>' + esc(v.contact || '\u2014') + '</td><td>' + esc(plKindLabel(v)) + '</td><td style="text-align:left">' + esc(plChoiceText(p, v)) + '</td><td>' + esc(plDT(v.at)) + '</td></tr>').join('');
+  const partRows = PL.votes.map((v, i) => '<tr><td class="sl">' + (i + 1) + '</td><td style="text-align:left">' + esc(plNameOf(v)) + '</td><td>' + esc(v.contact || '\u2014') + '</td><td>' + esc(plKindLabel(v)) + '</td><td style="text-align:left">' + esc(plChoiceText(p, v)) + '</td><td>' + esc(v.ip || '\u2014') + (v.kind !== 'walkin' && v.ip && DU.ip[v.ip] > 1 ? ' <b style="color:#c00">\u00d7' + DU.ip[v.ip] + '</b>' : '') + '</td><td>' + (v.dev === 'admin' ? 'Admin' : v.dev ? esc(String(v.dev).slice(0, 8)) + (v.kind !== 'walkin' && DU.dv[v.dev] > 1 ? ' <b style="color:#c00">\u00d7' + DU.dv[v.dev] + '</b>' : '') : '\u2014') + '</td><td>' + esc(plDT(v.at)) + '</td></tr>').join('');
   const html = '<div class="rp"><div class="lh"><img class="lgi" src="' + esc(REPORT_ICON) + '" alt="' + esc(SHOP_NAME) + '" onerror="this.style.display=\'none\';this.parentNode.className+=\' nologo\'"><div class="lg">RGCE</div><div class="lt"><h1 class="nm">' + esc(SHOP_NAME) + '</h1><p class="tg">' + esc(SHOP_TAG) + '</p><p>' + esc(SHOP_ADDR) + ' \u2022 ' + esc(SHOP_PHONE) + '</p></div>'
     + '<div class="rn"><b>' + esc(plt('rpTitle')) + '</b><span>' + esc(plt('rpNo')) + ': ' + esc(no) + '</span><span>' + esc(plt('rpDate')) + ': ' + esc(gen) + '</span></div></div>'
     + '<h2>' + esc(p.title) + '</h2><div class="meta">' + esc(plt('rpStatus')) + ': ' + esc(plt('st_' + plEff(p))) + ' \u2022 ' + esc(plt('rpPeriod')) + ': ' + esc(plPeriod(p)) + ' \u2022 ' + esc(p.multi ? plt('multi') : plt('single')) + (p.desc ? ' \u2022 ' + esc(p.desc) : '') + '</div>'
     + '<div class="sum">' + sm(plt('rpTotal'), T0.total) + sm(plt('sNamed'), T0.k.named) + sm(plt('sAnon'), T0.k.anon) + sm(plt('sWalk'), T0.k.walkin) + '</div>'
     + '<table class="dt"><colgroup><col style="width:7%"><col style="width:41%"><col style="width:11%"><col style="width:11%"><col style="width:30%"></colgroup><thead><tr><th>' + esc(plt('cSL')) + '</th><th>' + esc(plt('rpOpt')) + '</th><th>' + esc(plt('rpVotes')) + '</th><th>' + esc(plt('rpPct')) + '</th><th></th></tr></thead><tbody>' + resRows + '</tbody></table>'
-    + (withList ? '<h2>' + esc(plt('rpPart')) + ' (' + T0.total + ')</h2><table class="dt"><colgroup><col style="width:6%"><col style="width:22%"><col style="width:15%"><col style="width:12%"><col style="width:27%"><col style="width:18%"></colgroup><thead><tr><th>' + esc(plt('cSL')) + '</th><th>' + esc(plt('cName')) + '</th><th>' + esc(plt('cContact')) + '</th><th>' + esc(plt('cType')) + '</th><th>' + esc(plt('cChoice')) + '</th><th>' + esc(plt('cTime')) + '</th></tr></thead><tbody>' + partRows + '</tbody></table>' : '')
+    + (withList ? '<h2>' + esc(plt('rpPart')) + ' (' + T0.total + ')</h2><table class="dt"><colgroup><col style="width:5%"><col style="width:16%"><col style="width:12%"><col style="width:9%"><col style="width:19%"><col style="width:15%"><col style="width:9%"><col style="width:15%"></colgroup><thead><tr><th>' + esc(plt('cSL')) + '</th><th>' + esc(plt('cName')) + '</th><th>' + esc(plt('cContact')) + '</th><th>' + esc(plt('cType')) + '</th><th>' + esc(plt('cChoice')) + '</th><th>' + esc(plt('cIp')) + '</th><th>' + esc(plt('cDev')) + '</th><th>' + esc(plt('cTime')) + '</th></tr></thead><tbody>' + partRows + '</tbody></table><div class="meta" style="margin-top:6px">' + esc(plt('rpDup')) + '</div>' : '')
     + '<div class="ft"><div class="l"><b>' + esc(plt('rpTitle')) + '</b> \u2022 ' + esc(no) + '<br>' + esc(plt('rpGen')) + ': ' + esc(gen) + '<br>Powered by Farhan Tanzid Shiyam</div><div class="r"><b>' + esc(SHOP_NAME) + '</b><br>' + esc(SHOP_ADDR) + '<br>' + esc(SHOP_PHONE) + '</div></div></div>';
   printHtml(html, 'poll-' + no, '.rp .plb{height:10px;border:1px solid #000;border-radius:2px;overflow:hidden;background:#fff}.rp .plb i{display:block;height:100%;background:#555;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rp .dt td,.rp .dt th{font-size:11px}');
 }
