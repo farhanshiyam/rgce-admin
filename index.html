@@ -179,6 +179,22 @@ body:not(.side-open) .sb-user{margin:0 10px 10px;padding:6px;justify-content:cen
 .nav.danger,.nav.danger svg{color:var(--danger)}
 .burger:focus-visible,.nav:focus-visible,.sb-close:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.side,body.has-side{transition:none}}
+
+/* sidebar v2: numbered, grouped by topic */
+.nav{position:relative}
+.nav .nn{flex:none;min-width:22px;height:22px;padding:0 4px;box-sizing:border-box;border-radius:7px;background:var(--bg);border:1px solid var(--border);color:var(--muted);font-style:normal;font-weight:700;font-size:11px;line-height:20px;text-align:center}
+.nav.on .nn{background:var(--primary);border-color:var(--primary);color:#fff}
+.side nav .nav{padding:9px 12px;border-radius:10px}
+.side .nav.on{box-shadow:inset 3px 0 0 var(--primary)}
+.sb-grp{padding:14px 14px 5px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.side nav .sb-grp:first-child{padding-top:6px}
+.sb-foot .nav span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.side-open .sb-foot{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+body.side-open .sb-foot .nav{padding:8px 10px;gap:8px;font-size:13px}
+body.side-open .sb-foot .nav.danger{grid-column:1/-1}
+body:not(.side-open) .side .nav .nn{position:absolute;top:2px;right:3px;min-width:15px;height:15px;padding:0 3px;border-radius:5px;font-size:9px;line-height:13px}
+body:not(.side-open) .side .sb-grp{font-size:0;padding:0;height:1px;background:var(--border);margin:8px 12px 6px}
+body:not(.side-open) .side nav .sb-grp:first-child{display:none}
 /* access key table */
 .keytbl{width:100%;border-collapse:collapse;margin:16px 0 8px;border:1px solid var(--border)}
 .keytbl th,.keytbl td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:middle}
@@ -848,13 +864,15 @@ const ico = k => '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" st
 function renderSide() {
   const s = $('#side'); if (!s) return;
   if (!user) { s.innerHTML = ''; return; }
-  const keys = ['overview', 'customers', 'orders', 'chats', 'polls', 'reports', 'compare', 'notices', 'due', 'products', 'pass', 'account'];
+  const groups = [['gDash', ['overview']], ['gSales', ['products', 'orders', 'customers']], ['gMoney', ['reports', 'compare', 'due']], ['gComm', ['chats', 'polls', 'notices']], ['gSec', ['pass', 'account']]];
+  let sn = 0;
+  const navLink = k => { sn++; return '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + BASE + ROUTE[k] + '" title="' + esc(sn + '. ' + t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '><i class="nn">' + sn + '</i>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>'; };
   const mail = user.email || '', isBn = lang() === 'bn';
   const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
   s.innerHTML = '<div class="sb-head"><button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="' + (document.body.classList.contains('side-open') ? 'true' : 'false') + '"><span></span><span></span><span></span></button>'
     + '<img class="sb-logo" src="' + ICON_UI + '" alt="Roza" width="38" height="38"><div class="sb-title">' + esc(t('title')) + '</div></div>'
     + '<div class="sb-user"><div class="sb-av" aria-hidden="true">' + esc(mail.charAt(0) || 'A') + '</div><div class="sb-mail" title="' + esc(mail) + '">' + esc(mail) + '</div></div>'
-    + '<nav aria-label="' + esc(t('menu')) + '">' + keys.map(k => '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + BASE + ROUTE[k] + '" title="' + esc(t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>').join('') + '</nav>'
+    + '<nav aria-label="' + esc(t('menu')) + '">' + groups.map(g => '<div class="sb-grp">' + esc(t(g[0])) + '</div>' + g[1].map(navLink).join('')).join('') + '</nav>'
     + '<div class="sb-sep"></div><div class="sb-foot">'
     + item('theme', 'theme', t('dark')) + item('lang', 'lang', isBn ? 'English' : '\u09AC\u09BE\u0982\u09B2\u09BE')
     + '<a class="nav" href="' + esc(MAIN_APP_URL) + '" title="' + esc(t('mainApp')) + '">' + ico('back') + '<span>' + esc(t('mainApp')) + '</span></a>'
@@ -1079,6 +1097,10 @@ T.en.tOrd = 'Orders'; T.bn.tOrd = 'অর্ডার';
 ICON.products = ICON.box;   /* fixes the missing Products icon in the sidebar */
 ICON.orders = '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>';
 ROUTE.orders = 'orders'; LABEL.orders = 'tOrd';
+T.en.gDash='Dashboard'; T.bn.gDash='ড্যাশবোর্ড'; T.en.gSales='Sales'; T.bn.gSales='বিক্রয়';
+T.en.gMoney='Money analysis'; T.bn.gMoney='হিসাব বিশ্লেষণ'; T.en.gComm='Communication'; T.bn.gComm='যোগাযোগ';
+T.en.gSec='Security & account'; T.bn.gSec='নিরাপত্তা ও অ্যাকাউন্ট';
+
 const OD = { list: [], started: false, err: '', unsub: null, f: 'all' };
 const ODS = ['new', 'confirmed', 'delivered', 'cancelled'];
 const odL = s => ({ all: pt('All', 'সব'), new: pt('New', 'নতুন'), confirmed: pt('Confirmed', 'কনফার্ম'), delivered: pt('Delivered', 'ডেলিভারড'), cancelled: pt('Cancelled', 'বাতিল') })[s] || s;
