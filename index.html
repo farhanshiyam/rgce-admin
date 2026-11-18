@@ -182,8 +182,6 @@ body:not(.side-open) .sb-user{margin:0 10px 10px;padding:6px;justify-content:cen
 
 /* sidebar v2: numbered, grouped by topic */
 .nav{position:relative}
-.nav .nn{flex:none;min-width:22px;height:22px;padding:0 4px;box-sizing:border-box;border-radius:7px;background:var(--bg);border:1px solid var(--border);color:var(--muted);font-style:normal;font-weight:700;font-size:11px;line-height:20px;text-align:center}
-.nav.on .nn{background:var(--primary);border-color:var(--primary);color:#fff}
 .side nav .nav{padding:9px 12px;border-radius:10px}
 .side .nav.on{box-shadow:inset 3px 0 0 var(--primary)}
 .sb-grp{padding:14px 14px 5px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -192,9 +190,9 @@ body:not(.side-open) .sb-user{margin:0 10px 10px;padding:6px;justify-content:cen
 body.side-open .sb-foot{display:grid;grid-template-columns:1fr 1fr;gap:4px}
 body.side-open .sb-foot .nav{padding:8px 10px;gap:8px;font-size:13px}
 body.side-open .sb-foot .nav.danger{grid-column:1/-1}
-body:not(.side-open) .side .nav .nn{position:absolute;top:2px;right:3px;min-width:15px;height:15px;padding:0 3px;border-radius:5px;font-size:9px;line-height:13px}
 body:not(.side-open) .side .sb-grp{font-size:0;padding:0;height:1px;background:var(--border);margin:8px 12px 6px}
 body:not(.side-open) .side nav .sb-grp:first-child{display:none}
+.odm{display:inline-flex;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
 /* access key table */
 .keytbl{width:100%;border-collapse:collapse;margin:16px 0 8px;border:1px solid var(--border)}
 .keytbl th,.keytbl td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:middle}
@@ -865,8 +863,7 @@ function renderSide() {
   const s = $('#side'); if (!s) return;
   if (!user) { s.innerHTML = ''; return; }
   const groups = [['gDash', ['overview']], ['gSales', ['products', 'orders', 'customers']], ['gMoney', ['reports', 'compare', 'due']], ['gComm', ['chats', 'polls', 'notices']], ['gSec', ['pass', 'account']]];
-  let sn = 0;
-  const navLink = k => { sn++; return '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + BASE + ROUTE[k] + '" title="' + esc(sn + '. ' + t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '><i class="nn">' + sn + '</i>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>'; };
+  const navLink = k => { return '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + BASE + ROUTE[k] + '" title="' + esc(t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>'; };
   const mail = user.email || '', isBn = lang() === 'bn';
   const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
   s.innerHTML = '<div class="sb-head"><button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="' + (document.body.classList.contains('side-open') ? 'true' : 'false') + '"><span></span><span></span><span></span></button>'
@@ -1101,7 +1098,7 @@ T.en.gDash='Dashboard'; T.bn.gDash='ড্যাশবোর্ড'; T.en.gSales
 T.en.gMoney='Money analysis'; T.bn.gMoney='হিসাব বিশ্লেষণ'; T.en.gComm='Communication'; T.bn.gComm='যোগাযোগ';
 T.en.gSec='Security & account'; T.bn.gSec='নিরাপত্তা ও অ্যাকাউন্ট';
 
-const OD = { list: [], started: false, err: '', unsub: null, f: 'all' };
+const OD = { list: [], started: false, err: '', unsub: null, f: 'all', menu: '' };
 const ODS = ['new', 'confirmed', 'delivered', 'cancelled'];
 const odL = s => ({ all: pt('All', 'সব'), new: pt('New', 'নতুন'), confirmed: pt('Confirmed', 'কনফার্ম'), delivered: pt('Delivered', 'ডেলিভারড'), cancelled: pt('Cancelled', 'বাতিল') })[s] || s;
 function startOrders() {
@@ -1137,7 +1134,7 @@ function odCard(o) {
     + '<div style="margin:6px 0">' + its.map(i => esc(i.name) + ' × ' + esc(i.qty) + ' = ৳' + odFmt(i.qty * i.price)).join('<br>') + '</div>'
     + '<div class="muted">' + esc(pt('Subtotal', 'সাবটোটাল')) + ' ৳' + odFmt(o.subtotal) + ' • ' + esc(pt('Delivery', 'ডেলিভারি')) + ' ' + (dl ? '৳' + odFmt(dl) : esc(pt('Free', 'ফ্রি'))) + '</div><div><b>' + esc(pt('Total', 'মোট')) + ': ৳' + odFmt(o.total) + '</b></div>'
     + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px"><select data-os="' + esc(o.id) + '">' + ODS.map(s => '<option value="' + s + '"' + (o.status === s ? ' selected' : '') + '>' + esc(odL(s)) + '</option>').join('') + '</select>'
-    + bt('data-oe', o.id, pt('Edit', 'এডিট')) + bt('data-oinv', o.id + '|png', pt('Invoice (image)', 'ইনভয়েস (ছবি)')) + bt('data-oinv', o.id + '|pdf', pt('Invoice (PDF)', 'ইনভয়েস (PDF)')) + bt('data-od', o.id, pt('Delete', 'মুছুন')) + '</div></div>';
+    + bt('data-oe', o.id, pt('Edit', 'এডিট')) + bt('data-omenu', o.id, pt('Print / Save', 'প্রিন্ট / সেভ') + ' ▾') + (OD.menu === o.id ? '<span class="odm">' + bt('data-oinv', o.id + '|print', pt('Print', 'প্রিন্ট')) + bt('data-oinv', o.id + '|jpg', 'JPG') + bt('data-oinv', o.id + '|pdf', 'PDF') + '</span>' : '') + bt('data-od', o.id, pt('Delete', 'মুছুন')) + '</div></div>';
 }
 function odTotText() { const d = OD.draft, s = odSub(d.items), dl = Math.max(0, Number(d.delivery) || 0); return pt('Subtotal', 'সাবটোটাল') + ' ৳' + odFmt(s) + ' + ' + pt('Delivery', 'ডেলিভারি') + ' ৳' + odFmt(dl) + ' = ' + pt('Total', 'মোট') + ' ৳' + odFmt(s + dl); }
 function odEditor(o) {
@@ -1200,10 +1197,17 @@ function odPdf(jpg, w, h) {
   put(x + 'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF'); return new Blob(parts, { type: 'application/pdf' });
 }
 async function odDownload(o, type) {
-  const pdf = type === 'pdf', toB = (cv) => new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error('blob')), pdf ? 'image/jpeg' : 'image/png', 0.92); } catch (e) { rej(e); } });
+  const pdf = type === 'pdf', toB = (cv) => new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/jpeg', 0.92); } catch (e) { rej(e); } });
   let cv = await odInvoice(o, true), blob; try { blob = await toB(cv); } catch (e) { cv = await odInvoice(o, false); blob = await toB(cv); }
+  if (type === 'print') {
+    const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(f);
+    const d = f.contentDocument; d.open(); d.write('<!doctype html><html><head><title>invoice-' + esc(o.orderNo || o.id) + '</title><style>@page{size:A4;margin:0}html,body{margin:0}img{display:block;width:100%}</style></head><body><img id="i" src="' + URL.createObjectURL(blob) + '"></body></html>'); d.close();
+    const go = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { console.warn(e); } setTimeout(() => f.remove(), 60000); };
+    const im = d.getElementById('i'); if (im.complete) setTimeout(go, 100); else im.onload = () => setTimeout(go, 100);
+    return;
+  }
   if (pdf) blob = odPdf(new Uint8Array(await blob.arrayBuffer()), cv.width, cv.height);
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'invoice-' + (o.orderNo || o.id) + (pdf ? '.pdf' : '.png'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'invoice-' + (o.orderNo || o.id) + (pdf ? '.pdf' : '.jpg'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 async function odSave() {
   const d = OD.draft, id = OD.edit, ph = String(d.phone).replace(/[\s-]/g, '').replace(/^\+?88/, ''), msg = m => setMsg('odMsg', m);
@@ -1225,7 +1229,8 @@ document.addEventListener('click', async e => {
   const rm = g('data-orm'); if (rm !== null) { OD.draft.items.splice(Number(rm), 1); drawOrders(); return; }
   if (g('data-ocancel')) { OD.edit = ''; OD.draft = null; drawOrders(); return; }
   if (g('data-osave')) { await odSave(); return; }
-  const iv = g('data-oinv'); if (iv) { const [id, ty] = iv.split('|'), o = OD.list.find(x => x.id === id); if (!o) return; setMsg('odMsg', pt('Preparing invoice…', 'ইনভয়েস তৈরি হচ্ছে…')); try { await odDownload(o, ty); setMsg('odMsg', ''); } catch (x) { console.warn(x); setMsg('odMsg', pt('Could not create the invoice.', 'ইনভয়েস তৈরি করা যায়নি।')); } }
+  const mn = g('data-omenu'); if (mn) { OD.menu = OD.menu === mn ? '' : mn; drawOrders(); return; }
+  const iv = g('data-oinv'); if (iv) { const [id, ty] = iv.split('|'), o = OD.list.find(x => x.id === id); OD.menu = ''; drawOrders(); if (!o) return; setMsg('odMsg', pt('Preparing invoice…', 'ইনভয়েস তৈরি হচ্ছে…')); try { await odDownload(o, ty); setMsg('odMsg', ''); } catch (x) { console.warn(x); setMsg('odMsg', pt('Could not create the invoice.', 'ইনভয়েস তৈরি করা যায়নি।')); } }
 });
 document.addEventListener('input', e => {
   if (tab !== 'orders' || !OD.draft || !e.target.closest || !e.target.closest('#odList')) return; const t = e.target, k = t.getAttribute('data-ef'), n = t.getAttribute('data-ei');
