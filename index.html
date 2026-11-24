@@ -419,10 +419,14 @@ const tabFromUrl = () => {
   h = h.toLowerCase();
   return Object.keys(ROUTE).find(k => ROUTE[k] === h) || null;
 };
+/* On an IP address / localhost (plain static server, no rewrites) use  .../?payments  so that refresh and "open in new tab" always work;
+   on a real domain keep the clean  .../payments  address. */
+const IP_MODE = /^(\d{1,3}(\.\d{1,3}){3}|\[.*\]|localhost)$/i.test(location.hostname);
+const tabUrl = k => IP_MODE ? BASE + '?' + ROUTE[k] : BASE + ROUTE[k];
 const goTab = k => {
   if (!ROUTE[k] || k === tab) return;
   tab = k;
-  try { history.pushState(null, '', BASE + ROUTE[k]); } catch (x) {}
+  try { history.pushState(null, '', tabUrl(k)); } catch (x) {}
   renderPanel();
 };
 let N = { list: [], on: false, editing: '', pubErr: false, loaded: false };
@@ -863,7 +867,7 @@ function renderSide() {
   const s = $('#side'); if (!s) return;
   if (!user) { s.innerHTML = ''; return; }
   const groups = [['gDash', ['overview']], ['gSales', ['products', 'orders', 'pay', 'customers']], ['gMoney', ['reports', 'compare', 'due']], ['gComm', ['chats', 'polls', 'notices']], ['gSec', ['pass', 'account']]];
-  const navLink = k => { return '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + BASE + ROUTE[k] + '" title="' + esc(t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>'; };
+  const navLink = k => { return '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + tabUrl(k) + '" title="' + esc(t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>'; };
   const mail = user.email || '', isBn = lang() === 'bn';
   const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
   s.innerHTML = '<div class="sb-head"><button class="burger" id="menuBtn" type="button" data-a="menu" aria-label="Menu" aria-controls="side" aria-expanded="' + (document.body.classList.contains('side-open') ? 'true' : 'false') + '"><span></span><span></span><span></span></button>'
@@ -874,7 +878,7 @@ function renderSide() {
     + item('theme', 'theme', t('dark')) + item('lang', 'lang', isBn ? 'English' : '\u09AC\u09BE\u0982\u09B2\u09BE')
     + '<a class="nav" href="' + esc(MAIN_APP_URL) + '" title="' + esc(t('mainApp')) + '">' + ico('back') + '<span>' + esc(t('mainApp')) + '</span></a>'
     + item('lock', 'lock', t('lock')) + item('logout', 'out', t('logout'), 'danger') + '</div>';
-  s.querySelectorAll('a[data-tab]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); goTab(a.getAttribute('data-tab')); }));
+  s.querySelectorAll('a[data-tab]').forEach(a => a.addEventListener('click', e => { if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button > 0) return; e.preventDefault(); goTab(a.getAttribute('data-tab')); }));
   paintChatBadge(); paintOrderBadge(); paintPayBadge();
 }
 /* back / forward buttons and typed addresses */
@@ -991,8 +995,8 @@ function openPanel() {
 function renderPanel() {
   renderHeader();
   renderSide();
-  const want = BASE + ROUTE[tab];
-  if (location.pathname !== want || location.search || location.hash) { try { history.replaceState(null, '', want); } catch (e) {} }
+  const want = tabUrl(tab);
+  if (location.pathname + location.search + location.hash !== want) { try { history.replaceState(null, '', want); } catch (e) {} }
   document.title = t(LABEL[tab]) + ' - ' + t('title');
   app.innerHTML = '<div id="tabBody"></div>';
   ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, chats: tabChats, polls: tabPolls, account: tabAccount, products: tabProducts, orders: tabOrders, pay: tabPay })[tab]();
@@ -1091,6 +1095,7 @@ function prBuild(err) {
 
 /* ---------- tab: orders (cash-on-delivery orders sent from the shop site, stored in Firestore 'orders') ---------- */
 T.en.tOrd = 'Orders'; T.bn.tOrd = 'অর্ডার';
+ICON.pay = '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/>';   /* Payments icon */
 ICON.products = ICON.box;   /* fixes the missing Products icon in the sidebar */
 ICON.orders = '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>';
 ROUTE.orders = 'orders'; LABEL.orders = 'tOrd';
