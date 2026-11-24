@@ -399,8 +399,8 @@ const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.
 let user = null, tab = 'overview', booted = false;
 /* One clean address per section: .../rgce-admin/customers, .../rgce-admin/public-due ... (no # and no ?).
    GitHub Pages has no rewrites, so a tiny 404.html hands deep links back to this page (see 404.html). */
-const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', chats: 'chats', polls: 'polls', pass: 'passwords', account: 'account', products: 'products' };
-const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', chats: 'tChats', polls: 'tPolls', pass: 'tPass', account: 'tAccount', products: 'tProd' };
+const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', chats: 'chats', polls: 'polls', pass: 'passwords', account: 'account', products: 'products', orders: 'orders', pay: 'payments' };
+const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', chats: 'tChats', polls: 'tPolls', pass: 'tPass', account: 'tAccount', products: 'tProd', orders: 'tOrd', pay: 'tPay' };
 const BASE = (() => {
   const seg = location.pathname.split('/'); const last = seg[seg.length - 1];
   if (Object.values(ROUTE).includes(last.toLowerCase()) || last.indexOf('.') > -1) seg.pop();
@@ -862,7 +862,7 @@ const ico = k => '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" st
 function renderSide() {
   const s = $('#side'); if (!s) return;
   if (!user) { s.innerHTML = ''; return; }
-  const groups = [['gDash', ['overview']], ['gSales', ['products', 'orders', 'customers']], ['gMoney', ['reports', 'compare', 'due']], ['gComm', ['chats', 'polls', 'notices']], ['gSec', ['pass', 'account']]];
+  const groups = [['gDash', ['overview']], ['gSales', ['products', 'orders', 'pay', 'customers']], ['gMoney', ['reports', 'compare', 'due']], ['gComm', ['chats', 'polls', 'notices']], ['gSec', ['pass', 'account']]];
   const navLink = k => { return '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + BASE + ROUTE[k] + '" title="' + esc(t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>'; };
   const mail = user.email || '', isBn = lang() === 'bn';
   const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
@@ -875,7 +875,7 @@ function renderSide() {
     + '<a class="nav" href="' + esc(MAIN_APP_URL) + '" title="' + esc(t('mainApp')) + '">' + ico('back') + '<span>' + esc(t('mainApp')) + '</span></a>'
     + item('lock', 'lock', t('lock')) + item('logout', 'out', t('logout'), 'danger') + '</div>';
   s.querySelectorAll('a[data-tab]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); goTab(a.getAttribute('data-tab')); }));
-  paintChatBadge(); paintOrderBadge();
+  paintChatBadge(); paintOrderBadge(); paintPayBadge();
 }
 /* back / forward buttons and typed addresses */
 window.addEventListener('popstate', () => {
@@ -951,7 +951,7 @@ function renderGate() {
 function render() {
   renderHeader();
   if (!booted) return;
-  if (!user || !unlocked) { stopChats(); stopOrders(); stopPolls(); }
+  if (!user || !unlocked) { stopChats(); stopOrders(); stopPolls(); stopPay(); }
   if (!user) return renderLogin();
   if (!unlocked) return renderGate();
   renderPanel();
@@ -983,7 +983,7 @@ function renderLogin() {
 }
 
 function openPanel() {
-  startChats(); startOrders();
+  startChats(); startOrders(); startPay();
   N = { list: [], on: false, editing: '', pubErr: false, loaded: false };
   tab = tabFromUrl() || 'overview'; render();
 }
@@ -995,7 +995,7 @@ function renderPanel() {
   if (location.pathname !== want || location.search || location.hash) { try { history.replaceState(null, '', want); } catch (e) {} }
   document.title = t(LABEL[tab]) + ' - ' + t('title');
   app.innerHTML = '<div id="tabBody"></div>';
-  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, chats: tabChats, polls: tabPolls, account: tabAccount, products: tabProducts, orders: tabOrders })[tab]();
+  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, chats: tabChats, polls: tabPolls, account: tabAccount, products: tabProducts, orders: tabOrders, pay: tabPay })[tab]();
 }
 
 /* ---------- tab: products (images + products.json live in a GitHub repo folder; no Firebase Storage) ---------- */
@@ -1246,6 +1246,196 @@ document.addEventListener('input', e => {
 document.addEventListener('change', async e => {
   const sel = e.target.closest && e.target.closest('[data-os]'); if (!sel || tab !== 'orders') return;
   try { await setDoc(doc(db, 'orders', sel.getAttribute('data-os')), { status: sel.value }, { merge: true }); } catch (x) { console.warn(x); setMsg('odMsg', pt('Failed to update.', 'আপডেট হয়নি।')); }
+});
+
+/* ---------- tab: payments (payment methods shown in the main app + TrxID submissions to verify) ----------
+   Methods: full list in private_config/<uid>.payMethods, only the visible ones are published to site_public/rgce-pay (readable by everyone).
+   Submissions: collection "payments" (customers create them in the main app, only the owner can read / approve / reject / delete). */
+T.en.tPay = 'Payments'; T.bn.tPay = 'পেমেন্ট';
+const PAY_PUB = 'rgce-pay';
+const PY_TYPES = {
+  bkash:  { en: 'bKash',        bn: 'বিকাশ',          c: '#e2136e' },
+  nagad:  { en: 'Nagad',        bn: 'নগদ',            c: '#f26722' },
+  rocket: { en: 'Rocket',       bn: 'রকেট',           c: '#8c3494' },
+  upay:   { en: 'Upay',         bn: 'উপায়',           c: '#e0a800' },
+  bank:   { en: 'Bank account', bn: 'ব্যাংক অ্যাকাউন্ট', c: '#1f4e79' },
+  other:  { en: 'Other',        bn: 'অন্যান্য',         c: '#5d6b7a' }
+};
+const PY_ACC = ['Personal', 'Agent', 'Merchant', 'Payment'];
+let PY = { methods: [], note: '', on: true, loaded: false, list: [], started: false, unsub: null, err: '', view: 'verify', f: 'pending', q: '' };
+const pyTn = k => { const x = PY_TYPES[k] || PY_TYPES.other; return lang() === 'bn' ? x.bn : x.en; };
+const pyS = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+const pyNorm = m => ({ id: pyS(m && m.id, 40) || ('m' + Date.now().toString(36)), type: PY_TYPES[m && m.type] ? m.type : 'other', label: pyS(m && m.label, 40), number: pyS(m && m.number, 40), accType: pyS(m && m.accType, 20), holder: pyS(m && m.holder, 60), bankName: pyS(m && m.bankName, 60), branch: pyS(m && m.branch, 60), routing: pyS(m && m.routing, 20), qrUrl: pyS(m && m.qrUrl, 300), note: pyS(m && m.note, 200), active: !(m && m.active === false) });
+const pyPub = m => { const o = pyNorm(m); delete o.active; return o; };
+const pyName = m => m.label || (m.type === 'bank' && m.bankName ? m.bankName : pyTn(m.type));
+const pyUid = () => 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const pyFmt = n => Number(n || 0).toLocaleString('en-US');
+
+function startPay() {
+  if (PY.started || !user) return; PY.started = true;
+  PY.unsub = SDK.onSnapshot(SDK.query(SDK.collection(db, 'payments'), SDK.orderBy('createdAt', 'desc'), SDK.limit(300)), snap => {
+    PY.list = snap.docs.map(d => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' }))); PY.err = ''; payChanged();
+  }, e => { console.warn('payments', e); PY.err = (e && e.code) || 'error'; payChanged(); });
+}
+function stopPay() { if (PY.unsub) PY.unsub(); PY = { methods: [], note: '', on: true, loaded: false, list: [], started: false, unsub: null, err: '', view: 'verify', f: 'pending', q: '' }; paintPayBadge(); }
+function paintPayBadge() {
+  const a = document.querySelector('a[data-tab="pay"]'); if (!a) return;
+  let b = a.querySelector('.cbd'); const n = PY.list.filter(o => o.status === 'pending').length;
+  if (!n) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('span'); b.className = 'cbd'; a.appendChild(b); }
+  b.textContent = n > 99 ? '99+' : n;
+}
+function payChanged() { paintPayBadge(); if (tab === 'pay' && $('#pyBody') && !mdlClose) drawPay(); }
+
+async function pyLoad() {
+  try {
+    const s = await getFresh(cfgRef()), d = s.exists() ? (s.data() || {}) : {};
+    PY.methods = (Array.isArray(d.payMethods) ? d.payMethods : []).map(pyNorm);
+    PY.note = pyS(d.payNote, 600); PY.on = d.payOn !== false; PY.loaded = true;
+  } catch (x) { console.warn(x); setMsg('pyMsg', pt('Could not read the saved payment methods.', 'সেভ করা পেমেন্ট মেথড পড়া যায়নি।')); }
+}
+async function pySave() {
+  const b = writeBatch(db);
+  b.set(cfgRef(), { payMethods: PY.methods.map(pyNorm), payNote: PY.note, payOn: PY.on }, { merge: true });
+  b.set(doc(db, 'site_public', PAY_PUB), { ownerUid: user.uid, shopName: SHOP_NAME, on: PY.on, note: PY.note, methods: PY.methods.filter(m => m.active !== false).map(pyPub), updatedAt: serverTimestamp() });
+  await b.commit();
+}
+async function pyTry(fn, okMsg) {
+  try { await fn(); setMsg('pyMsg', okMsg || pt('Saved and published to the main app.', 'সেভ হয়েছে ও মেইন অ্যাপে প্রকাশ হয়েছে।'), 'ok'); return true; }
+  catch (x) { console.warn(x); setMsg('pyMsg', pt('Failed: ', 'ব্যর্থ: ') + ((x && x.code) || x)); return false; }
+}
+
+async function tabPay() {
+  startPay();
+  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('tPay')) + '</h2><p class="muted">' + esc(pt('Manage the payment details customers see in the main app, and verify the TrxIDs they submit.', 'মেইন অ্যাপে কাস্টমাররা যে পেমেন্ট তথ্য দেখে তা এখানে ম্যানেজ করুন এবং তাদের জমা দেওয়া TrxID যাচাই করুন।')) + '</p>'
+    + '<div id="pyChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0"></div><div id="pyBody"></div><div class="msg" id="pyMsg" role="status"></div></div>';
+  drawPay();
+  if (!PY.loaded) { await pyLoad(); if (tab === 'pay') drawPay(); }
+}
+
+function drawPay() {
+  const body = $('#pyBody'), chips = $('#pyChips'); if (!body || !chips) return;
+  const pend = PY.list.filter(o => o.status === 'pending').length;
+  const vb = (k, l) => '<button class="btn btn-sm' + (PY.view === k ? ' btn-primary' : '') + '" data-py="view" data-id="' + k + '">' + esc(l) + '</button>';
+  chips.innerHTML = vb('verify', pt('Verify payments', 'পেমেন্ট যাচাই') + (pend ? ' (' + pend + ')' : '')) + vb('methods', pt('Payment methods', 'পেমেন্ট মেথড'));
+  if (PY.view === 'methods') { body.innerHTML = pyMethodsHtml(); return; }
+  const cnt = s => s === 'all' ? PY.list.length : PY.list.filter(o => o.status === s).length;
+  const fl = { pending: pt('Pending', 'পেন্ডিং'), approved: pt('Approved', 'অ্যাপ্রুভড'), rejected: pt('Rejected', 'রিজেক্টেড'), all: pt('All', 'সব') };
+  body.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">' + ['pending', 'approved', 'rejected', 'all'].map(s => '<button class="btn btn-sm' + (PY.f === s ? ' btn-primary' : '') + '" data-py="flt" data-id="' + s + '">' + esc(fl[s]) + ' (' + cnt(s) + ')</button>').join('') + '</div>'
+    + '<div class="fg"><input id="pyQ" type="search" value="' + esc(PY.q) + '" placeholder="' + esc(pt('Search TrxID, phone or name…', 'TrxID, ফোন বা নাম দিয়ে খুঁজুন…')) + '" autocomplete="off"></div><div id="pyList"></div>';
+  drawPayList();
+}
+function drawPayList() {
+  const box = $('#pyList'); if (!box) return;
+  if (PY.err) { box.innerHTML = '<p class="muted">' + esc(PY.err === 'permission-denied' ? pt('Cannot read payments yet: the Firestore rules for the "payments" collection are not added. (Step 3 gives the rules.)', 'পেমেন্ট পড়া যাচ্ছে না: "payments" কালেকশনের Firestore রুলস এখনো যোগ করা হয়নি। (ধাপ ৩-এ রুলস দেওয়া হবে।)') : pt('Could not load payments: ', 'পেমেন্ট লোড হয়নি: ') + PY.err) + '</p>'; return; }
+  const q = PY.q.trim().toLowerCase();
+  const rows = PY.list.filter(o => (PY.f === 'all' || o.status === PY.f) && (!q || [o.trxId, o.phone, o.name, o.senderNo, o.payNo].some(v => String(v || '').toLowerCase().includes(q))));
+  if (!rows.length) { box.innerHTML = '<p class="muted">' + esc(pt('Nothing here.', 'এখানে কিছু নেই।')) + '</p>'; return; }
+  const dup = {}; PY.list.forEach(o => { const k = String(o.trxId || '').trim().toUpperCase(); if (k) dup[k] = (dup[k] || 0) + 1; });
+  box.innerHTML = rows.map(o => pyCard(o, dup)).join('');
+}
+function pyCard(o, dup) {
+  const ms = o.createdAt && o.createdAt.toMillis ? o.createdAt.toMillis() : 0, when = ms ? new Date(ms).toLocaleString() : '';
+  const st = o.status || 'pending', col = st === 'approved' ? 'var(--success)' : st === 'rejected' ? 'var(--danger)' : 'var(--warn)';
+  const stl = { pending: pt('Pending', 'পেন্ডিং'), approved: pt('Approved', 'অ্যাপ্রুভড'), rejected: pt('Rejected', 'রিজেক্টেড') }[st] || st;
+  const isDup = (dup[String(o.trxId || '').trim().toUpperCase()] || 0) > 1;
+  const bt = (a, l, cls) => '<button class="btn btn-sm' + (cls ? ' ' + cls : '') + '" data-py="' + a + '" data-id="' + esc(o.id) + '">' + esc(l) + '</button> ';
+  const ph = esc(o.phone || '');
+  return '<div style="border-top:1px solid var(--border);padding:12px 0">'
+    + '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>' + esc(o.payNo || o.id) + '</b><span class="muted">' + esc(when) + '</span></div>'
+    + '<div><b>' + esc(o.name) + '</b> • <a href="tel:' + ph + '">' + ph + '</a> • <a href="https://wa.me/88' + ph.replace(/^\+?88/, '') + '" target="_blank" rel="noopener">WhatsApp</a></div>'
+    + '<div style="margin:6px 0"><span class="chip" style="margin-left:0">' + esc(o.methodLabel || o.method || '') + '</span> <b style="font-size:17px">৳' + pyFmt(o.amount) + '</b></div>'
+    + '<div>TrxID: <b style="font-family:monospace;font-size:15px;overflow-wrap:anywhere">' + esc(o.trxId) + '</b> <button class="btn btn-sm" data-py="copy" data-id="' + esc(o.id) + '">' + esc(pt('Copy', 'কপি')) + '</button>'
+    + (isDup ? ' <span style="color:var(--danger);font-weight:700">⚠ ' + esc(pt('Same TrxID used more than once', 'একই TrxID একাধিকবার জমা হয়েছে')) + '</span>' : '') + '</div>'
+    + (o.senderNo ? '<div class="muted">' + esc(pt('Paid from: ', 'যে নম্বর থেকে পাঠিয়েছে: ')) + esc(o.senderNo) + '</div>' : '')
+    + (o.note ? '<div class="muted">' + esc(pt('Note: ', 'নোট: ')) + esc(o.note) + '</div>' : '')
+    + (o.adminNote ? '<div class="muted">' + esc(pt('Your note: ', 'আপনার নোট: ')) + esc(o.adminNote) + '</div>' : '')
+    + '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span style="font-weight:700;color:' + col + '">● ' + esc(stl) + '</span> '
+    + (st !== 'approved' ? bt('ok', pt('Approve', 'অ্যাপ্রুভ'), 'btn-primary') : '') + (st !== 'rejected' ? bt('no', pt('Reject', 'রিজেক্ট')) : '') + (st !== 'pending' ? bt('pend', pt('Back to pending', 'পেন্ডিংয়ে ফেরত')) : '') + bt('rm', pt('Delete', 'মুছুন'), 'btn-danger') + '</div></div>';
+}
+
+function pyMethodsHtml() {
+  const mAct = (a, id, l, cls) => '<button class="btn btn-sm' + (cls ? ' ' + cls : '') + '" data-py="' + a + '" data-id="' + esc(id) + '">' + esc(l) + '</button>';
+  const rows = PY.methods.map((m, i) => {
+    const sub = [m.number, m.type === 'bank' ? [m.bankName, m.branch].filter(Boolean).join(', ') : m.accType, m.holder].filter(Boolean).join(' • ');
+    return '<div class="row"><div class="t"><b><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + (PY_TYPES[m.type] || PY_TYPES.other).c + ';margin-right:6px"></span>' + esc(pyName(m)) + '<span class="chip">' + esc(pyTn(m.type)) + '</span>' + (m.active === false ? '<span class="chip">' + esc(pt('Hidden', 'লুকানো')) + '</span>' : '<span class="chip on">' + esc(pt('Shown', 'দেখানো হচ্ছে')) + '</span>') + '</b><small>' + esc(sub) + '</small></div>'
+      + '<div class="acts">' + (i > 0 ? mAct('up', m.id, '↑') : '') + (i < PY.methods.length - 1 ? mAct('down', m.id, '↓') : '') + mAct('edit', m.id, pt('Edit', 'এডিট')) + mAct('vis', m.id, m.active === false ? pt('Show', 'দেখান') : pt('Hide', 'লুকান')) + mAct('del', m.id, pt('Delete', 'মুছুন'), 'btn-danger') + '</div></div>';
+  }).join('');
+  return '<div class="row" style="border-top:0"><div class="t"><b>' + esc(pt('Payment portal in the main app', 'মেইন অ্যাপের পেমেন্ট পোর্টাল')) + '</b><small>' + esc(PY.on ? pt('ON – customers can see the methods and submit a TrxID.', 'চালু – কাস্টমাররা মেথড দেখতে ও TrxID জমা দিতে পারবে।') : pt('OFF – the portal is hidden from customers.', 'বন্ধ – কাস্টমারদের কাছে পোর্টাল দেখাবে না।')) + '</small></div>'
+    + '<div class="acts"><button class="btn btn-sm' + (PY.on ? '' : ' btn-primary') + '" data-py="power">' + esc(PY.on ? pt('Turn off', 'বন্ধ করুন') : pt('Turn on', 'চালু করুন')) + '</button></div></div>'
+    + '<div class="fg" style="margin-top:10px"><label for="pyNote">' + esc(pt('Instruction shown to customers (optional)', 'কাস্টমারদের দেখানোর নির্দেশনা (ঐচ্ছিক)')) + '</label><textarea id="pyNote" maxlength="600" placeholder="' + esc(pt('e.g. Send Money to the number, then enter the TrxID below. Approval usually takes a few minutes.', 'যেমন: নম্বরে Send Money করে নিচে TrxID দিন। অ্যাপ্রুভ হতে কয়েক মিনিট লাগে।')) + '">' + esc(PY.note) + '</textarea></div>'
+    + '<button class="btn btn-sm" data-py="note">' + esc(pt('Save instruction', 'নির্দেশনা সেভ করুন')) + '</button>'
+    + '<div style="margin:16px 0 4px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b>' + esc(pt('Your payment methods', 'আপনার পেমেন্ট মেথড')) + '</b><button class="btn btn-sm btn-primary" data-py="add">+ ' + esc(pt('Add method', 'মেথড যোগ করুন')) + '</button></div>'
+    + (rows || '<p class="muted">' + esc(pt('No payment method yet. Add bKash, Nagad, Rocket, Upay or a bank account.', 'এখনো কোনো পেমেন্ট মেথড নেই। বিকাশ, নগদ, রকেট, উপায় বা ব্যাংক অ্যাকাউন্ট যোগ করুন।')) + '</p>')
+    + '<p class="muted" style="margin-top:12px">' + esc(pt('Only methods marked "Shown" are published to the main app.', 'শুধু "দেখানো হচ্ছে" মেথডগুলো মেইন অ্যাপে প্রকাশ হয়।')) + '</p>';
+}
+
+function pyForm(m) {
+  const isNew = !m; m = m || pyNorm({ type: 'bkash', accType: 'Personal' });
+  const f = (id, label, val, ph, cls) => '<div class="fg' + (cls ? ' ' + cls : '') + '"><label for="' + id + '">' + esc(label) + '</label><input id="' + id + '" type="text" value="' + esc(val) + '" placeholder="' + esc(ph || '') + '" autocomplete="off"></div>';
+  return '<div id="pyFrm" data-id="' + esc(isNew ? '' : m.id) + '">'
+    + '<div class="fg"><label for="pyF_type">' + esc(pt('Method', 'মেথড')) + '</label><select id="pyF_type">' + Object.keys(PY_TYPES).map(k => '<option value="' + k + '"' + (m.type === k ? ' selected' : '') + '>' + esc(pyTn(k)) + '</option>').join('') + '</select></div>'
+    + f('pyF_label', pt('Display name (optional)', 'দেখানোর নাম (ঐচ্ছিক)'), m.label, pt('e.g. bKash Personal', 'যেমন: বিকাশ পার্সোনাল'))
+    + f('pyF_number', pt('Number / Account number', 'নম্বর / অ্যাকাউন্ট নম্বর'), m.number, '01XXXXXXXXX')
+    + '<div class="fg py-w"><label for="pyF_acc">' + esc(pt('Account type', 'অ্যাকাউন্টের ধরন')) + '</label><select id="pyF_acc"><option value="">—</option>' + PY_ACC.map(a => '<option value="' + a + '"' + (m.accType === a ? ' selected' : '') + '>' + a + '</option>').join('') + '</select></div>'
+    + f('pyF_holder', pt('Account holder name', 'অ্যাকাউন্ট হোল্ডারের নাম'), m.holder, '')
+    + f('pyF_bank', pt('Bank name', 'ব্যাংকের নাম'), m.bankName, '', 'py-b') + f('pyF_branch', pt('Branch', 'শাখা'), m.branch, '', 'py-b') + f('pyF_routing', pt('Routing number (optional)', 'রাউটিং নম্বর (ঐচ্ছিক)'), m.routing, '', 'py-b')
+    + f('pyF_qr', pt('QR image link (optional)', 'QR ইমেজের লিংক (ঐচ্ছিক)'), m.qrUrl, 'https://…/qr.png')
+    + f('pyF_note', pt('Short note (optional)', 'ছোট নোট (ঐচ্ছিক)'), m.note, pt('e.g. Send Money only', 'যেমন: শুধু Send Money'))
+    + '<label style="display:flex;gap:8px;align-items:center;margin:4px 0 12px"><input type="checkbox" id="pyF_on"' + (m.active === false ? '' : ' checked') + '> ' + esc(pt('Show this method to customers', 'কাস্টমারদের এই মেথড দেখান')) + '</label>'
+    + '<div class="msg" id="pyFM" role="status"></div><button class="btn btn-primary" data-py="fsave">' + esc(pt('Save', 'সেভ')) + '</button> <button class="btn" data-py="fcancel">' + esc(pt('Cancel', 'বাতিল')) + '</button></div>';
+}
+function pyFormToggle() {
+  const ty = $('#pyF_type'); if (!ty) return; const bank = ty.value === 'bank';
+  document.querySelectorAll('#pyFrm .py-b').forEach(e => { e.style.display = bank ? '' : 'none'; });
+  document.querySelectorAll('#pyFrm .py-w').forEach(e => { e.style.display = bank ? 'none' : ''; });
+}
+function pyOpenForm(id) {
+  const m = id ? PY.methods.find(x => x.id === id) : null;
+  openModal(m ? pt('Edit payment method', 'পেমেন্ট মেথড এডিট') : pt('Add payment method', 'পেমেন্ট মেথড যোগ'), pyForm(m)); pyFormToggle();
+}
+async function pyFormSave() {
+  const v = id => ($('#' + id) || {}).value || '', ty = v('pyF_type'), id = $('#pyFrm').getAttribute('data-id');
+  const m = pyNorm({ id: id || pyUid(), type: ty, label: v('pyF_label'), number: v('pyF_number'), accType: ty === 'bank' ? '' : v('pyF_acc'), holder: v('pyF_holder'), bankName: ty === 'bank' ? v('pyF_bank') : '', branch: ty === 'bank' ? v('pyF_branch') : '', routing: ty === 'bank' ? v('pyF_routing') : '', qrUrl: v('pyF_qr'), note: v('pyF_note'), active: $('#pyF_on').checked });
+  if (!m.number) { setMsg('pyFM', pt('Enter the number / account number.', 'নম্বর / অ্যাকাউন্ট নম্বর দিন।')); return; }
+  if (ty === 'bank' && !m.bankName) { setMsg('pyFM', pt('Enter the bank name.', 'ব্যাংকের নাম দিন।')); return; }
+  if (m.qrUrl && !/^https?:\/\//i.test(m.qrUrl)) { setMsg('pyFM', pt('The QR link must start with https://', 'QR লিংক https:// দিয়ে শুরু হতে হবে।')); return; }
+  const old = PY.methods.slice(), i = PY.methods.findIndex(x => x.id === m.id);
+  if (i >= 0) PY.methods[i] = m; else PY.methods.push(m);
+  setMsg('pyFM', pt('Saving…', 'সেভ হচ্ছে…'), 'ok');
+  if (await pyTry(pySave)) { closeModal(); drawPay(); } else { PY.methods = old; setMsg('pyFM', $('#pyMsg') ? $('#pyMsg').textContent : ''); }
+}
+
+document.addEventListener('change', e => { if (e.target && e.target.id === 'pyF_type') pyFormToggle(); });
+document.addEventListener('input', e => { if (tab === 'pay' && e.target && e.target.id === 'pyQ') { PY.q = e.target.value; drawPayList(); } });
+document.addEventListener('click', async e => {
+  if (tab !== 'pay') return;
+  const el = e.target.closest && e.target.closest('[data-py]'); if (!el) return;
+  const a = el.getAttribute('data-py'), id = el.getAttribute('data-id') || '';
+  if (a === 'view') { PY.view = id; setMsg('pyMsg', ''); drawPay(); return; }
+  if (a === 'flt') { PY.f = id; drawPay(); return; }
+  if (a === 'add') { pyOpenForm(''); return; }
+  if (a === 'edit') { pyOpenForm(id); return; }
+  if (a === 'fcancel') { closeModal(); return; }
+  if (a === 'fsave') { await pyFormSave(); return; }
+  if (a === 'power') { const old = PY.on; PY.on = !PY.on; if (!(await pyTry(pySave))) PY.on = old; drawPay(); return; }
+  if (a === 'note') { const old = PY.note; PY.note = pyS(($('#pyNote') || {}).value, 600); if (!(await pyTry(pySave))) PY.note = old; drawPay(); return; }
+  if (a === 'vis' || a === 'up' || a === 'down' || a === 'del') {
+    const i = PY.methods.findIndex(x => x.id === id); if (i < 0) return; const old = PY.methods.slice();
+    if (a === 'del') { if (!confirm(pt('Delete this payment method?', 'এই পেমেন্ট মেথড মুছবেন?'))) return; PY.methods.splice(i, 1); }
+    else if (a === 'vis') PY.methods[i] = Object.assign({}, PY.methods[i], { active: PY.methods[i].active === false });
+    else { const j = a === 'up' ? i - 1 : i + 1; if (j < 0 || j >= PY.methods.length) return; const x = PY.methods[i]; PY.methods[i] = PY.methods[j]; PY.methods[j] = x; }
+    if (!(await pyTry(pySave))) PY.methods = old; drawPay(); return;
+  }
+  const o = PY.list.find(x => x.id === id); if (!o) return;
+  if (a === 'copy') { try { await navigator.clipboard.writeText(String(o.trxId || '')); setMsg('pyMsg', pt('TrxID copied.', 'TrxID কপি হয়েছে।'), 'ok'); } catch (x) { setMsg('pyMsg', String(o.trxId || '')); } return; }
+  if (a === 'rm') { if (!confirm(pt('Delete this payment record?', 'এই পেমেন্ট রেকর্ডটি মুছবেন?'))) return; try { await SDK.deleteDoc(doc(db, 'payments', id)); } catch (x) { console.warn(x); setMsg('pyMsg', pt('Failed to delete.', 'মোছা যায়নি।')); } return; }
+  const to = { ok: 'approved', no: 'rejected', pend: 'pending' }[a]; if (!to) return;
+  let nt = o.adminNote || '';
+  if (to === 'rejected') { const r = prompt(pt('Reason for rejecting (optional):', 'রিজেক্টের কারণ (ঐচ্ছিক):'), nt); if (r === null) return; nt = r.trim().slice(0, 200); }
+  else if (to === 'approved' && !confirm(pt('Approve ৳' + pyFmt(o.amount) + ' (TrxID ' + o.trxId + ')? Make sure the money is in your account.', '৳' + pyFmt(o.amount) + ' (TrxID ' + o.trxId + ') অ্যাপ্রুভ করবেন? টাকা আপনার অ্যাকাউন্টে এসেছে কিনা নিশ্চিত হয়ে নিন।'))) return;
+  try { await setDoc(doc(db, 'payments', id), { status: to, adminNote: nt, reviewedAt: serverTimestamp() }, { merge: true }); setMsg('pyMsg', pt('Updated.', 'আপডেট হয়েছে।'), 'ok'); }
+  catch (x) { console.warn(x); setMsg('pyMsg', pt('Failed to update.', 'আপডেট হয়নি।')); }
 });
 
 /* ---------- tab: overview (read-only, from shops/<uid>) ---------- */
