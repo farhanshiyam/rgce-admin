@@ -425,6 +425,9 @@ const tabFromUrl = () => {
 /* On an IP address / localhost (plain static server, no rewrites) use  .../?payments  so that refresh and "open in new tab" always work;
    on a real domain keep the clean  .../payments  address. */
 const IP_MODE = /^(\d{1,3}(\.\d{1,3}){3}|\[.*\]|localhost)$/i.test(location.hostname);
+let BC = null; try { BC = new BroadcastChannel('rgce_admin'); } catch (x) {}
+const closePopup = () => { try { window.close(); } catch (x) {} setTimeout(() => { if (!window.closed) location.replace(BASE); }, 300); };
+if (BC) BC.onmessage = ev => { if (ev.data === 'logout' && POPUP) closePopup(); };
 const POPUP = /[?&]popup(&|=|$)/.test(location.search);   /* small stand-alone window: only the page content, no sidebar */
 if (POPUP) document.body.classList.add('popup');
 const tabUrl = k => (IP_MODE ? BASE + '?' + ROUTE[k] + (POPUP ? '&popup' : '') : BASE + ROUTE[k] + (POPUP ? '?popup' : ''));
@@ -899,7 +902,12 @@ window.addEventListener('popstate', () => {
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-a]'); if (!b) return;
   const a = b.getAttribute('data-a');
-  if (a === 'pypop') openPopup('pay');
+  if (a === 'pyref') {
+    b.disabled = true; const old = b.textContent; b.textContent = '\u21BB ...';
+    try { if (PY.unsub) PY.unsub(); PY.started = false; PY.loaded = false; startPay(); await pyLoad(); if (tab === 'pay') drawPay(); } catch (x) { console.warn(x); }
+    b.disabled = false; b.textContent = old;
+  }
+  else if (a === 'pypop') openPopup('pay');
   else if (a === 'menu') setMenu(!document.body.classList.contains('side-open'));
   else if (a === 'lang') { try { localStorage.setItem('rgce_lang', lang() === 'bn' ? 'en' : 'bn'); } catch (x) {} render(); }
   else if (a === 'theme') {
@@ -908,7 +916,7 @@ document.addEventListener('click', async e => {
     try { localStorage.setItem('rgce_admin_theme', nx); } catch (x) {}
   }
   else if (a === 'lock') { logAct('lock'); flushLog(); unlocked = false; sessDel('rgce_adm_ok'); render(); }
-  else if (a === 'logout') { logAct('logout'); try { await Promise.race([flushLog(), new Promise(r => setTimeout(r, 2500))]); } catch (x) {} unlocked = false; sessDel('rgce_adm_ok'); try { history.replaceState(null, '', BASE); } catch (x) {} try { await signOut(auth); } catch (x) {} }
+  else if (a === 'logout') { try { if (BC) BC.postMessage('logout'); } catch (x) {} logAct('logout'); try { await Promise.race([flushLog(), new Promise(r => setTimeout(r, 2500))]); } catch (x) {} unlocked = false; sessDel('rgce_adm_ok'); try { history.replaceState(null, '', BASE); } catch (x) {} try { await signOut(auth); } catch (x) {} }
 });
 try { const th = localStorage.getItem('rgce_admin_theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
 try { if (localStorage.getItem('rgce_side_open') === '1') document.body.classList.add('side-open'); } catch (e) {}
@@ -966,7 +974,7 @@ function render() {
   renderHeader();
   if (!booted) return;
   if (!user || !unlocked) { stopChats(); stopOrders(); stopPolls(); stopPay(); }
-  if (!user) return renderLogin();
+  if (!user) { if (POPUP) return closePopup(); return renderLogin(); }
   if (!unlocked) return renderGate();
   renderPanel();
 }
@@ -1322,7 +1330,7 @@ async function pyTry(fn, okMsg) {
 
 async function tabPay() {
   startPay();
-  $('#tabBody').innerHTML = '<div class="card"><h2 style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">' + esc(t('tPay')) + (POPUP ? '' : '<button class="btn btn-sm" type="button" data-a="pypop">\u2197 ' + esc(pt('Open in popup', 'পপআপে খুলুন')) + '</button>') + '</h2><p class="muted">' + esc(pt('Manage the payment details customers see in the main app, and verify the TrxIDs they submit.', 'মেইন অ্যাপে কাস্টমাররা যে পেমেন্ট তথ্য দেখে তা এখানে ম্যানেজ করুন এবং তাদের জমা দেওয়া TrxID যাচাই করুন।')) + '</p>'
+  $('#tabBody').innerHTML = '<div class="card"><h2 style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">' + esc(t('tPay')) + '<span style="display:flex;gap:6px"><button class="btn btn-sm" type="button" data-a="pyref">\u21BB ' + esc(pt('Refresh', 'রিফ্রেশ')) + '</button>' + (POPUP ? '' : '<button class="btn btn-sm" type="button" data-a="pypop">\u2197 ' + esc(pt('Open in popup', 'পপআপে খুলুন')) + '</button>') + '</span></h2><p class="muted">' + esc(pt('Manage the payment details customers see in the main app, and verify the TrxIDs they submit.', 'মেইন অ্যাপে কাস্টমাররা যে পেমেন্ট তথ্য দেখে তা এখানে ম্যানেজ করুন এবং তাদের জমা দেওয়া TrxID যাচাই করুন।')) + '</p>'
     + '<div id="pyChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0"></div><div id="pyBody"></div><div class="msg" id="pyMsg" role="status"></div></div>';
   drawPay();
   if (!PY.loaded) { await pyLoad(); if (tab === 'pay') drawPay(); }
