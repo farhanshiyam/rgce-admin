@@ -399,8 +399,8 @@ const fmtDate = d => { if (!d) return ''; const p = String(d).split('-'); if (p.
 let user = null, tab = 'overview', booted = false;
 /* One clean address per section: .../rgce-admin/customers, .../rgce-admin/public-due ... (no # and no ?).
    GitHub Pages has no rewrites, so a tiny 404.html hands deep links back to this page (see 404.html). */
-const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', chats: 'chats', polls: 'polls', pass: 'passwords', account: 'account', products: 'products', pay: 'payments' };
-const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', chats: 'tChats', polls: 'tPolls', pass: 'tPass', account: 'tAccount', products: 'tProd', pay: 'tPay' };
+const ROUTE = { overview: 'overview', customers: 'customers', reports: 'reports', compare: 'compare', notices: 'notices', due: 'public-due', chats: 'chats', polls: 'polls', pass: 'passwords', account: 'account', products: 'products', pay: 'payments', accts: 'customer-accounts' };
+const LABEL = { overview: 'tOverview', customers: 'tCust', reports: 'tReports', compare: 'tCompare', notices: 'tNotices', due: 'tDue', chats: 'tChats', polls: 'tPolls', pass: 'tPass', account: 'tAccount', products: 'tProd', pay: 'tPay', accts: 'tAccts' };
 const BASE = (() => {
   const seg = location.pathname.split('/'); const last = seg[seg.length - 1];
   if (Object.values(ROUTE).includes(last.toLowerCase()) || last.indexOf('.') > -1) seg.pop();
@@ -862,7 +862,7 @@ const ico = k => '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" st
 function renderSide() {
   const s = $('#side'); if (!s) return;
   if (!user) { s.innerHTML = ''; return; }
-  const groups = [['gDash', ['overview']], ['gSales', ['products', 'orders', 'customers']], ['gMoney', ['pay', 'reports', 'compare', 'due']], ['gComm', ['chats', 'polls', 'notices']], ['gSec', ['pass', 'account']]];
+  const groups = [['gDash', ['overview']], ['gSales', ['products', 'orders', 'customers', 'accts']], ['gMoney', ['pay', 'reports', 'compare', 'due']], ['gComm', ['chats', 'polls', 'notices']], ['gSec', ['pass', 'account']]];
   const navLink = k => { return '<a class="nav' + (tab === k ? ' on' : '') + '" href="' + BASE + ROUTE[k] + '" title="' + esc(t(LABEL[k])) + '" data-tab="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span>' + esc(t(LABEL[k])) + '</span></a>'; };
   const mail = user.email || '', isBn = lang() === 'bn';
   const item = (a, k, label, cls) => '<button class="nav' + (cls ? ' ' + cls : '') + '" type="button" data-a="' + a + '" title="' + esc(label) + '">' + ico(k) + '<span>' + esc(label) + '</span></button>';
@@ -995,7 +995,7 @@ function renderPanel() {
   if (location.pathname !== want || location.search || location.hash) { try { history.replaceState(null, '', want); } catch (e) {} }
   document.title = t(LABEL[tab]) + ' - ' + t('title');
   app.innerHTML = '<div id="tabBody"></div>';
-  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, chats: tabChats, polls: tabPolls, account: tabAccount, products: tabProducts, orders: tabOrders, pay: tabPay })[tab]();
+  ({ overview: tabOverview, customers: tabCustomers, reports: tabReports, compare: tabCompare, notices: tabNotices, pass: tabPass, due: tabDue, chats: tabChats, polls: tabPolls, account: tabAccount, products: tabProducts, orders: tabOrders, pay: tabPay, accts: tabAccts })[tab]();
 }
 
 /* ---------- tab: products (images + products.json live in a GitHub repo folder; no Firebase Storage) ---------- */
@@ -1381,6 +1381,62 @@ async function tabCustomers() {
   q.addEventListener('input', draw);
   $('#cuRef').addEventListener('click', load);
   load(); q.focus();
+}
+
+/* ---------- tab: customer accounts (phone + PIN accounts made in the main app; lets you help customers who forgot their PIN) ---------- */
+T.en.tAccts = 'Customer accounts'; T.bn.tAccts = 'কাস্টমার অ্যাকাউন্ট';
+ICON.accts = '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>';
+const AC_RULES = "match /customer_accounts/{uid} {\n  allow create: if request.auth != null && request.auth.uid == uid\n    && request.resource.data.uid == uid\n    && request.resource.data.keys().hasOnly(['uid','name','phone','pin','email','createdAt','updatedAt'])\n    && request.resource.data.pin.matches('^[0-9]{6}$');\n  allow read, update: if request.auth != null && (request.auth.uid == uid || request.auth.uid == 'rdhIW68BCxXlQ28Gi1IdHJTjaxt2');\n  allow delete: if request.auth != null && request.auth.uid == 'rdhIW68BCxXlQ28Gi1IdHJTjaxt2';\n}";
+const AC = { list: [], uid: '', unsub: null, err: '', q: '', shown: {} };
+function acStart() {
+  if (!user) return;
+  if (AC.unsub && AC.uid === user.uid) return;
+  if (AC.unsub) { try { AC.unsub(); } catch (e) {} }
+  AC.uid = user.uid; AC.list = []; AC.err = '';
+  AC.unsub = SDK.onSnapshot(SDK.query(SDK.collection(db, 'customer_accounts'), SDK.orderBy('createdAt', 'desc'), SDK.limit(500)), snap => {
+    AC.list = snap.docs.map(d => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' }))); AC.err = ''; acDraw();
+  }, e => { console.warn('customer_accounts', e); AC.err = (e && e.code) || 'error'; acDraw(); });
+}
+function acDraw() {
+  if (tab !== 'accts') return;
+  const box = $('#acTbl'), info = $('#acInfo'); if (!box) return;
+  if (AC.err) { box.innerHTML = ''; info.textContent = pt('Could not load accounts (' + AC.err + '). Publish the Firestore rules with the "Firestore rules" button, then reload.', 'অ্যাকাউন্ট লোড হয়নি (' + AC.err + ')। "Firestore rules" বাটন থেকে রুলস পাবলিশ করে রিলোড দিন।'); return; }
+  const words = AC.q.toLowerCase().split(/\s+/).filter(Boolean);
+  const hit = AC.list.filter(a => { const s = (String(a.name || '') + ' ' + String(a.phone || '')).toLowerCase(); return words.every(w => s.indexOf(w) >= 0); });
+  info.textContent = pt('Accounts: ' + hit.length + (words.length ? ' of ' + AC.list.length : ''), 'অ্যাকাউন্ট: ' + hit.length + (words.length ? ' / ' + AC.list.length : ''));
+  if (!hit.length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<table class="wd cu"><thead><tr><th>#</th><th>' + esc(pt('Name', 'নাম')) + '</th><th>' + esc(pt('Phone', 'ফোন')) + '</th><th>' + esc(pt('PIN', 'পিন')) + '</th><th>' + esc(pt('Created', 'তৈরি')) + '</th><th>' + esc(pt('Action', 'অ্যাকশন')) + '</th></tr></thead><tbody>'
+    + hit.map((a, i) => {
+      const ms = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0, on = !!AC.shown[a.id];
+      return '<tr><td>' + (i + 1) + '</td><td>' + esc(a.name || '-') + '</td><td>' + esc(a.phone || '') + '</td>'
+        + '<td style="font-family:monospace;letter-spacing:2px">' + (on ? esc(a.pin || '') : '\u2022\u2022\u2022\u2022\u2022\u2022') + '</td>'
+        + '<td>' + esc(ms ? new Date(ms).toLocaleDateString() : '') + '</td>'
+        + '<td class="act"><span class="act-wrap"><button type="button" class="sbtn" data-ac="' + esc(a.id) + '">' + esc(on ? pt('Hide PIN', 'পিন লুকান') : pt('Show PIN', 'পিন দেখুন')) + '</button>'
+        + '<a class="sbtn" href="tel:' + esc(a.phone || '') + '">' + esc(pt('Call', 'কল')) + '</a></span></td></tr>';
+    }).join('') + '</tbody></table>';
+  box.querySelectorAll('[data-ac]').forEach(b => b.addEventListener('click', () => {
+    const id = b.getAttribute('data-ac');
+    if (AC.shown[id]) delete AC.shown[id]; else { AC.shown[id] = 1; setTimeout(() => { delete AC.shown[id]; acDraw(); }, 20000); }   // PIN hides again after 20 s
+    acDraw();
+  }));
+}
+function acRules() {
+  const b = openModal(pt('Firestore rules for customer accounts', 'কাস্টমার অ্যাকাউন্টের Firestore rules'),
+    '<p class="muted">' + esc(pt('Firebase console > Firestore Database > Rules. Add this block inside "match /databases/{database}/documents { ... }" and press Publish. Customers can then create their own account and read only their own record; only you (the owner) can read every PIN.', 'Firebase console > Firestore Database > Rules। "match /databases/{database}/documents { ... }" এর ভেতরে এই ব্লকটি যোগ করে Publish দিন। কাস্টমার নিজের অ্যাকাউন্ট খুলতে ও শুধু নিজেরটা দেখতে পারবে; সব পিন শুধু আপনি (মালিক) দেখতে পারবেন।')) + '</p>'
+    + '<textarea id="acRt" readonly rows="12" style="width:100%;font-family:monospace;font-size:12px"></textarea>'
+    + '<div style="margin-top:10px"><button class="btn btn-sm" id="acCp">' + esc(pt('Copy rules', 'রুলস কপি')) + '</button> <span class="muted" id="acCpM"></span></div>');
+  $('#acRt', b).value = AC_RULES;
+  $('#acCp', b).addEventListener('click', async () => { const ta = $('#acRt'); try { await navigator.clipboard.writeText(AC_RULES); } catch (e) { ta.select(); try { document.execCommand('copy'); } catch (x) {} } $('#acCpM').textContent = pt('Copied.', 'কপি হয়েছে।'); });
+}
+async function tabAccts() {
+  AC.q = ''; AC.shown = {};
+  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('tAccts')) + '</h2><p class="muted">' + esc(pt('Accounts customers created in the main app (phone + 6-digit PIN). If a customer forgets the PIN, find them here and tell them their PIN. Keep this screen private.', 'কাস্টমাররা মূল অ্যাপে যেসব অ্যাকাউন্ট খুলেছে (ফোন + ৬ সংখ্যার পিন)। কেউ পিন ভুলে গেলে এখানে খুঁজে তাকে পিনটি জানান। এই স্ক্রিন গোপন রাখুন।')) + '</p>'
+    + '<div class="fg" style="margin-top:12px"><input id="acQ" type="search" placeholder="' + esc(pt('Search by name or phone', 'নাম বা ফোন দিয়ে খুঁজুন')) + '" autocomplete="off"></div>'
+    + '<p class="muted" id="acInfo"></p><div class="tbl-wrap" id="acTbl"></div>'
+    + '<div style="margin-top:10px"><button class="btn btn-sm" id="acRu">' + esc(pt('Firestore rules', 'Firestore rules')) + '</button></div></div>';
+  $('#acQ').addEventListener('input', e => { AC.q = e.target.value; acDraw(); });
+  $('#acRu').addEventListener('click', acRules);
+  acStart(); acDraw();
 }
 
 /* ===== shared report core (identical code is used by the admin panel and by the online report viewer) ===== */
