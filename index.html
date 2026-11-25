@@ -1386,16 +1386,16 @@ async function tabCustomers() {
 /* ---------- tab: customer accounts (phone + PIN accounts made in the main app; lets you help customers who forgot their PIN) ---------- */
 T.en.tAccts = 'Customer accounts'; T.bn.tAccts = 'কাস্টমার অ্যাকাউন্ট';
 ICON.accts = '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>';
-const AC_RULES = "match /customer_accounts/{uid} {\n  allow create: if request.auth != null && request.auth.uid == uid\n    && request.resource.data.uid == uid\n    && request.resource.data.keys().hasOnly(['uid','name','phone','pin','email','createdAt','updatedAt'])\n    && request.resource.data.pin.matches('^[0-9]{6}$');\n  allow read, update: if request.auth != null && (request.auth.uid == uid || request.auth.uid == 'rdhIW68BCxXlQ28Gi1IdHJTjaxt2');\n  allow delete: if request.auth != null && request.auth.uid == 'rdhIW68BCxXlQ28Gi1IdHJTjaxt2';\n}";
+const AC_RULES = "match /customer_logins/{uid} {\n  allow create: if request.auth != null && request.auth.uid == uid\n    && request.resource.data.uid == uid\n    && request.resource.data.keys().hasOnly(['uid','name','phone','pin','email','createdAt','updatedAt'])\n    && request.resource.data.pin.matches('^[0-9]{6}$');\n  allow get: if request.auth != null && (request.auth.uid == uid || isOwner());\n  allow update: if request.auth != null && (request.auth.uid == uid || isOwner())\n    && request.resource.data.keys().hasOnly(['uid','name','phone','pin','email','createdAt','updatedAt'])\n    && request.resource.data.pin.matches('^[0-9]{6}$');\n  allow list, delete: if isOwner();\n}";
 const AC = { list: [], uid: '', unsub: null, err: '', q: '', shown: {} };
 function acStart() {
   if (!user) return;
   if (AC.unsub && AC.uid === user.uid) return;
   if (AC.unsub) { try { AC.unsub(); } catch (e) {} }
   AC.uid = user.uid; AC.list = []; AC.err = '';
-  AC.unsub = SDK.onSnapshot(SDK.query(SDK.collection(db, 'customer_accounts'), SDK.orderBy('createdAt', 'desc'), SDK.limit(500)), snap => {
+  AC.unsub = SDK.onSnapshot(SDK.query(SDK.collection(db, 'customer_logins'), SDK.orderBy('createdAt', 'desc'), SDK.limit(500)), snap => {
     AC.list = snap.docs.map(d => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' }))); AC.err = ''; acDraw();
-  }, e => { console.warn('customer_accounts', e); AC.err = (e && e.code) || 'error'; acDraw(); });
+  }, e => { console.warn('customer_logins', e); AC.err = (e && e.code) || 'error'; acDraw(); });
 }
 function acDraw() {
   if (tab !== 'accts') return;
