@@ -200,6 +200,38 @@ body:not(.side-open) .side nav .sb-grp:first-child{display:none}
 .keytbl input{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);letter-spacing:2px}
 .keytbl input:focus{outline:2px solid var(--primary);border-color:var(--primary)}
 @media(max-width:520px){.kv{grid-template-columns:1fr}.card{padding:16px 14px}}
+/* ============ login smoothness: sign in -> access key -> panel (same look, softer motion) ============ */
+@keyframes cardIn{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes sideIn{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
+.card.enter{animation:cardIn .45s cubic-bezier(.22,.8,.3,1) backwards}
+.card.enter>*{animation:fadeUp .5s cubic-bezier(.22,.8,.3,1) backwards}
+.card.enter>:nth-child(1){animation-delay:.02s}.card.enter>:nth-child(2){animation-delay:.06s}.card.enter>:nth-child(3){animation-delay:.10s}
+.card.enter>:nth-child(4){animation-delay:.14s}.card.enter>:nth-child(5){animation-delay:.18s}.card.enter>:nth-child(n+6){animation-delay:.22s}
+#tabBody.enter{animation:fadeUp .45s cubic-bezier(.22,.8,.3,1) backwards}
+.card.leaving,#tabBody.leaving,.top.leaving{opacity:0;transform:translateY(-8px) scale(.992);transition:opacity .17s ease,transform .17s ease;pointer-events:none}
+.side.leaving{opacity:0;transition:opacity .17s ease;pointer-events:none}
+body.has-side .side{animation:sideIn .38s cubic-bezier(.22,.8,.3,1) backwards}
+body:not(.has-side) .top{animation:fadeIn .4s ease backwards}
+.top .right [data-a="logout"]{animation:fadeIn .35s ease backwards}
+/* buttons: soft hover / press, spinner while working (label stays hidden so the button never changes width) */
+.btn{transition:background-color .18s ease,border-color .18s ease,opacity .18s ease,transform .12s ease,filter .18s ease}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn-primary:hover:not(:disabled){filter:brightness(1.1)}
+.btn.loading{position:relative;color:transparent!important;cursor:progress}
+.btn.loading:disabled{opacity:1}
+.btn.loading::after{content:"";position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+.card.center .fg,.card.center .keytbl{transition:opacity .2s ease}
+.card.busy .fg,.card.busy .keytbl{opacity:.65}
+/* inputs: focus ring fades in instead of snapping */
+.fg input,.keytbl input{outline:2px solid transparent;transition:border-color .18s ease,outline-color .18s ease,background-color .25s ease,color .25s ease}
+/* smooth dark / light switch */
+.theme-fade *,.theme-fade *::before,.theme-fade *::after{transition:background-color .28s ease,border-color .28s ease,color .28s ease,fill .28s ease,stroke .28s ease!important}
+@media (prefers-reduced-motion:reduce){
+  .card.enter,.card.enter>*,#tabBody.enter,body.has-side .side,body:not(.has-side) .top,.top .right [data-a="logout"]{animation:none}
+  .card.leaving,#tabBody.leaving,.top.leaving,.side.leaving,.btn,.fg input,.keytbl input{transition:none}
+}
 </style>
 </head>
 <body>
@@ -820,7 +852,7 @@ function renderHeader() {
   const isBn = lang() === 'bn';
   // signed out: the few options stay in the header; signed in: everything moves to the sidebar
   const inPanel = !!(user && unlocked);
-  r.innerHTML = inPanel ? '' : optionButtons(isBn, !!user, false);
+  const hh = inPanel ? '' : optionButtons(isBn, !!user, false); if (r.__h !== hh) { r.innerHTML = hh; r.__h = hh; }
   document.body.classList.toggle('has-side', inPanel);
   document.documentElement.lang = isBn ? 'bn' : 'en'; document.title = t('title');
 }
@@ -890,7 +922,9 @@ document.addEventListener('click', async e => {
   else if (a === 'lang') { try { localStorage.setItem('rgce_lang', lang() === 'bn' ? 'en' : 'bn'); } catch (x) {} render(); }
   else if (a === 'theme') {
     const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    const nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', nx);
+    const nx = cur === 'dark' ? 'light' : 'dark';
+    if (!reduced()) { const rt = document.documentElement; rt.classList.add('theme-fade'); clearTimeout(window.__tf); window.__tf = setTimeout(() => rt.classList.remove('theme-fade'), 400); }
+    document.documentElement.setAttribute('data-theme', nx);
     try { localStorage.setItem('rgce_admin_theme', nx); } catch (x) {}
   }
   else if (a === 'lock') { logAct('lock'); flushLog(); unlocked = false; sessDel('rgce_adm_ok'); render(); }
@@ -932,23 +966,59 @@ function renderGate() {
     + '<td><input id="gkIn" class="mask" name="panel-access-code" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"></td></tr></tbody></table>'
     + '<div class="msg" id="gkM" role="status"></div><button class="btn btn-primary" id="gkGo" type="button">' + esc(t('gateBtn')) + '</button></div>';
   const go = async () => {
-    if (Date.now() < gateUntil) { setMsg('gkM', t('gateLocked')); return; }
+    if (Date.now() < gateUntil) { setMsg('gkM', t('gateLocked')); shake(app.firstElementChild); return; }
     const v = bnDigits($('#gkIn').value.trim()); if (!v) return;
     const btn = $('#gkGo'); btn.disabled = true; setMsg('gkM', '');
     let ok = false;
     try { ok = (await sha256Hex(KEY_SALT + v)) === KEY_HASH; }
     catch (e) { console.warn(e); btn.disabled = false; setMsg('gkM', t('gateErr')); return; }
-    if (ok) { gateFails = 0; unlocked = true; sessSet('rgce_adm_ok', user.uid); logAct('unlock'); openPanel(); return; }
+    if (ok) { gateFails = 0; unlocked = true; sessSet('rgce_adm_ok', user.uid); logAct('unlock'); setBusy('gkGo', true); openPanel(); return; }
     gateFails++;
     if (gateFails >= 5) { gateFails = 0; logAct('keyFail'); gateUntil = Date.now() + 60000; setMsg('gkM', t('gateLocked')); } else setMsg('gkM', t('gateBad'));
-    $('#gkIn').value = ''; btn.disabled = false; $('#gkIn').focus();
+    shake(app.firstElementChild);
+    $('#gkIn').value = ''; btn.disabled = false; $('#gkIn').focus({ preventScroll: true });
   };
   $('#gkGo').addEventListener('click', go);
   $('#gkIn').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  $('#gkIn').focus();
+  $('#gkIn').focus({ preventScroll: true });
 }
 
+/* ---- smooth screen changes: the old screen fades out (~0.17s), the next one fades in ---- */
+function reduced() { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
+function shake(el) {
+  if (!el || !el.animate || reduced()) return;
+  el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(7px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: 380, easing: 'ease-in-out' });
+}
+function setBusy(btnId, on) {
+  const b = $('#' + btnId); if (!b) return;
+  const card = b.closest('.card');
+  b.classList.toggle('loading', on); b.setAttribute('aria-busy', on ? 'true' : 'false');
+  if (!card) { b.disabled = on; return; }
+  card.classList.toggle('busy', on);
+  card.querySelectorAll('input').forEach(i => { i.readOnly = on; });
+  card.querySelectorAll('button').forEach(x => { x.disabled = on; });
+}
+const screenKind = () => $('#lgGo', app) ? 'login' : $('#gkGo', app) ? 'gate' : $('#tabBody', app) ? 'panel' : '';
+let swapT = 0;
 function render() {
+  if (swapT) return;   // a screen change is already playing; it draws the latest state when it ends
+  const from = screenKind();
+  const to = !booted ? '' : !user ? 'login' : !unlocked ? 'gate' : 'panel';
+  if (from && to && from !== to && !reduced()) {
+    const old = app.firstElementChild; if (old) old.classList.add('leaving');
+    if (from === 'panel') { const sd = $('#side'); if (sd) sd.classList.add('leaving'); }
+    if (to === 'panel') { const hd = document.querySelector('header.top'); if (hd) hd.classList.add('leaving'); }
+    swapT = setTimeout(() => { swapT = 0; drawScreen(from); }, 180);
+  } else drawScreen(from);
+}
+function drawScreen(from) {
+  renderNow();
+  const hd = document.querySelector('header.top'), sd = $('#side');
+  if (hd) hd.classList.remove('leaving'); if (sd) sd.classList.remove('leaving');
+  const now = screenKind();
+  if (now && now !== from && !reduced()) { const el = app.firstElementChild; if (el) el.classList.add('enter'); }
+}
+function renderNow() {
   renderHeader();
   if (!booted) return;
   if (!user || !unlocked) { stopChats(); stopOrders(); stopPolls(); stopPay(); }
@@ -956,7 +1026,13 @@ function render() {
   if (!unlocked) return renderGate();
   renderPanel();
 }
-function setMsg(id, m, cls) { const e = $('#' + id); if (e) { e.textContent = m || ''; e.className = 'msg' + (cls ? ' ' + cls : ''); } }
+function setMsg(id, m, cls) {
+  const e = $('#' + id);
+  if (e) {
+    e.textContent = m || ''; e.className = 'msg' + (cls ? ' ' + cls : '');
+    if (m && (id === 'lgM' || id === 'gkM') && e.animate && !reduced()) e.animate([{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'ease-out' });
+  }
+}
 
 function renderLogin() {
   app.innerHTML = '<div class="card center">' + logoPlate() + '<h2>' + esc(t('loginH')) + '</h2><p class="muted">' + esc(t('loginP')) + '</p>'
@@ -967,10 +1043,13 @@ function renderLogin() {
     + '<button class="btn btn-sm" id="lgFg" type="button">' + esc(t('forgot')) + '</button></div>';
   const go = async () => {
     const em = $('#lgE').value.trim(), pw = $('#lgP').value;
-    if (!em || !pw) { setMsg('lgM', t('needEmail')); return; }
-    const btn = $('#lgGo'); btn.disabled = true; setMsg('lgM', '');
-    try { await withTimeout(signInWithEmailAndPassword(auth, em, pw), 20000); }
-    catch (e) { btn.disabled = false; setMsg('lgM', authMsg(e)); }
+    if (!em || !pw) { setMsg('lgM', t('needEmail')); shake(app.firstElementChild); return; }
+    setBusy('lgGo', true); setMsg('lgM', '');
+    try { await withTimeout(signInWithEmailAndPassword(auth, em, pw), 20000); }   // on success the screen changes by itself (spinner stays until then)
+    catch (e) {
+      setBusy('lgGo', false); setMsg('lgM', authMsg(e)); shake(app.firstElementChild);
+      const pf = $('#lgP'); if (pf) { pf.focus({ preventScroll: true }); pf.select(); }
+    }
   };
   $('#lgGo').addEventListener('click', go);
   $('#lgP').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
@@ -979,7 +1058,7 @@ function renderLogin() {
     const em = $('#lgE').value.trim(); if (!em) { setMsg('lgM', t('resetNeed')); return; }
     try { await sendPasswordResetEmail(auth, em); setMsg('lgM', t('resetSent'), 'ok'); } catch (e) { setMsg('lgM', authMsg(e)); }
   });
-  $('#lgE').focus();
+  $('#lgE').focus({ preventScroll: true });
 }
 
 function openPanel() {
