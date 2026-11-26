@@ -94,7 +94,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
 .tbl-wrap:empty{display:none}
 #cuTbl{border:0;border-radius:0}
-.wd.cu{min-width:720px}.wd.cu th{text-align:center}.wd.cu td{text-align:left;vertical-align:top}.wd.cu td.num{text-align:right;white-space:nowrap}.wd.cu td.act{text-align:center;white-space:nowrap}.act-wrap{display:inline-flex;gap:6px;align-items:center}
+.wd.cu{min-width:860px}.wd.cu th{text-align:center}.wd.cu td{text-align:left;vertical-align:top}.wd.cu td.num{text-align:right;white-space:nowrap}.wd.cu td.act{text-align:center}.act-wrap{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:6px;align-items:center}.wd.cu tfoot td{font-weight:700}
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:84px;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--primary);background:transparent;color:var(--primary);font:inherit;font-size:13px;font-weight:600;line-height:1;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
 .sbtn svg{width:16px;height:16px;flex:none}
 .sbtn:hover:not(:disabled){background:var(--primary);color:#fff}
@@ -334,7 +334,7 @@ const T = {
   saveFail:'Could not save to the cloud.', confirmDel:'Delete this notice?', admNone:'No notices yet.', pubNoRule:'Saved. The public copy needs the Firestore rules shown in the "Public due" tab.', loadFail:'Could not load notices from the cloud.',
   dueH:'Public due lookup', dueNote:'Fully automatic. The main app publishes every customer change within seconds while a staff device is open. Customers check their due by phone number. This panel only shows the status.',
   dueCount:'Published records', dueAt:'Last published', dueNever:'Not published yet (open the main app with customer data loaded).', dueRefresh:'Refresh', dueRules:'Firestore rules to add (once)', dueCopy:'Copy rules', dueCopied:'Copied.', dueFail:'Could not read the status.',
-  tCust:'Customers', cuH:'Search customers', cuPh:'Type part of a name', cuHint:'Type part of a customer name to search.', cuNone:'No customer found.', cuShow:'Showing {n} of {m} match(es)', cuTotal:'{n} customers in the cloud', cuNo:'#', cuName:'Name', cuPhone:'Phone', cuAddr:'Address', cuSrc:'Source', cuBilled:'Total Due', cuPaid:'Paid amount', cuBal:'Current due',
+  tCust:'Customers', cuH:'Customers', cuPh:'Search by name, phone or address', cuHint:'Type part of a customer name to search.', cuNone:'No customer found.', cuShow:'Showing {n} of {m} match(es)', cuTotal:'{n} customers in the cloud', cuNo:'#', cuName:'Name', cuPhone:'Phone', cuAddr:'Address', cuSrc:'Source', cuBilled:'Total Due', cuPaid:'Paid amount', cuBal:'Current due',
   tOverview:'Overview', ovH:'Business overview', ovNote:'Read-only numbers from the cloud copy of the main app.', ovCust:'Customers', ovInv:'Invoices', ovOut:'Total outstanding due', ovWith:'Customers with due', ovBilled:'Total billed', ovRecv:'Total received', ovSync:'Last cloud sync', ovVer:'App version', ovNone:'No cloud data found yet.', ovFail:'Could not read the cloud data.', 
   nExport:'Export notices', nImport:'Import notices', nImpBad:'This file is not a valid notices backup.', nImpAsk:'Replace {n} current notice(s) with {m} notice(s) from the file?', nImpOk:'Imported and published.', nBackup:'Backup',
   dueState:'Public lookup', dueOn:'ON', dueOff:'OFF', dueTurnOff:'Turn OFF and remove all public records', dueTurnOn:'Turn ON', dueOffAsk:'Remove all public due records and stop publishing? Customers will no longer be able to look up their due.', dueOnDone:'Turned ON. The main app republishes within about a minute while it is open on a staff device.', dueOffDone:'Turned OFF. All public records removed.',
@@ -356,7 +356,7 @@ const T = {
   saveFail:'ক্লাউডে সংরক্ষণ করা যায়নি।', confirmDel:'এই নোটিশ মুছে ফেলবেন?', admNone:'এখনো কোনো নোটিশ নেই।', pubNoRule:'সংরক্ষিত। পাবলিক কপির জন্য "পাবলিক বাকি" ট্যাবে দেখানো Firestore নিয়ম যোগ করতে হবে।', loadFail:'ক্লাউড থেকে নোটিশ আনা যায়নি।',
   dueH:'সবার জন্য বাকি দেখার সুবিধা', dueNote:'পুরো স্বয়ংক্রিয়। স্টাফের ডিভাইসে মেইন অ্যাপ খোলা থাকলে কাস্টমারের প্রতিটি পরিবর্তন কয়েক সেকেন্ডে প্রকাশ হয়। কাস্টমার ফোন নম্বর দিয়ে বাকি দেখে। এই প্যানেল শুধু অবস্থা দেখায়।',
   dueCount:'প্রকাশিত রেকর্ড', dueAt:'সর্বশেষ প্রকাশ', dueNever:'এখনো প্রকাশ হয়নি (কাস্টমার ডেটা লোড করে মেইন অ্যাপ খুলুন)।', dueRefresh:'রিফ্রেশ', dueRules:'যে Firestore নিয়ম যোগ করতে হবে (একবার)', dueCopy:'নিয়ম কপি', dueCopied:'কপি হয়েছে।', dueFail:'অবস্থা পড়া যায়নি।',
-  tCust:'কাস্টমার', cuH:'কাস্টমার খুঁজুন', cuPh:'নামের একটু অংশ লিখুন', cuHint:'কাস্টমার খুঁজতে নামের একটু অংশ লিখুন।', cuNone:'কোনো কাস্টমার পাওয়া যায়নি।', cuShow:'{m}টির মধ্যে {n}টি দেখানো হচ্ছে', cuTotal:'ক্লাউডে মোট {n} জন কাস্টমার', cuNo:'নং', cuName:'নাম', cuPhone:'ফোন', cuAddr:'ঠিকানা', cuSrc:'সোর্স', cuBilled:'মোট বাকি', cuPaid:'পরিশোধ', cuBal:'বর্তমান বাকি',
+  tCust:'কাস্টমার', cuH:'কাস্টমার তালিকা', cuPh:'নাম, ফোন বা ঠিকানা লিখে খুঁজুন', cuHint:'কাস্টমার খুঁজতে নামের একটু অংশ লিখুন।', cuNone:'কোনো কাস্টমার পাওয়া যায়নি।', cuShow:'{m}টির মধ্যে {n}টি দেখানো হচ্ছে', cuTotal:'ক্লাউডে মোট {n} জন কাস্টমার', cuNo:'নং', cuName:'নাম', cuPhone:'ফোন', cuAddr:'ঠিকানা', cuSrc:'সোর্স', cuBilled:'মোট বাকি', cuPaid:'পরিশোধ', cuBal:'বর্তমান বাকি',
   tOverview:'ওভারভিউ', ovH:'ব্যবসার সারসংক্ষেপ', ovNote:'মেইন অ্যাপের ক্লাউড কপি থেকে শুধু দেখার তথ্য।', ovCust:'কাস্টমার', ovInv:'ইনভয়েস', ovOut:'মোট বাকি', ovWith:'বাকি আছে এমন কাস্টমার', ovBilled:'মোট বিল', ovRecv:'মোট আদায়', ovSync:'সর্বশেষ ক্লাউড সিঙ্ক', ovVer:'অ্যাপ সংস্করণ', ovNone:'এখনো ক্লাউডে কোনো ডেটা নেই।', ovFail:'ক্লাউড ডেটা পড়া যায়নি।', 
   nExport:'নোটিশ এক্সপোর্ট', nImport:'নোটিশ ইমপোর্ট', nImpBad:'এটি সঠিক নোটিশ ব্যাকআপ ফাইল নয়।', nImpAsk:'বর্তমান {n}টি নোটিশের জায়গায় ফাইলের {m}টি নোটিশ বসাবেন?', nImpOk:'ইমপোর্ট ও প্রকাশ হয়েছে।', nBackup:'ব্যাকআপ',
   dueState:'পাবলিক বাকি দেখা', dueOn:'চালু', dueOff:'বন্ধ', dueTurnOff:'বন্ধ করুন ও সব পাবলিক তথ্য মুছুন', dueTurnOn:'চালু করুন', dueOffAsk:'সব পাবলিক বাকির তথ্য মুছে প্রকাশ বন্ধ করবেন? কাস্টমাররা আর নিজের বাকি দেখতে পারবে না।', dueOnDone:'চালু হয়েছে। স্টাফের ডিভাইসে মেইন অ্যাপ খোলা থাকলে প্রায় এক মিনিটে আবার প্রকাশ হবে।', dueOffDone:'বন্ধ হয়েছে। সব পাবলিক তথ্য মোছা হয়েছে।',
@@ -1361,6 +1361,8 @@ async function tabCustomers() {
     + '<div class="fg"><label for="acP">' + esc(pt('Phone', '\u09AB\u09CB\u09A8')) + '</label><input id="acP" type="tel" inputmode="tel" maxlength="16" placeholder="01XXXXXXXXX" autocomplete="off"></div>'
     + '<div class="fg"><label for="acA">' + esc(pt('Address', '\u09A0\u09BF\u0995\u09BE\u09A8\u09BE')) + '</label><input id="acA" list="acAl" maxlength="80" autocomplete="off"><datalist id="acAl">' + ADDR.map(x => '<option value="' + esc(x) + '">').join('') + '</datalist></div>'
     + '<div class="fg"><label for="acS">' + esc(pt('Source', '\u09B8\u09CB\u09B0\u09CD\u09B8')) + '</label><input id="acS" list="acSl" maxlength="30" autocomplete="off"><datalist id="acSl">' + [1, 2, 3, 4, 5, 6].map(x => '<option value="' + x + '">').join('') + '</datalist></div>'
+    + '<div class="fg"><label for="acD">' + esc(pt('Total due (amount)', 'মোট বাকি (টাকা)')) + '</label><input id="acD" type="number" inputmode="numeric" min="0" step="1" placeholder="0" autocomplete="off"></div>'
+    + '<div class="fg"><label for="acPd">' + esc(pt('Paid amount', 'পরিশোধ (টাকা)')) + '</label><input id="acPd" type="number" inputmode="numeric" min="0" step="1" placeholder="0" autocomplete="off"></div>'
     + '<button class="btn" id="acSave" type="button">' + esc(pt('Save customer', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3')) + '</button><div class="msg" id="acMsg" role="status"></div>'
     + '<p class="muted" style="margin:0">' + esc(pt('It appears in the main app within a few seconds (or press Refresh Data there).', '\u09AE\u09C7\u0987\u09A8 \u0985\u09CD\u09AF\u09BE\u09AA\u09C7 \u0995\u09BF\u099B\u09C1 \u09B8\u09C7\u0995\u09C7\u09A8\u09CD\u09A1\u09C7\u09B0 \u09AE\u09A7\u09CD\u09AF\u09C7 \u09A6\u09C7\u0996\u09BE \u09AF\u09BE\u09AC\u09C7 (\u0985\u09A5\u09AC\u09BE \u09B8\u09C7\u0996\u09BE\u09A8\u09C7 Refresh Data \u09A6\u09BF\u09A8)\u0964')) + '</p></div>');
   $('#acSave').addEventListener('click', async () => {
@@ -1372,13 +1374,16 @@ async function tabCustomers() {
     if (!name) { setMsg('acMsg', pt('Customer name is required.', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0\u09C7\u09B0 \u09A8\u09BE\u09AE \u09A6\u09BF\u09A4\u09C7 \u09B9\u09AC\u09C7\u0964')); return; }
     if (phone && !/^01[0-9]{9}$/.test(phone)) { setMsg('acMsg', pt('Phone must be 11 digits like 01712345678 (or leave it empty).', '\u09AB\u09CB\u09A8 \u09E7\u09E7 \u09B8\u0982\u0996\u09CD\u09AF\u09BE\u09B0 \u09B9\u09A4\u09C7 \u09B9\u09AC\u09C7 (\u09AF\u09C7\u09AE\u09A8 01712345678) \u09AC\u09BE \u0996\u09BE\u09B2\u09BF \u09B0\u09BE\u0996\u09C1\u09A8\u0964')); return; }
     if (phone && custList && custList.some(c => String(c.phone || '').replace(/\D/g, '') === phone) && !confirm(pt('A customer with this phone number already exists. Add anyway?', '\u098F\u0987 \u09AB\u09CB\u09A8 \u09A8\u09AE\u09CD\u09AC\u09B0\u09C7\u09B0 \u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0 \u0986\u0997\u09C7\u0987 \u0986\u099B\u09C7\u0964 \u09A4\u09AC\u09C1\u0993 \u09AF\u09CB\u0997 \u0995\u09B0\u09AC\u09C7\u09A8?'))) return;
+    const due0 = Math.max(0, Math.round(Number(g('acD'))) || 0), paid0 = Math.max(0, Math.round(Number(g('acPd'))) || 0);
+    if (paid0 > due0) { setMsg('acMsg', pt('Paid amount cannot be more than the total due.', 'পরিশোধ মোট বাকির চেয়ে বেশি হতে পারবে না।')); return; }
     const d = new Date(), pad = n => String(n).padStart(2, '0');
-    const c = { id: Date.now().toString().slice(-10) + Math.floor(Math.random() * 1000), dateAdded: pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear(), name: name, phone: phone, address: g('acA'), due: 0, paid: 0, source: g('acS'), note: '', transactionHistory: [] };
+    const c = { id: Date.now().toString().slice(-10) + Math.floor(Math.random() * 1000), dateAdded: pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear(), name: name, phone: phone, address: g('acA'), due: due0, paid: paid0, source: g('acS'), note: '', transactionHistory: [], modifiedAt: Date.now() };
+    if (due0 > 0 || paid0 > 0) c.transactionHistory.push({ date: new Date().toLocaleString(), ts: Date.now(), type: due0 > 0 ? 'Due Added' : 'Payment Received', amount: due0 > 0 ? due0 : paid0, note: 'Initial record created (Admin panel)' });
     btn.disabled = true; setMsg('acMsg', pt('Saving...', '\u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u09B9\u099A\u09CD\u099B\u09C7...'), 'warn');
     try {
-      await withTimeout(SDK.updateDoc(doc(db, 'shops', user.uid), { customers: SDK.arrayUnion(c), updatedAt: serverTimestamp() }), 15000);   // atomic append: never rewrites the other customers
+      await withTimeout(SDK.updateDoc(doc(db, 'shops', user.uid), { customers: SDK.arrayUnion(c), updatedAt: serverTimestamp(), lastWriter: { id: 'ADMIN', name: 'Admin Panel', at: Date.now() } }), 15000);   // atomic append: never rewrites the other customers
       if (custList) custList.push(c);
-      ['acN', 'acP', 'acA', 'acS'].forEach(id => { $('#' + id).value = ''; });
+      ['acN', 'acP', 'acA', 'acS', 'acD', 'acPd'].forEach(id => { $('#' + id).value = ''; });
       setMsg('acMsg', pt('Customer added: ', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0 \u09AF\u09CB\u0997 \u09B9\u09DF\u09C7\u099B\u09C7: ') + name, 'ok'); $('#acN').focus();
     } catch (e) {
       console.warn('add customer', e);
@@ -1387,22 +1392,138 @@ async function tabCustomers() {
     btn.disabled = false;
   });
   const q = $('#cuQ');
+  let cuLimit = 50, cuUnsub = null;
+  const num = v => Math.max(0, Math.round(Number(v)) || 0);
+  const normPhone = v => {
+    let p = String(v || '').replace(/[\u09E6-\u09EF]/g, d => String(d.charCodeAt(0) - 0x09E6)).replace(/[\s-]/g, '');
+    if (p.indexOf('+880') === 0) p = '0' + p.slice(4); else if (p.indexOf('880') === 0 && p.length === 13) p = '0' + p.slice(3);
+    return p;
+  };
+  const addTxn = (c, type, amount, note) => {
+    c.transactionHistory = Array.isArray(c.transactionHistory) ? c.transactionHistory : [];
+    c.transactionHistory.unshift({ date: new Date().toLocaleString(), ts: Date.now(), type: type, amount: Number(amount) || 0, note: note || '' });
+    if (c.transactionHistory.length > 50) c.transactionHistory.length = 50;
+  };
+  /* Changes ONE customer inside shops/<uid>.customers as a transaction: the newest data is read first, so changes made
+     meanwhile in the main app (or on another device) are never overwritten. Returns the saved customer. */
+  const changeCust = async (id, mutate) => {
+    const ref = doc(db, 'shops', user.uid); let saved = null;
+    await withTimeout(SDK.runTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      const d = snap.exists() ? (snap.data() || {}) : {};
+      const arr = Array.isArray(d.customers) ? d.customers.slice() : [];
+      const i = arr.findIndex(x => x && String(x.id) === String(id));
+      if (i < 0) throw { code: 'customer-not-found' };
+      const c = JSON.parse(JSON.stringify(arr[i]));
+      mutate(c);
+      c.modifiedAt = Date.now();
+      arr[i] = c; saved = c;
+      tx.update(ref, { customers: arr, customerCount: arr.length, updatedAt: serverTimestamp(), lastWriter: { id: 'ADMIN', name: 'Admin Panel', at: Date.now() } });
+    }), 20000);
+    return saved;
+  };
+  const errText = e => {
+    const k = e && e.code;
+    if (k === 'customer-not-found') return pt('This customer was not found any more (deleted in the main app?). Press Refresh.', 'এই কাস্টমার আর পাওয়া যায়নি (মেইন অ্যাপে মোছা হয়েছে?)। Refresh চাপুন।');
+    if (k === 'no-due') return pt('This customer has no due to receive.', 'এই কাস্টমারের কোনো বাকি নেই।');
+    if (k === 'timeout') return pt('Timed out. Check your internet and try again.', 'সময় শেষ। ইন্টারনেট দেখে আবার চেষ্টা করুন।');
+    return pt('Could not save (' + (k || 'error') + '). Check your internet and try again.', 'সংরক্ষণ হয়নি (' + (k || 'error') + ')। ইন্টারনেট দেখে আবার চেষ্টা করুন।');
+  };
+  const putLocal = u => { if (!u || !custList) return; const k = custList.findIndex(x => x && String(x.id) === String(u.id)); if (k >= 0) custList[k] = u; draw(); };
+
+  /* ---- edit a customer: all fields, including total due and paid amount ---- */
+  const editCust = c => {
+    const m = openModal(pt('Edit customer', 'কাস্টমার এডিট') + ' – ' + (c.name || ''),
+      '<div class="fg"><label for="ecN">' + esc(pt('Name', 'নাম')) + ' *</label><input id="ecN" maxlength="80" autocomplete="off" value="' + esc(c.name || '') + '"></div>'
+      + '<div class="fg"><label for="ecP">' + esc(pt('Phone', 'ফোন')) + '</label><input id="ecP" type="tel" inputmode="tel" maxlength="16" autocomplete="off" value="' + esc(c.phone || '') + '"></div>'
+      + '<div class="fg"><label for="ecA">' + esc(pt('Address', 'ঠিকানা')) + '</label><input id="ecA" list="acAl" maxlength="80" autocomplete="off" value="' + esc(c.address || '') + '"></div>'
+      + '<div class="fg"><label for="ecS">' + esc(pt('Source', 'সোর্স')) + '</label><input id="ecS" list="acSl" maxlength="30" autocomplete="off" value="' + esc(c.source == null ? '' : c.source) + '"></div>'
+      + '<div class="fg"><label for="ecD">' + esc(pt('Total due', 'মোট বাকি')) + '</label><input id="ecD" type="number" inputmode="numeric" min="0" step="1" value="' + num(c.due) + '"></div>'
+      + '<div class="fg"><label for="ecPd">' + esc(pt('Paid amount', 'পরিশোধ')) + '</label><input id="ecPd" type="number" inputmode="numeric" min="0" step="1" value="' + num(c.paid) + '"></div>'
+      + '<p id="ecBal" style="margin:0 0 12px"></p>'
+      + '<div class="fg"><label for="ecNote">' + esc(pt('Note', 'নোট')) + '</label><textarea id="ecNote" rows="3">' + esc(c.note || '') + '</textarea></div>'
+      + '<button class="btn" id="ecSave" type="button">' + esc(pt('Save changes', 'পরিবর্তন সংরক্ষণ')) + '</button><div class="msg" id="ecMsg" role="status"></div>');
+    const bal = () => { const d = num($('#ecD').value), p = num($('#ecPd').value); $('#ecBal').innerHTML = esc(pt('Current due', 'বর্তমান বাকি')) + ': <b>' + esc(money(Math.max(0, d - p))) + '</b>'; };
+    $('#ecD').addEventListener('input', bal); $('#ecPd').addEventListener('input', bal); bal();
+    $('#ecSave').addEventListener('click', async () => {
+      const btn = $('#ecSave'), v = id => $('#' + id).value;
+      const name = v('ecN').trim().replace(/\s+/g, ' ').replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+      const phone = normPhone(v('ecP').trim()), nd = num(v('ecD')), np = num(v('ecPd'));
+      if (!name) { setMsg('ecMsg', pt('Customer name is required.', 'কাস্টমারের নাম দিতে হবে।')); return; }
+      if (phone && !/^01[0-9]{9}$/.test(phone)) { setMsg('ecMsg', pt('Phone must be 11 digits like 01712345678 (or leave it empty).', 'ফোন ১১ সংখ্যার হতে হবে (যেমন 01712345678) বা খালি রাখুন।')); return; }
+      if (np > nd && !confirm(pt('Paid amount is more than the total due. Save anyway?', 'পরিশোধ মোট বাকির চেয়ে বেশি। তবুও সংরক্ষণ করবেন?'))) return;
+      btn.disabled = true; setMsg('ecMsg', pt('Saving...', 'সংরক্ষণ হচ্ছে...'), 'warn');
+      try {
+        const u = await changeCust(c.id, x => {
+          const od = num(x.due), op = num(x.paid), ch = [];
+          if (nd !== od) ch.push('Due ' + (nd > od ? 'increased' : 'decreased') + ' by ' + Math.abs(nd - od));
+          if (np !== op) ch.push('Paid ' + (np > op ? 'increased' : 'decreased') + ' by ' + Math.abs(np - op));
+          x.name = name; x.phone = phone; x.address = v('ecA').trim(); x.source = v('ecS').trim(); x.note = v('ecNote');
+          x.due = nd; x.paid = np;
+          if (ch.length) addTxn(x, 'Edit Adjustment', 0, 'Manual Edit (Admin panel): ' + ch.join(', '));
+        });
+        putLocal(u); closeModal();
+      } catch (e) { console.warn('edit customer', e); setMsg('ecMsg', errText(e)); btn.disabled = false; }
+    });
+  };
+
+  /* ---- add a due amount, or receive a payment, for an existing customer ---- */
+  const moneyCust = c => {
+    const m = openModal(pt('Add due / Receive payment', 'বাকি যোগ / পেমেন্ট গ্রহণ') + ' – ' + (c.name || ''),
+      '<p id="pmNow" style="margin-top:0"></p>'
+      + '<div class="fg"><label><input type="radio" name="pmT" value="pay" checked> ' + esc(pt('Receive payment', 'পেমেন্ট গ্রহণ')) + '</label> &nbsp; '
+      + '<label><input type="radio" name="pmT" value="due"> ' + esc(pt('Add due', 'বাকি যোগ')) + '</label></div>'
+      + '<div class="fg"><label for="pmA">' + esc(pt('Amount', 'টাকার পরিমাণ')) + '</label><input id="pmA" type="number" inputmode="numeric" min="1" step="1" autocomplete="off"></div>'
+      + '<div class="fg"><label for="pmN">' + esc(pt('Note (optional)', 'নোট (ঐচ্ছিক)')) + '</label><input id="pmN" maxlength="120" autocomplete="off"></div>'
+      + '<p id="pmAfter"></p>'
+      + '<button class="btn" id="pmSave" type="button">' + esc(pt('Save', 'সংরক্ষণ')) + '</button><div class="msg" id="pmMsg" role="status"></div>');
+    const typ = () => document.querySelector('input[name="pmT"]:checked').value;
+    const show = () => {
+      const due = num(c.due), paid = num(c.paid), cur = Math.max(0, due - paid), a = num($('#pmA').value);
+      $('#pmNow').innerHTML = esc(pt('Total due', 'মোট বাকি')) + ': <b>' + esc(money(due)) + '</b> &nbsp;|&nbsp; ' + esc(pt('Paid amount', 'পরিশোধ')) + ': <b>' + esc(money(paid)) + '</b> &nbsp;|&nbsp; ' + esc(pt('Current due', 'বর্তমান বাকি')) + ': <b>' + esc(money(cur)) + '</b>';
+      let nd = due, np = paid;
+      if (typ() === 'pay') np = paid + Math.min(a, cur); else nd = due + a;
+      $('#pmAfter').innerHTML = a ? (esc(pt('After saving', 'সংরক্ষণের পরে')) + ': ' + esc(pt('Total due', 'মোট বাকি')) + ' <b>' + esc(money(nd)) + '</b>, ' + esc(pt('Paid amount', 'পরিশোধ')) + ' <b>' + esc(money(np)) + '</b>, ' + esc(pt('Current due', 'বর্তমান বাকি')) + ' <b>' + esc(money(Math.max(0, nd - np))) + '</b>') : '';
+    };
+    $('#pmA').addEventListener('input', show); document.querySelectorAll('input[name="pmT"]').forEach(r => r.addEventListener('change', show)); show(); $('#pmA').focus();
+    $('#pmSave').addEventListener('click', async () => {
+      const btn = $('#pmSave'), amt = num($('#pmA').value), note = $('#pmN').value.trim(), type = typ();
+      if (amt <= 0) { setMsg('pmMsg', pt('Please enter a valid amount.', 'সঠিক টাকার পরিমাণ দিন।')); return; }
+      btn.disabled = true; setMsg('pmMsg', pt('Saving...', 'সংরক্ষণ হচ্ছে...'), 'warn');
+      try {
+        const u = await changeCust(c.id, x => {
+          const due = num(x.due), paid = num(x.paid), cur = Math.max(0, due - paid); let applied = amt, tt;
+          if (type === 'pay') { if (cur <= 0) throw { code: 'no-due' }; applied = Math.min(amt, cur); x.paid = paid + applied; tt = 'Payment Received'; }
+          else { x.due = due + amt; tt = 'Due Added'; }
+          addTxn(x, tt, applied, note);
+          x.note = '[' + new Date().toLocaleDateString() + '] ' + tt + ': ' + applied + (note ? ' – ' + note : '') + '\n' + (x.note || '');
+        });
+        putLocal(u); closeModal();
+      } catch (e) { console.warn('money customer', e); setMsg('pmMsg', errText(e)); btn.disabled = false; }
+    });
+  };
+
+  /* ---- the customers table: plain default table, all customers, updates by itself ---- */
   const draw = () => {
     const box = $('#cuTbl'), info = $('#cuInfo'); if (!box) return;
     if (!custList) { box.innerHTML = '<span class="spin"></span>'; info.textContent = ''; return; }
     const words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
-    if (!words.length) { box.innerHTML = ''; info.textContent = t('cuTotal').replace('{n}', custList.length) + '. ' + t('cuHint'); return; }
-    const hit = custList.filter(c => { const nm = String(c.name || '').toLowerCase(); return words.every(w => nm.indexOf(w) >= 0); });
+    const hit = words.length ? custList.filter(c => { const hay = (String(c.name || '') + ' ' + String(c.phone || '') + ' ' + String(c.address || '')).toLowerCase(); return words.every(w => hay.indexOf(w) >= 0); }) : custList;
     if (!hit.length) { box.innerHTML = ''; info.textContent = t('cuNone'); return; }
-    const shown = hit.slice(0, 100);
+    const shown = hit.slice(0, cuLimit);
+    let tb = 0, tp = 0, tc = 0; hit.forEach(c => { const due = +c.due || 0, paid = +c.paid || 0; tb += due; tp += paid; tc += Math.max(0, due - paid); });
     info.textContent = t('cuShow').replace('{n}', shown.length).replace('{m}', hit.length);
     box.innerHTML = '<table class="wd cu"><thead><tr><th>' + esc(t('cuNo')) + '</th><th>' + esc(t('cuName')) + '</th><th>' + esc(t('cuPhone')) + '</th><th>' + esc(t('cuAddr')) + '</th><th>' + esc(t('cuSrc')) + '</th><th>' + esc(t('cuBilled')) + '</th><th>' + esc(t('cuPaid')) + '</th><th>' + esc(t('cuBal')) + '</th><th>' + esc(t('cuAct')) + '</th></tr></thead><tbody>'
       + shown.map((c, i) => { const due = +c.due || 0, paid = +c.paid || 0, bal = Math.max(0, due - paid);
           return '<tr><td>' + (i + 1) + '</td><td>' + esc(c.name || '-') + '</td><td>' + esc(c.phone || '') + '</td><td>' + esc(c.address || '') + '</td><td>' + esc(c.source == null ? '' : c.source) + '</td><td class="num">' + esc(money(due)) + '</td><td class="num">' + esc(money(paid)) + '</td><td class="num">' + esc(money(bal)) + '</td>'
-            + '<td class="act"><span class="act-wrap"><button type="button" class="sbtn" data-sv="' + i + '">' + ico('doc') + esc(t('cuSlip')) + '</button><button type="button" class="sbtn" data-sp="' + i + '">' + ico('print') + esc(t('cuPrint')) + '</button></span></td></tr>'; }).join('')
-      + '</tbody></table>';
+            + '<td class="act"><span class="act-wrap"><button type="button" class="sbtn" data-ed="' + i + '">' + esc(pt('Edit', 'এডিট')) + '</button><button type="button" class="sbtn" data-pm="' + i + '">' + esc(pt('Due / Pay', 'বাকি / পেমেন্ট')) + '</button><button type="button" class="sbtn" data-sv="' + i + '">' + ico('doc') + esc(t('cuSlip')) + '</button><button type="button" class="sbtn" data-sp="' + i + '">' + ico('print') + esc(t('cuPrint')) + '</button></span></td></tr>'; }).join('')
+      + '</tbody><tfoot><tr><td colspan="5">' + esc(pt('Total of ' + hit.length + ' customers', 'মোট ' + hit.length + ' জন কাস্টমার')) + '</td><td class="num">' + esc(money(tb)) + '</td><td class="num">' + esc(money(tp)) + '</td><td class="num">' + esc(money(tc)) + '</td><td></td></tr></tfoot></table>'
+      + (hit.length > shown.length ? '<p style="margin:10px 0 0"><button type="button" class="btn btn-sm" id="cuMore">' + esc(pt('Show more', 'আরও দেখান')) + '</button></p>' : '');
     box.querySelectorAll('[data-sv]').forEach(btn => btn.addEventListener('click', () => showSlip(shown[+btn.getAttribute('data-sv')])));
     box.querySelectorAll('[data-sp]').forEach(btn => btn.addEventListener('click', () => printSlip(shown[+btn.getAttribute('data-sp')])));
+    box.querySelectorAll('[data-ed]').forEach(btn => btn.addEventListener('click', () => editCust(shown[+btn.getAttribute('data-ed')])));
+    box.querySelectorAll('[data-pm]').forEach(btn => btn.addEventListener('click', () => moneyCust(shown[+btn.getAttribute('data-pm')])));
+    const more = $('#cuMore'); if (more) more.addEventListener('click', () => { cuLimit += 50; draw(); });
   };
   const load = async () => {
     custList = null; setMsg('cuMsg', ''); draw();
@@ -1410,8 +1531,16 @@ async function tabCustomers() {
     catch (e) { console.warn(e); custList = []; setMsg('cuMsg', t('ovFail')); }
     draw();
   };
-  q.addEventListener('input', draw);
+  q.addEventListener('input', () => { cuLimit = 50; draw(); });
   $('#cuRef').addEventListener('click', load);
+  /* live: the table follows every change made in the main app or on another device */
+  try {
+    cuUnsub = SDK.onSnapshot(doc(db, 'shops', user.uid), snap => {
+      if (!$('#cuTbl')) { if (cuUnsub) { cuUnsub(); cuUnsub = null; } return; }
+      if (!snap.exists() || snap.metadata.hasPendingWrites) return;
+      const d = snap.data() || {}; custList = Array.isArray(d.customers) ? d.customers : []; draw();
+    }, err => console.warn('live customers', err && err.code));
+  } catch (e) { console.warn(e); }
   load(); q.focus();
 }
 
@@ -2796,12 +2925,65 @@ function pyOpenRules() {
   $('#pyRC', B).addEventListener('click', () => { const ta = $('#pyRulesTa', B); ta.select(); try { navigator.clipboard.writeText(PAY_RULES); } catch (x) { try { document.execCommand('copy'); } catch (y) {} } });
 }
 
+/* ============ live changes from the main app (any device): a toast says which customer changed and from where ============ */
+const LV = { unsub: null, uid: '', base: null };
+function adminToast(msg) {
+  let box = document.getElementById('admToasts');
+  if (!box) {
+    box = document.createElement('div'); box.id = 'admToasts'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite');
+    box.style.cssText = 'position:fixed;top:12px;right:12px;z-index:100000;display:flex;flex-direction:column;gap:8px;max-width:min(380px,calc(100vw - 24px))';
+    document.body.appendChild(box);
+  }
+  const d = document.createElement('div');
+  d.style.cssText = 'background:#1f4e79;color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.3);font-size:14px;line-height:1.4;cursor:pointer;overflow-wrap:anywhere';
+  d.textContent = msg;
+  const rm = () => { if (d.parentNode) d.remove(); };
+  d.addEventListener('click', rm); box.appendChild(d); setTimeout(rm, 12000);
+}
+const lvStable = v => Array.isArray(v) ? '[' + v.map(lvStable).join(',') + ']'
+  : (v && typeof v === 'object') ? '{' + Object.keys(v).sort().filter(k => k !== 'modifiedAt' && v[k] !== undefined && v[k] !== null && v[k] !== '' && !(Array.isArray(v[k]) && !v[k].length)).map(k => JSON.stringify(k) + ':' + lvStable(v[k])).join(',') + '}'
+  : JSON.stringify(v);
+function lvDescribe(oc, nc) {
+  const idx = arr => { const m = {}; (arr || []).forEach((x, i) => { m[String((x && x.id) || ('idx' + i))] = x; }); return m; };
+  const o = idx(oc), n = idx(nc), out = [];
+  Object.keys(n).forEach(k => {
+    const a = o[k], b = n[k], nm = (b && b.name) || 'Customer';
+    if (!a) { out.push(nm + ' (new)'); return; }
+    if (lvStable(a) === lvStable(b)) return;
+    const bits = [];
+    ['due', 'paid'].forEach(f => { const x = Math.round(Number(a[f])) || 0, y = Math.round(Number(b[f])) || 0; if (x !== y) bits.push(f + ' ' + x + ' \u2192 ' + y); });
+    out.push(nm + (bits.length ? ': ' + bits.join(', ') : ' updated'));
+  });
+  Object.keys(o).forEach(k => { if (!n[k]) out.push(((o[k] && o[k].name) || 'Customer') + ' (deleted)'); });
+  return out;
+}
+function lvStop() { if (LV.unsub) { try { LV.unsub(); } catch (e) {} } LV.unsub = null; LV.base = null; LV.uid = ''; }
+function lvStart() {
+  if (!user || (LV.unsub && LV.uid === user.uid)) return;
+  lvStop(); LV.uid = user.uid;
+  try {
+    LV.unsub = SDK.onSnapshot(doc(db, 'shops', user.uid), snap => {
+      if (!snap.exists() || snap.metadata.hasPendingWrites) return;
+      const d = snap.data() || {}, cs = Array.isArray(d.customers) ? d.customers : [], w = d.lastWriter || null;
+      const prev = LV.base; LV.base = cs;
+      if (!prev) return;                                   // first snapshot is only the starting point
+      if (w && w.id === 'ADMIN') return;                   // my own change from this panel
+      if (!unlocked) return;                               // nothing is shown while the panel is locked
+      const desc = lvDescribe(prev, cs); if (!desc.length) return;
+      const who = pt('Main app', 'মেইন অ্যাপ') + (w && w.name ? ' (' + w.name + ')' : '');
+      adminToast('\uD83D\uDD04 ' + who + (lang() === 'bn' ? ' বদলেছে: ' : ' changed: ') + (desc.length > 3 ? desc.slice(0, 3).join(' | ') + ' | +' + (desc.length - 3) + ' more' : desc.join(' | ')));
+      const rf = document.getElementById('ovRef'); if (rf && tab === 'overview') rf.click();   // keep the overview numbers fresh
+    }, err => { console.warn('live changes stopped', err && err.code); LV.unsub = null; });
+  } catch (e) { console.warn(e); LV.unsub = null; }
+}
+
 /* ============ start ============ */
 onAuthStateChanged(auth, u => {
   booted = true; window.__rgceBooted = true; try { sessionStorage.removeItem('rgce_adm_try'); sessionStorage.removeItem('rgce_adm_heal'); } catch (x) {}
   const changed = (u && u.uid) !== (user && user.uid);
   user = u || null;
   unlocked = !!(user && sessGet('rgce_adm_ok') === user.uid);
+  if (user) lvStart(); else lvStop();
   if (!user) sessDel('rgce_adm_ok');
   if (!user) { N = { list: [], on: false, editing: '', pubErr: false, loaded: false }; render(); }
   else if (changed) openPanel();
