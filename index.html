@@ -94,7 +94,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
 .tbl-wrap:empty{display:none}
 #cuTbl{border:0;border-radius:0}
-.wd.cu{min-width:860px}.wd.cu th{text-align:center}.wd.cu td{text-align:left;vertical-align:top}.wd.cu td.num{text-align:right;white-space:nowrap}.wd.cu td.act{text-align:center}.act-wrap{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:6px;align-items:center}.wd.cu tfoot td{font-weight:700}
+.wd.cu{min-width:860px}.wd.cu th{text-align:center}.wd.cu td{text-align:center;vertical-align:middle}.wd.cu td.num{text-align:center;white-space:nowrap}.wd.cu td.act{text-align:center;white-space:nowrap}.act-wrap{display:inline-flex;flex-wrap:nowrap;justify-content:center;gap:4px;align-items:center}.wd.cu .sbtn{min-width:0;height:28px;padding:0 9px;gap:4px;font-size:12px;border-radius:6px}.wd.cu .sbtn svg{width:13px;height:13px}.wd.cu tfoot td{font-weight:700}
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:84px;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--primary);background:transparent;color:var(--primary);font:inherit;font-size:13px;font-weight:600;line-height:1;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
 .sbtn svg{width:16px;height:16px;flex:none}
 .sbtn:hover:not(:disabled){background:var(--primary);color:#fff}
@@ -1333,6 +1333,7 @@ async function tabOverview() {
     + '<div class="msg" id="ovMsg" role="status"></div><button class="btn btn-sm" id="ovRef">' + esc(t('dueRefresh')) + '</button></div>';
   const load = async () => {
     const box = $('#ovBox'); if (!box) return; setMsg('ovMsg', '');
+    const keepBiz = $('#bizHost');   // keep the daily-products module (open state, typed values) across refresh
     try {
       const snap = await getFresh(doc(db, 'shops', user.uid));
       if (!snap.exists()) { box.innerHTML = '<p class="muted">' + esc(t('ovNone')) + '</p>'; return; }
@@ -1346,6 +1347,10 @@ async function tabOverview() {
         + st(t('ovOut'), money(out), out > 0) + st(t('ovWith'), withDue) + st(t('ovBilled'), money(billed)) + st(t('ovRecv'), money(recv))
         + st(t('ovSync'), fmtDT(d.updatedAt)) + st(t('ovVer'), d.appVersion || '—') + '</div>' + rate
         + '<div style="margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:10px"><button type="button" class="lnk" id="ovBiz" aria-expanded="false" aria-controls="bizHost">' + esc(t('bizLnk')) + '</button><button type="button" class="lnk" id="ovSta">' + esc(t('staLnk')) + '</button><button type="button" class="lnk" id="ovRec">' + esc(t('recLnk')) + '</button><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></div><div id="bizHost" class="bz-host" hidden></div>';
+      if (keepBiz) {
+        const nh = $('#bizHost'); if (nh) nh.replaceWith(keepBiz);
+        const bl = $('#ovBiz'); if (bl) bl.setAttribute('aria-expanded', keepBiz.hidden ? 'false' : 'true');
+      }
       $('#ovNew').addEventListener('click', () => showNew(cs));
       $('#ovSta').addEventListener('click', () => showStatus(cs));
       $('#ovBiz').addEventListener('click', toggleBiz);
@@ -1595,11 +1600,10 @@ async function tabCustomers() {
     box.innerHTML = '<table class="wd cu"><thead><tr><th>' + esc(t('cuNo')) + '</th><th>' + esc(t('cuName')) + '</th><th>' + esc(t('cuPhone')) + '</th><th>' + esc(t('cuAddr')) + '</th><th>' + esc(t('cuSrc')) + '</th><th>' + esc(t('cuBilled')) + '</th><th>' + esc(t('cuPaid')) + '</th><th>' + esc(t('cuBal')) + '</th><th>' + esc(t('cuAct')) + '</th></tr></thead><tbody>'
       + shown.map((c, i) => { const due = +c.due || 0, paid = +c.paid || 0, bal = Math.max(0, due - paid);
           return '<tr><td>' + (i + 1) + '</td><td>' + esc(c.name || '-') + '</td><td>' + esc(c.phone || '') + '</td><td>' + esc(c.address || '') + '</td><td>' + esc(c.source == null ? '' : c.source) + '</td><td class="num">' + esc(money(due)) + '</td><td class="num">' + esc(money(paid)) + '</td><td class="num">' + esc(money(bal)) + '</td>'
-            + '<td class="act"><span class="act-wrap"><button type="button" class="sbtn" data-ed="' + i + '">' + esc(pt('Edit', 'এডিট')) + '</button><button type="button" class="sbtn" data-pm="' + i + '">' + esc(pt('Due / Pay', 'বাকি / পেমেন্ট')) + '</button><button type="button" class="sbtn" data-sv="' + i + '">' + ico('doc') + esc(t('cuSlip')) + '</button><button type="button" class="sbtn" data-sp="' + i + '">' + ico('print') + esc(t('cuPrint')) + '</button></span></td></tr>'; }).join('')
+            + '<td class="act"><span class="act-wrap"><button type="button" class="sbtn" data-ed="' + i + '">' + esc(pt('Edit', 'এডিট')) + '</button><button type="button" class="sbtn" data-pm="' + i + '">' + esc(pt('Due / Pay', 'বাকি / পেমেন্ট')) + '</button><button type="button" class="sbtn" data-sv="' + i + '">' + ico('doc') + esc(t('cuSlip')) + '</button></span></td></tr>'; }).join('')
       + '</tbody><tfoot><tr><td colspan="5">' + esc(pt('Total of ' + hit.length + ' customers', 'মোট ' + hit.length + ' জন কাস্টমার')) + '</td><td class="num">' + esc(money(tb)) + '</td><td class="num">' + esc(money(tp)) + '</td><td class="num">' + esc(money(tc)) + '</td><td></td></tr></tfoot></table>'
       + (hit.length > shown.length ? '<p style="margin:10px 0 0"><button type="button" class="btn btn-sm" id="cuMore">' + esc(pt('Show more', 'আরও দেখান')) + '</button></p>' : '');
     box.querySelectorAll('[data-sv]').forEach(btn => btn.addEventListener('click', () => showSlip(shown[+btn.getAttribute('data-sv')])));
-    box.querySelectorAll('[data-sp]').forEach(btn => btn.addEventListener('click', () => printSlip(shown[+btn.getAttribute('data-sp')])));
     box.querySelectorAll('[data-ed]').forEach(btn => btn.addEventListener('click', () => editCust(shown[+btn.getAttribute('data-ed')])));
     box.querySelectorAll('[data-pm]').forEach(btn => btn.addEventListener('click', () => moneyCust(shown[+btn.getAttribute('data-pm')])));
     const more = $('#cuMore'); if (more) more.addEventListener('click', () => { cuLimit += 50; draw(); });
