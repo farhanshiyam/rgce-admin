@@ -585,7 +585,7 @@ function showStatus(cs) {
 }
 const bnDigits2 = s => String(s).replace(/[\u09E6-\u09EF]/g, ch => String(ch.charCodeAt(0) - 0x09E6));
 const TX_RE = /(\d{1,4})[\/.\-](\d{1,2})[\/.\-](\d{1,4}),?\s*(?:(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AaPp][Mm])?)?/;
-function showRecent(cs) {
+function parseTx(cs) {
   const items = []; let mdy = false, dmy = false;
   cs.forEach(c => (Array.isArray(c.transactionHistory) ? c.transactionHistory : []).forEach((x, i) => {
     const raw = bnDigits2(x && x.date || ''), m = raw.match(TX_RE);
@@ -602,6 +602,90 @@ function showRecent(cs) {
     const x = new Date(y, mo - 1, d, hh, mm, ss).getTime(); it.ts = isNaN(x) ? null : x;
   });
   items.sort((a, b) => (b.ts == null ? -1 : b.ts) - (a.ts == null ? -1 : a.ts) || a.i - b.i);
+  return items;
+}
+/* ---------- daily closing report (one printable page for a chosen day) ---------- */
+const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const CL_CSS = '.cl{font-family:Calibri,"Noto Sans Bengali","Nirmala UI",Arial,sans-serif;font-size:11pt;color:#000;line-height:1.2;background:#fff;padding:8px}.cl h2{font-size:15pt;margin:0 0 2pt}.cl h3{font-size:12pt;margin:12pt 0 4pt}.cl p{margin:0 0 6pt}.cl .sc{overflow-x:auto}'
+  + '.cl table{border-collapse:collapse;width:100%}.cl th,.cl td{border:0.5pt solid #000;padding:0 5.4pt;height:15pt;text-align:left;vertical-align:top;background:none;color:#000;font-size:11pt}.cl th{font-weight:700}.cl td.r,.cl th.r{text-align:right}.cl tr{page-break-inside:avoid}.cl thead{display:table-header-group}';
+async function closingData(date, cs) {
+  const out = { cs: cs };
+  if (!BIZ.loaded) { try { const sn = await getFresh(cfgRef()); const d = sn.exists() ? (sn.data() || {}) : {}; BIZ.d = d.dailyBiz && typeof d.dailyBiz === 'object' ? d.dailyBiz : {}; BIZ.p = d.bizPrev && typeof d.bizPrev === 'object' ? d.bizPrev : {}; BIZ.loaded = true; } catch (e) { console.warn(e); out.bizFail = true; } }
+  out.biz = (BIZ.d && BIZ.d[date]) || null;
+  out.tx = parseTx(cs).filter(it => it.ts != null && dayKey(it.ts) === date).sort((a, b) => a.ts - b.ts);
+  const p = date.split('-').map(Number), st = SDK.Timestamp.fromDate(new Date(p[0], p[1] - 1, p[2])), en = SDK.Timestamp.fromDate(new Date(p[0], p[1] - 1, p[2] + 1));
+  const rng = (col, f) => withTimeout(SDK.getDocs(SDK.query(SDK.collection(db, col), SDK.where(f, '>=', st), SDK.where(f, '<', en), SDK.limit(500))), 12000);
+  const cnt = (col, status) => withTimeout(SDK.getDocs(SDK.query(SDK.collection(db, col), SDK.where('status', '==', status), SDK.limit(300))), 12000);
+  const run = async (fn) => { try { return await fn(); } catch (e) { console.warn('closing', e); return null; } };
+  const r = await Promise.all([run(async () => (await rng('orders', 'createdAt')).docs.map(d => d.data())), run(async () => (await rng('payments', 'at')).docs.map(d => d.data())), run(async () => (await cnt('orders', 'new')).size), run(async () => (await cnt('payments', 'pending')).size)]);
+  out.orders = r[0]; out.pays = r[1]; out.ordNew = r[2]; out.payPend = r[3];
+  return out;
+}
+function closingHtml(date, D) {
+  const e = esc, N = n => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const th = (l, r) => '<th' + (r ? ' class="r"' : '') + '>' + e(l) + '</th>', td = (v, r) => '<td' + (r ? ' class="r"' : '') + '>' + e(v == null ? '' : v) + '</td>';
+  const na = pt('Not available (could not load).', '\u09B2\u09CB\u09A1 \u0995\u09B0\u09BE \u09AF\u09BE\u09DF\u09A8\u09BF\u0964');
+  let h = '<div class="cl"><h2>' + e(SHOP_NAME) + '</h2><p><b>' + e(pt('Daily closing report', '\u09A6\u09C8\u09A8\u09BF\u0995 \u0995\u09CD\u09B2\u09CB\u099C\u09BF\u0982 \u09B0\u09BF\u09AA\u09CB\u09B0\u09CD\u099F')) + '</b> \u2013 ' + e(fmtDate(date)) + ' &nbsp;|&nbsp; ' + e(pt('Printed', '\u09AA\u09CD\u09B0\u09BF\u09A8\u09CD\u099F\u09C7\u09B0 \u09B8\u09AE\u09DF')) + ': ' + e(stamp()) + '</p>';
+  /* 1. products added and selling amount */
+  h += '<h3>1. ' + e(pt('Products added & selling amount', '\u09AA\u09A3\u09CD\u09AF \u09AF\u09CB\u0997 \u0993 \u09AC\u09BF\u0995\u09CD\u09B0\u09BF\u09B0 \u09AA\u09B0\u09BF\u09AE\u09BE\u09A3')) + '</h3>';
+  if (D.bizFail) h += '<p>' + e(na) + '</p>';
+  else if (!D.biz) h += '<p>' + e(pt('No entry saved for this day.', '\u098F\u0987 \u09A6\u09BF\u09A8\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF \u0995\u09CB\u09A8\u09CB \u098F\u09A8\u09CD\u099F\u09CD\u09B0\u09BF \u09A8\u09C7\u0987\u0964')) + '</p>';
+  else {
+    const a = Array.isArray(D.biz.a) ? D.biz.a : [0, 0, 0, 0], x = +D.biz.x || 0, added = bzSum(a) + x, sold = +D.biz.s || 0;
+    h += '<div class="sc"><table><thead><tr>' + th(pt('Item', '\u09AC\u09BF\u09AC\u09B0\u09A3')) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+      + BZ_KEYS.map((k, i) => '<tr>' + td(t(k)) + td(N(a[i]), 1) + '</tr>').join('') + (x ? '<tr>' + td(pt('Added (total only)', '\u09AF\u09CB\u0997 (\u09B6\u09C1\u09A7\u09C1 \u09AE\u09CB\u099F)')) + td(N(x), 1) + '</tr>' : '')
+      + '<tr>' + td(pt('Total products added', '\u09AE\u09CB\u099F \u09AA\u09A3\u09CD\u09AF \u09AF\u09CB\u0997')) + '<td class="r"><b>' + e(N(added)) + '</b></td></tr>'
+      + '<tr>' + td(pt('Selling amount', '\u09AC\u09BF\u0995\u09CD\u09B0\u09BF\u09B0 \u09AA\u09B0\u09BF\u09AE\u09BE\u09A3')) + '<td class="r"><b>' + e(N(sold)) + '</b></td></tr></tbody></table></div>';
+  }
+  /* 2. customer ledger */
+  let dueA = 0, payA = 0, dueN = 0, payN = 0;
+  D.tx.forEach(it => { if (/payment/i.test(it.ty)) { payA += it.a; payN++; } else if (/due/i.test(it.ty)) { dueA += it.a; dueN++; } });
+  const outst = D.cs.reduce((s2, c) => s2 + Math.max(0, (+c.due || 0) - (+c.paid || 0)), 0);
+  h += '<h3>2. ' + e(pt('Customer due & collection', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0 \u09AC\u09BE\u0995\u09BF \u0993 \u0986\u09A6\u09BE\u09DF')) + '</h3><div class="sc"><table><thead><tr>' + th(pt('Item', '\u09AC\u09BF\u09AC\u09B0\u09A3')) + th(pt('Entries', '\u09B8\u0982\u0996\u09CD\u09AF\u09BE'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+    + '<tr>' + td(pt('New due added', '\u09A8\u09A4\u09C1\u09A8 \u09AC\u09BE\u0995\u09BF \u09AF\u09CB\u0997')) + td(dueN, 1) + td(N(dueA), 1) + '</tr>'
+    + '<tr>' + td(pt('Payments collected', '\u0986\u09A6\u09BE\u09DF \u09B9\u09DF\u09C7\u099B\u09C7')) + td(payN, 1) + td(N(payA), 1) + '</tr>'
+    + '<tr>' + td(pt('Net change in due (added \u2212 collected)', '\u09AC\u09BE\u0995\u09BF\u09B0 \u09A8\u09C7\u099F \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 (\u09AF\u09CB\u0997 \u2212 \u0986\u09A6\u09BE\u09DF)')) + td('', 1) + '<td class="r"><b>' + e(N(dueA - payA)) + '</b></td></tr>'
+    + '<tr>' + td(pt('Total outstanding due now', '\u098F\u0996\u09A8 \u09AE\u09CB\u099F \u09AC\u09BE\u0995\u09BF')) + td(D.cs.filter(c => (+c.due || 0) - (+c.paid || 0) > 0).length, 1) + '<td class="r"><b>' + e(N(outst)) + '</b></td></tr></tbody></table></div>';
+  if (D.tx.length) {
+    h += '<p style="margin-top:8pt"><b>' + e(pt('Transactions', '\u09B2\u09C7\u09A8\u09A6\u09C7\u09A8')) + '</b></p><div class="sc"><table><thead><tr>' + th('#') + th(pt('Time', '\u09B8\u09AE\u09DF')) + th(pt('Customer', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0')) + th(pt('Type', '\u09A7\u09B0\u09A8')) + th(pt('Note', '\u09A8\u09CB\u099F')) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+      + D.tx.slice(0, 300).map((it, i) => { const ty = /payment/i.test(it.ty) ? pt('Payment', '\u0986\u09A6\u09BE\u09DF') : /due/i.test(it.ty) ? pt('Due', '\u09AC\u09BE\u0995\u09BF') : (it.ty || '-'), d = new Date(it.ts); return '<tr>' + td(i + 1) + td(pad(d.getHours()) + ':' + pad(d.getMinutes())) + td(it.n || '-') + td(ty) + td(it.note) + td(N(it.a), 1) + '</tr>'; }).join('') + '</tbody></table></div>'
+      + (D.tx.length > 300 ? '<p>' + e(pt('Only the first 300 entries are listed.', '\u09B6\u09C1\u09A7\u09C1 \u09AA\u09CD\u09B0\u09A5\u09AE \u09E9\u09E6\u09E6\u099F\u09BF \u098F\u09A8\u09CD\u099F\u09CD\u09B0\u09BF \u09A6\u09C7\u0996\u09BE\u09A8\u09CB \u09B9\u09DF\u09C7\u099B\u09C7\u0964')) + '</p>' : '');
+  } else h += '<p>' + e(pt('No customer transactions on this day.', '\u098F\u0987 \u09A6\u09BF\u09A8\u09C7 \u0995\u09CB\u09A8\u09CB \u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0 \u09B2\u09C7\u09A8\u09A6\u09C7\u09A8 \u09A8\u09C7\u0987\u0964')) + '</p>';
+  /* 3. shop orders */
+  h += '<h3>3. ' + e(pt('Online shop orders', '\u0985\u09A8\u09B2\u09BE\u0987\u09A8 \u09B6\u09AA \u0985\u09B0\u09CD\u09A1\u09BE\u09B0')) + '</h3>';
+  if (D.orders == null) h += '<p>' + e(na) + '</p>';
+  else {
+    const tot = o => Number(o.total) || ((Number(o.subtotal) || 0) + (Number(o.delivery) || 0) + (Number(o.extra) || 0) - (Number(o.discount) || 0));
+    h += '<div class="sc"><table><thead><tr>' + th(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + th(pt('Orders', '\u0985\u09B0\u09CD\u09A1\u09BE\u09B0'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+      + ODS.map(k => { const l = D.orders.filter(o => (o.status || 'new') === k); return '<tr>' + td(odL(k)) + td(l.length, 1) + td(N(l.filter(o => k !== 'cancelled').reduce((s2, o) => s2 + tot(o), 0)), 1) + '</tr>'; }).join('')
+      + '<tr>' + td(pt('Received this day (excluding cancelled)', '\u098F\u0987 \u09A6\u09BF\u09A8\u09C7 \u09AA\u09BE\u0993\u09DF\u09BE (\u09AC\u09BE\u09A4\u09BF\u09B2 \u099B\u09BE\u09DC\u09BE)')) + '<td class="r"><b>' + D.orders.filter(o => o.status !== 'cancelled').length + '</b></td><td class="r"><b>' + e(N(D.orders.filter(o => o.status !== 'cancelled').reduce((s2, o) => s2 + tot(o), 0))) + '</b></td></tr></tbody></table></div>';
+  }
+  if (D.ordNew != null) h += '<p style="margin-top:4pt">' + e(pt('Orders still waiting (New), all days: ', '\u098F\u0996\u09A8\u09CB \u0985\u09AA\u09C7\u0995\u09CD\u09B7\u09BE\u09DF (\u09A8\u09A4\u09C1\u09A8), \u09B8\u09AC \u09A6\u09BF\u09A8: ')) + D.ordNew + '</p>';
+  /* 4. online (TrxID) payments */
+  h += '<h3>4. ' + e(pt('Online payments (TrxID)', '\u0985\u09A8\u09B2\u09BE\u0987\u09A8 \u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F (TrxID)')) + '</h3>';
+  if (D.pays == null) h += '<p>' + e(na) + '</p>';
+  else h += '<div class="sc"><table><thead><tr>' + th(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + th(pt('Payments', '\u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+    + ['approved', 'pending', 'rejected'].map(k => { const l = D.pays.filter(o => (o.status || 'pending') === k); return '<tr>' + td(pyStL(k)) + td(l.length, 1) + td(N(l.reduce((s2, o) => s2 + (Number(o.amount) || 0), 0)), 1) + '</tr>'; }).join('') + '</tbody></table></div>';
+  if (D.payPend != null) h += '<p style="margin-top:4pt">' + e(pt('Payments still pending, all days: ', '\u098F\u0996\u09A8\u09CB \u09AA\u09C7\u09A8\u09CD\u09A1\u09BF\u0982 \u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F, \u09B8\u09AC \u09A6\u09BF\u09A8: ')) + D.payPend + '</p>';
+  return h + '</div>';
+}
+function showClosing(cs) {
+  let date = todayStr(), cur = '', tok = 0;
+  openModal(pt('Daily closing report', '\u09A6\u09C8\u09A8\u09BF\u0995 \u0995\u09CD\u09B2\u09CB\u099C\u09BF\u0982 \u09B0\u09BF\u09AA\u09CB\u09B0\u09CD\u099F'),
+    '<div class="fg"><label for="clDate">' + esc(pt('Date', '\u09A4\u09BE\u09B0\u09BF\u0996')) + '</label><input id="clDate" type="date" value="' + date + '" max="' + todayStr() + '"></div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0"><button type="button" class="btn btn-primary btn-sm" id="clPrint" disabled>' + esc(pt('Print / Save PDF', '\u09AA\u09CD\u09B0\u09BF\u09A8\u09CD\u099F / PDF')) + '</button><button type="button" class="btn btn-sm" id="clRef">' + esc(pt('Refresh', '\u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6')) + '</button></div><div id="clBody"><span class="spin"></span></div>');
+  const run = async () => {
+    const my = ++tok, body = $('#clBody'), pb = $('#clPrint'); if (!body) return; pb.disabled = true; body.innerHTML = '<span class="spin"></span>';
+    let h; try { h = closingHtml(date, await closingData(date, cs)); } catch (er) { console.warn(er); h = '<p class="muted">' + esc(t('ovFail')) + '</p>'; }
+    if (my !== tok || !$('#clBody')) return; cur = h; $('#clBody').innerHTML = '<style>' + CL_CSS + '</style>' + h; $('#clPrint').disabled = h.indexOf('class="cl"') < 0;
+  };
+  $('#clDate').addEventListener('change', e => { if (/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) { date = e.target.value; run(); } });
+  $('#clRef').addEventListener('click', run);
+  $('#clPrint').addEventListener('click', () => { if (cur) printHtml(cur, 'closing-' + date, '@page{size:A4;margin:14mm}body{margin:0;background:#fff}' + CL_CSS); });
+  run();
+}
+function showRecent(cs) {
+  const items = parseTx(cs);
   const ty = x => /payment/i.test(x) ? ['recPay', 'var(--success)', '+'] : /due/i.test(x) ? ['recDue', 'var(--danger)', ''] : ['recAdj', 'var(--muted)', ''];
   const top = items.slice(0, 15);
   const h = '<p class="muted" style="margin-top:0">' + esc(t('recNote')) + '</p>' + (top.length ? top.map(it => {
@@ -1360,12 +1444,13 @@ async function tabOverview() {
       box.innerHTML = '<div class="grid">' + st(t('ovCust'), cs.length) + st(t('ovInv'), d.invoiceCount != null ? d.invoiceCount : (Array.isArray(d.invoices) ? d.invoices.length : 0))
         + st(t('ovOut'), money(out), out > 0) + st(t('ovWith'), withDue) + st(t('ovBilled'), money(billed)) + st(t('ovRecv'), money(recv))
         + st(t('ovSync'), fmtDT(d.updatedAt)) + st(t('ovVer'), d.appVersion || '—') + '</div>' + rate
-        + '<div style="margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:10px"><button type="button" class="lnk" id="ovBiz" aria-expanded="false" aria-controls="bizHost">' + esc(t('bizLnk')) + '</button><button type="button" class="lnk" id="ovSta">' + esc(t('staLnk')) + '</button><button type="button" class="lnk" id="ovRec">' + esc(t('recLnk')) + '</button><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button></div><div id="bizHost" class="bz-host" hidden></div>';
+        + '<div style="margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:10px"><button type="button" class="lnk" id="ovBiz" aria-expanded="false" aria-controls="bizHost">' + esc(t('bizLnk')) + '</button><button type="button" class="lnk" id="ovSta">' + esc(t('staLnk')) + '</button><button type="button" class="lnk" id="ovRec">' + esc(t('recLnk')) + '</button><button type="button" class="lnk" id="ovNew">' + esc(t('newLnk')) + '</button><button type="button" class="lnk" id="ovClose">' + esc(pt('Daily closing report', '\u09A6\u09C8\u09A8\u09BF\u0995 \u0995\u09CD\u09B2\u09CB\u099C\u09BF\u0982 \u09B0\u09BF\u09AA\u09CB\u09B0\u09CD\u099F')) + '</button></div><div id="bizHost" class="bz-host" hidden></div>';
       if (keepBiz) {
         const nh = $('#bizHost'); if (nh) nh.replaceWith(keepBiz);
         const bl = $('#ovBiz'); if (bl) bl.setAttribute('aria-expanded', keepBiz.hidden ? 'false' : 'true');
       }
       $('#ovNew').addEventListener('click', () => showNew(cs));
+      $('#ovClose').addEventListener('click', () => showClosing(cs));
       $('#ovSta').addEventListener('click', () => showStatus(cs));
       $('#ovBiz').addEventListener('click', toggleBiz);
       $('#ovRec').addEventListener('click', () => showRecent(cs));
