@@ -94,7 +94,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
 .tbl-wrap:empty{display:none}
 #cuTbl{border:0;border-radius:0}
-.wd.cu{min-width:860px}.wd.cu th{text-align:center}.wd.cu td{text-align:center;vertical-align:middle}.wd.cu td.num{text-align:center;white-space:nowrap}.wd.cu td.act{text-align:center;white-space:nowrap}.act-wrap{display:inline-flex;flex-wrap:nowrap;justify-content:center;gap:4px;align-items:center}.wd.cu .sbtn{min-width:0;height:28px;padding:0 9px;gap:4px;font-size:12px;border-radius:6px}.wd.cu .sbtn svg{width:13px;height:13px}.wd.cu tfoot td{font-weight:700}
+.wd.cu{min-width:860px}.wd.cu th{text-align:center}.wd.cu td{text-align:center;vertical-align:middle}.wd.cu td.num{text-align:center;white-space:nowrap}.wd.cu td.act{text-align:center;white-space:nowrap}.act-wrap{display:inline-flex;flex-wrap:nowrap;justify-content:center;gap:4px;align-items:center}.wd.cu .sbtn{min-width:0;height:28px;padding:0 9px;gap:4px;font-size:12px;border-radius:6px}.wd.cu .sbtn svg{width:13px;height:13px}.wd.cu .sbtn,.wd.cu .sbtn.solid{background:var(--text);color:var(--panel);border-color:var(--text)}.wd.cu .sbtn:hover:not(:disabled){background:var(--text);color:var(--panel);filter:opacity(.8)}.wd.cu .sbtn:focus-visible{outline-color:var(--text)}.wd.cu tfoot td{font-weight:700}
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:84px;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--primary);background:transparent;color:var(--primary);font:inherit;font-size:13px;font-weight:600;line-height:1;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
 .sbtn svg{width:16px;height:16px;flex:none}
 .sbtn:hover:not(:disabled){background:var(--primary);color:#fff}
@@ -1195,9 +1195,22 @@ function paintOrderBadge() {
   b.textContent = n > 99 ? '99+' : n;
 }
 function ordersChanged() { paintOrderBadge(); if (tab === 'orders' && $('#odList') && !OD.edit) drawOrders(); }
+async function odRefresh() {
+  const b = $('#odRef'), lbl = b ? b.textContent : ''; if (b) { if (b.disabled) return; b.disabled = true; b.textContent = '\u2026'; }
+  setMsg('odMsg', '');
+  try {
+    if (OD.unsub) { try { OD.unsub(); } catch (x) {} OD.unsub = null; } OD.started = false;
+    const q = SDK.query(SDK.collection(db, 'orders'), SDK.orderBy('createdAt', 'desc'), SDK.limit(300));
+    let snap; try { snap = await withTimeout(SDK.getDocsFromServer(q), 12000); } catch (e) { if (e && e.code === 'permission-denied') throw e; snap = await withTimeout(SDK.getDocs(q), 8000); }
+    OD.list = snap.docs.map(d => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' }))); OD.err = '';
+    paintOrderBadge(); if (tab === 'orders') drawOrders();
+    const n = new Date(); setMsg('odMsg', pt('Refreshed ', '\u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 ') + pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds()), 'ok');
+  } catch (e) { console.warn('orders refresh', e); setMsg('odMsg', pt('Could not refresh orders. Check the internet and try again.', '\u0985\u09B0\u09CD\u09A1\u09BE\u09B0 \u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6 \u0995\u09B0\u09BE \u09AF\u09BE\u09AF\u09BC\u09A8\u09BF\u0964 \u0987\u09A8\u09CD\u099F\u09BE\u09B0\u09A8\u09C7\u099F \u09A6\u09C7\u0996\u09C7 \u0986\u09AC\u09BE\u09B0 \u099A\u09C7\u09B7\u09CD\u099F\u09BE \u0995\u09B0\u09C1\u09A8\u0964')); }
+  finally { startOrders(); const b2 = $('#odRef'); if (b2) { b2.disabled = false; b2.textContent = lbl || pt('Refresh', '\u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6'); } }
+}
 async function tabOrders() {
   OD.edit = ''; OD.draft = null; startOrders();
-  $('#tabBody').innerHTML = '<div class="card"><h2>' + esc(t('tOrd')) + '</h2><p class="muted">' + esc(pt('Cash-on-delivery orders from the shop site arrive here live.', 'শপ সাইট থেকে ক্যাশ অন ডেলিভারি অর্ডার এখানে সাথে সাথে আসে।')) + '</p>'
+  $('#tabBody').innerHTML = '<div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h2 style="margin:0">' + esc(t('tOrd')) + '</h2><button type="button" class="btn btn-sm" id="odRef" data-orf="1">' + esc(pt('Refresh', '\u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6')) + '</button></div><p class="muted">' + esc(pt('Cash-on-delivery orders from the shop site arrive here live.', 'শপ সাইট থেকে ক্যাশ অন ডেলিভারি অর্ডার এখানে সাথে সাথে আসে।')) + '</p>'
     + '<div id="odChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0"></div><div id="odList"></div><div class="msg" id="odMsg" role="status"></div></div>';
   drawOrders();
 }
@@ -1307,6 +1320,7 @@ async function odSave() {
 }
 document.addEventListener('click', async e => {
   if (tab !== 'orders') return; const g = k => { const n = e.target.closest && e.target.closest('[' + k + ']'); return n ? n.getAttribute(k) : null; };
+  if (g('data-orf') !== null) { odRefresh(); return; }
   const f = g('data-of'); if (f) { OD.f = f; drawOrders(); return; }
   const del = g('data-od'); if (del) { if (!confirm(pt('Delete this order?', 'অর্ডারটি মুছবেন?'))) return; try { await SDK.deleteDoc(doc(db, 'orders', del)); } catch (x) { console.warn(x); setMsg('odMsg', pt('Failed to delete.', 'মোছা যায়নি।')); } return; }
   const ed = g('data-oe'); if (ed) { const o = OD.list.find(x => x.id === ed); if (!o) return; OD.edit = ed; OD.draft = { name: o.name || '', phone: o.phone || '', area: o.area || '', address: o.address || '', note: o.note || '', delivery: Number(o.delivery) || 0, discount: Number(o.discount) || 0, extra: Number(o.extra) || 0, status: o.status || 'new', items: (Array.isArray(o.items) ? o.items : []).map(i => ({ name: i.name, qty: i.qty, price: i.price })) }; drawOrders(); return; }
@@ -2816,7 +2830,7 @@ function pyDrawTabs() {
 function pyDraw() {
   const root = $('#pyRoot'); if (!root) return;
   let h = '<div class="card"><div class="py-head"><div><h2>' + esc(t('tPay')) + '</h2><p class="muted" style="margin:2px 0 0">' + esc(pt('Show your bKash, Nagad, Rocket, Upay and bank details to customers, and verify the TrxID they submit.', 'কাস্টমারকে আপনার বিকাশ, নগদ, রকেট, উপায় ও ব্যাংকের তথ্য দেখান এবং তাদের জমা দেওয়া TrxID যাচাই করুন।')) + '</p></div>'
-    + '<div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-sm" data-a="rules" type="button">' + esc(pt('Firestore rules', 'Firestore rules')) + '</button></div></div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-sm" data-a="refresh" id="pyRef" type="button">' + esc(pt('Refresh', '\u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6')) + '</button><button class="btn btn-sm" data-a="rules" type="button">' + esc(pt('Firestore rules', 'Firestore rules')) + '</button></div></div>'
     + '<div class="py-tabs" id="pyTabs"></div>';
   if (PY.err || PY.sErr) h += '<div class="msg" role="alert" style="margin-top:10px">' + esc(pt('Could not load (', 'লোড করা যায়নি (') + (PY.err || PY.sErr) + pt('). Add the Firestore rules shown under "Firestore rules", then reload.', ')। "Firestore rules" বাটনের রুলস যোগ করে রিলোড দিন।')) + '</div>';
   h += '</div><div id="pyBody"></div><div class="msg" id="pyMsg" role="status"></div>';
@@ -2824,10 +2838,24 @@ function pyDraw() {
   if (PY.view === 'methods') pyDrawMethods(); else if (PY.view === 'set') pyDrawSet(); else pyDrawSubBase();
 }
 /* ---- submissions ---- */
+async function pyRefresh() {
+  const b = $('#pyRef'), lbl = b ? b.textContent : ''; if (b) { if (b.disabled) return; b.disabled = true; b.textContent = '\u2026'; }
+  setMsg('pyMsg', '');
+  try {
+    if (PY.unsub) { try { PY.unsub(); } catch (x) {} PY.unsub = null; } if (PY.unsubS) { try { PY.unsubS(); } catch (x) {} PY.unsubS = null; } PY.started = false;
+    const q = SDK.query(SDK.collection(db, 'payments'), SDK.orderBy('at', 'desc'), SDK.limit(500));
+    let snap; try { snap = await withTimeout(SDK.getDocsFromServer(q), 12000); } catch (e) { if (e && e.code === 'permission-denied') throw e; snap = await withTimeout(SDK.getDocs(q), 8000); }
+    PY.list = snap.docs.map(d => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' }))); PY.err = ''; PY.ready = true;
+    if (PY.view !== 'set') { try { const ss = await getFresh(doc(db, 'payment_settings', 'main')); PY.settings = pySet(ss.exists() ? ss.data() : { notice: pyDefNotice() }); PY.sLoaded = true; PY.sErr = ''; } catch (e) { console.warn('payment_settings refresh', e); } }
+    payChanged();
+    const n = new Date(); setMsg('pyMsg', pt('Refreshed ', '\u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 ') + pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds()), 'ok');
+  } catch (e) { console.warn('payments refresh', e); setMsg('pyMsg', pt('Could not refresh payments. Check the internet and try again.', '\u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F \u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6 \u0995\u09B0\u09BE \u09AF\u09BE\u09AF\u09BC\u09A8\u09BF\u0964 \u0987\u09A8\u09CD\u099F\u09BE\u09B0\u09A8\u09C7\u099F \u09A6\u09C7\u0996\u09C7 \u0986\u09AC\u09BE\u09B0 \u099A\u09C7\u09B7\u09CD\u099F\u09BE \u0995\u09B0\u09C1\u09A8\u0964')); }
+  finally { startPay(); const b2 = $('#pyRef'); if (b2) { b2.disabled = false; b2.textContent = lbl || pt('Refresh', '\u09B0\u09BF\u09AB\u09CD\u09B0\u09C7\u09B6'); } }
+}
 function pyDrawSubBase() {
   const b = $('#pyBody'); if (!b) return;
   b.innerHTML = '<div class="card"><div class="py-sum" id="pySum"></div><div class="py-chips" id="pyChips"></div>'
-    + '<div class="py-tools"><input id="pyQ" type="search" autocomplete="off" placeholder="' + esc(pt('Search name, phone or TrxID', 'নাম, ফোন বা TrxID খুঁজুন')) + '" value="' + esc(PY.q) + '"><button class="btn btn-sm" type="button" data-a="csv">' + esc(pt('Download CSV', 'CSV ডাউনলোড')) + '</button></div>'
+    + '<div class="py-tools"><input id="pyQ" type="search" autocomplete="off" placeholder="' + esc(pt('Search name, phone or TrxID', 'নাম, ফোন বা TrxID খুঁজুন')) + '" value="' + esc(PY.q) + '"><button class="btn btn-sm" type="button" data-a="print">' + esc(pt('Print', '\u09AA\u09CD\u09B0\u09BF\u09A8\u09CD\u099F')) + '</button><button class="btn btn-sm" type="button" data-a="csv">' + esc(pt('Download CSV', 'CSV ডাউনলোড')) + '</button></div>'
     + '<div id="pyRows"></div></div>';
   pyDrawSum(); pyDrawChips(); pyDrawRows();
 }
@@ -2856,11 +2884,28 @@ function pyCard(p) {
     + '<div class="py-acts">' + (st !== 'approved' ? bt('ok', pt('Approve', 'অ্যাপ্রুভ'), 'btn-primary') : '') + (st !== 'rejected' ? bt('no', pt('Reject', 'বাতিল')) : '') + (st !== 'pending' ? bt('re', pt('Back to pending', 'পেন্ডিংয়ে ফেরান')) : '')
     + '<button class="btn btn-sm" type="button" data-a="cp" data-v="' + esc(p.trxId) + '">' + esc(pt('Copy TrxID', 'TrxID কপি')) + '</button><a class="btn btn-sm" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' + bt('del', pt('Delete', 'মুছুন'), 'btn-danger') + '</div></div>';
 }
+function pyVisible() {
+  const q = PY.q.trim().toLowerCase(), qd = pyTrx(PY.q);
+  return PY.list.filter(o => (PY.f === 'all' || o.status === PY.f) && (!q || String(o.name || '').toLowerCase().includes(q) || String(o.phone || '').includes(q) || (qd && pyTrx(o.trxId).includes(qd))));
+}
+/* print the payment list currently shown (filter + search) as a plain MS Word style "Table Grid" table */
+function pyPrint() {
+  const rows = pyVisible(); if (!rows.length) { setMsg('pyMsg', pt('No payments to print.', '\u09AA\u09CD\u09B0\u09BF\u09A8\u09CD\u099F \u0995\u09B0\u09BE\u09B0 \u09AE\u09A4\u09CB \u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F \u09A8\u09C7\u0987\u0964')); return; }
+  const th = a => '<th>' + esc(a) + '</th>', td = (v, al) => '<td' + (al ? ' style="text-align:' + al + '"' : '') + '>' + esc(v == null ? '' : v) + '</td>';
+  let total = 0;
+  const body = rows.map((p, i) => { total += Number(p.amount) || 0; return '<tr>' + td(i + 1) + td(pyRef(p.id)) + td(pyWhen(p.at)) + td(p.name) + td(p.phone) + td(p.methodLabel || (PY_T[p.method] || {}).l || p.method) + td(p.trxId) + td(pyNum(p.amount), 'right') + td(pyStL(p.status || 'pending')) + '</tr>'; }).join('');
+  const head = '<tr>' + th('#') + th(pt('Ref', '\u09B0\u09C7\u09AB')) + th(pt('Date', '\u09A4\u09BE\u09B0\u09BF\u0996')) + th(pt('Name', '\u09A8\u09BE\u09AE')) + th(pt('Phone', '\u09AB\u09CB\u09A8')) + th(pt('Method', '\u09AE\u09BE\u09A7\u09CD\u09AF\u09AE')) + th('TrxID') + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3')) + th(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + '</tr>';
+  const foot = '<tr><td colspan="7" style="text-align:right"><b>' + esc(pt('Total', '\u09AE\u09CB\u099F')) + ' (' + rows.length + ')</b></td><td style="text-align:right"><b>' + esc(pyNum(total)) + '</b></td><td></td></tr>';
+  const html = '<div class="pyp"><h2>' + esc(SHOP_NAME) + ' \u2013 ' + esc(pt('Payment list', '\u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F \u09A4\u09BE\u09B2\u09BF\u0995\u09BE')) + '</h2><p>' + esc(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + ': ' + esc(pyStL(PY.f)) + (PY.q.trim() ? ' | ' + esc(pt('Search', '\u09B8\u09BE\u09B0\u09CD\u099A')) + ': ' + esc(PY.q.trim()) : '') + ' | ' + esc(pt('Printed', '\u09AA\u09CD\u09B0\u09BF\u09A8\u09CD\u099F\u09C7\u09B0 \u09B8\u09AE\u09AF\u09BC')) + ': ' + esc(stamp()) + '</p>'
+    + '<table><thead>' + head + '</thead><tbody>' + body + foot + '</tbody></table></div>';
+  const css = '@page{size:A4 landscape;margin:14mm}body{margin:0;background:#fff}.pyp{font-family:Calibri,"Noto Sans Bengali","Nirmala UI",Arial,sans-serif;font-size:11pt;color:#000;line-height:1.15}.pyp h2{font-size:14pt;font-weight:700;margin:0 0 4pt;color:#000}.pyp p{margin:0 0 8pt}'
+    + '.pyp table{border-collapse:collapse;width:100%}.pyp th,.pyp td{border:0.5pt solid #000;padding:0 5.4pt;height:15pt;text-align:left;vertical-align:top;background:none;color:#000;font-size:11pt}.pyp th{font-weight:700}.pyp thead{display:table-header-group}.pyp tr{page-break-inside:avoid}';
+  printHtml(html, 'payments-' + todayStr(), css);
+}
 function pyDrawRows() {
   const el = $('#pyRows'); if (!el) return;
   PY.dup = {}; PY.list.forEach(o => { const k = pyTrx(o.trxId); if (k) PY.dup[k] = (PY.dup[k] || 0) + 1; });
-  const q = PY.q.trim().toLowerCase(), qd = pyTrx(PY.q);
-  const rows = PY.list.filter(o => (PY.f === 'all' || o.status === PY.f) && (!q || String(o.name || '').toLowerCase().includes(q) || String(o.phone || '').includes(q) || (qd && pyTrx(o.trxId).includes(qd))));
+  const rows = pyVisible();
   el.innerHTML = rows.length ? rows.map(pyCard).join('') : '<p class="muted">' + (PY.ready ? esc(pt('No payments here yet.', 'এখানে এখনো কোনো পেমেন্ট নেই।')) : '<span class="spin"></span>') + '</p>';
 }
 /* ---- payment methods ---- */
@@ -2985,7 +3030,9 @@ function pyClick(e) {
   if (a === 'view') { PY.view = v; pyDraw(); }
   else if (a === 'f') { PY.f = v; pyDrawChips(); pyDrawRows(); }
   else if (a === 'rules') pyOpenRules();
+  else if (a === 'refresh') pyRefresh();
   else if (a === 'csv') pyCsv();
+  else if (a === 'print') pyPrint();
   else if (a === 'cp') { try { navigator.clipboard.writeText(v); setMsg('pyMsg', pt('Copied.', 'কপি হয়েছে।'), 'ok'); } catch (x) {} }
   else if (a === 'ok') pyReview(id, 'approved');
   else if (a === 'no') pyReview(id, 'rejected');
