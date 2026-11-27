@@ -673,7 +673,6 @@ function closingHtml(date, D) {
   else h += '<div class="sc"><table class="dt">' + cg(60, 20, 20) + '<thead><tr>' + th(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + th(pt('Payments', '\u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
     + ['approved', 'pending', 'rejected'].map(k => { const l = D.pays.filter(o => (o.status || 'pending') === k); return '<tr>' + td(pyStL(k)) + td(l.length, 1) + td(N(l.reduce((s2, o) => s2 + (Number(o.amount) || 0), 0)), 1) + '</tr>'; }).join('') + '</tbody></table></div>';
   if (D.payPend != null) h += '<p style="margin-top:4pt">' + e(pt('Payments still pending, all days: ', '\u098F\u0996\u09A8\u09CB \u09AA\u09C7\u09A8\u09CD\u09A1\u09BF\u0982 \u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F, \u09B8\u09AC \u09A6\u09BF\u09A8: ')) + D.payPend + '</p>';
-  h += '<div class="sg"><div>' + e(pt('Prepared by', '\u09AA\u09CD\u09B0\u09B8\u09CD\u09A4\u09C1\u09A4\u0995\u09BE\u09B0\u09C0')) + '</div><div>' + e(pt('Checked by', '\u09AF\u09BE\u099A\u09BE\u0987\u0995\u09BE\u09B0\u09C0')) + '</div></div>';
   return h + bzPrintFoot();   // same footer as the other reports (closes the .rp wrapper)
 }
 function showClosing(cs) {
