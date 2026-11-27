@@ -606,8 +606,7 @@ function parseTx(cs) {
 }
 /* ---------- daily closing report (one printable page for a chosen day) ---------- */
 const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
-const CL_CSS = '.cl{font-family:Calibri,"Noto Sans Bengali","Nirmala UI",Arial,sans-serif;font-size:11pt;color:#000;line-height:1.2;background:#fff;padding:8px}.cl h2{font-size:15pt;margin:0 0 2pt}.cl h3{font-size:12pt;margin:12pt 0 4pt}.cl p{margin:0 0 6pt}.cl .sc{overflow-x:auto}'
-  + '.cl table{border-collapse:collapse;width:100%}.cl th,.cl td{border:0.5pt solid #000;padding:0 5.4pt;height:15pt;text-align:left;vertical-align:top;background:none;color:#000;font-size:11pt}.cl th{font-weight:700}.cl td.r,.cl th.r{text-align:right}.cl tr{page-break-inside:avoid}.cl thead{display:table-header-group}';
+const CL_CSS = '.rp.cl h2{margin:16px 0 2px}.rp.cl h3{margin:14px 0 5px;font-size:13px;color:#1a193b}.rp.cl p{margin:0 0 6px}.rp.cl .sc{overflow-x:auto}.rp.cl .dt td.lf{text-align:left}.rp.cl .sg{display:flex;gap:40px;margin:26px 0 6px;font-size:11px;color:#4a5766}.rp.cl .sg div{flex:1;border-top:1px solid #000;padding-top:4px;text-align:center}';
 async function closingData(date, cs) {
   const out = { cs: cs };
   if (!BIZ.loaded) { try { const sn = await getFresh(cfgRef()); const d = sn.exists() ? (sn.data() || {}) : {}; BIZ.d = d.dailyBiz && typeof d.dailyBiz === 'object' ? d.dailyBiz : {}; BIZ.p = d.bizPrev && typeof d.bizPrev === 'object' ? d.bizPrev : {}; BIZ.loaded = true; } catch (e) { console.warn(e); out.bizFail = true; } }
@@ -623,16 +622,23 @@ async function closingData(date, cs) {
 }
 function closingHtml(date, D) {
   const e = esc, N = n => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
-  const th = (l, r) => '<th' + (r ? ' class="r"' : '') + '>' + e(l) + '</th>', td = (v, r) => '<td' + (r ? ' class="r"' : '') + '>' + e(v == null ? '' : v) + '</td>';
+  const th = l => '<th>' + e(l) + '</th>', td = v => '<td>' + e(v == null ? '' : v) + '</td>';
+  const cg = (...w) => '<colgroup>' + w.map(x => '<col style="width:' + x + '%">').join('') + '</colgroup>';
   const na = pt('Not available (could not load).', '\u09B2\u09CB\u09A1 \u0995\u09B0\u09BE \u09AF\u09BE\u09DF\u09A8\u09BF\u0964');
-  let h = '<div class="cl"><h2>' + e(SHOP_NAME) + '</h2><p><b>' + e(pt('Daily closing report', '\u09A6\u09C8\u09A8\u09BF\u0995 \u0995\u09CD\u09B2\u09CB\u099C\u09BF\u0982 \u09B0\u09BF\u09AA\u09CB\u09B0\u09CD\u099F')) + '</b> \u2013 ' + e(fmtDate(date)) + ' &nbsp;|&nbsp; ' + e(pt('Printed', '\u09AA\u09CD\u09B0\u09BF\u09A8\u09CD\u099F\u09C7\u09B0 \u09B8\u09AE\u09DF')) + ': ' + e(stamp()) + '</p>';
+  const a0 = D.biz && Array.isArray(D.biz.a) ? D.biz.a : [0, 0, 0, 0], addT = D.biz ? bzSum(a0) + (+D.biz.x || 0) : null, soldT = D.biz ? (+D.biz.s || 0) : null;
+  let cdue = 0, cpay = 0; D.tx.forEach(it => { if (/payment/i.test(it.ty)) cpay += it.a; else if (/due/i.test(it.ty)) cdue += it.a; });
+  const sm = (l, v) => '<div><small>' + e(l) + '</small><b>' + e(v) + '</b></div>';
+  let h = '<div class="rp cl"><div class="lh"><img class="lgi" src="' + e(REPORT_ICON) + '" alt="' + e(SHOP_NAME) + '" onerror="this.style.display=\'none\';this.parentNode.className+=\' nologo\'"><div class="lg">RGCE</div><div class="lt"><h1 class="nm">' + e(SHOP_NAME) + '</h1><p class="tg">' + e(SHOP_TAG) + '</p><p>' + e(SHOP_ADDR) + ' \u2022 ' + e(SHOP_PHONE) + '</p></div>'
+    + '<div class="rn"><b>DAILY CLOSING</b><span>' + e(pt('Date', '\u09A4\u09BE\u09B0\u09BF\u0996')) + ': ' + e(fmtDate(date)) + '</span><span>' + e(pt('Printed', '\u09AA\u09CD\u09B0\u09BF\u09A8\u09CD\u099F\u09C7\u09B0 \u09B8\u09AE\u09DF')) + ': ' + e(stamp()) + '</span></div></div>'
+    + '<h2>' + e(pt('Daily closing report', '\u09A6\u09C8\u09A8\u09BF\u0995 \u0995\u09CD\u09B2\u09CB\u099C\u09BF\u0982 \u09B0\u09BF\u09AA\u09CB\u09B0\u09CD\u099F')) + '</h2>'
+    + '<div class="sum">' + sm(pt('Products added', '\u09AA\u09A3\u09CD\u09AF \u09AF\u09CB\u0997'), addT == null ? '-' : N(addT)) + sm(pt('Selling amount', '\u09AC\u09BF\u0995\u09CD\u09B0\u09BF'), soldT == null ? '-' : N(soldT)) + sm(pt('Collected', '\u0986\u09A6\u09BE\u09DF'), N(cpay)) + sm(pt('New due', '\u09A8\u09A4\u09C1\u09A8 \u09AC\u09BE\u0995\u09BF'), N(cdue)) + '</div>';
   /* 1. products added and selling amount */
   h += '<h3>1. ' + e(pt('Products added & selling amount', '\u09AA\u09A3\u09CD\u09AF \u09AF\u09CB\u0997 \u0993 \u09AC\u09BF\u0995\u09CD\u09B0\u09BF\u09B0 \u09AA\u09B0\u09BF\u09AE\u09BE\u09A3')) + '</h3>';
   if (D.bizFail) h += '<p>' + e(na) + '</p>';
   else if (!D.biz) h += '<p>' + e(pt('No entry saved for this day.', '\u098F\u0987 \u09A6\u09BF\u09A8\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF \u0995\u09CB\u09A8\u09CB \u098F\u09A8\u09CD\u099F\u09CD\u09B0\u09BF \u09A8\u09C7\u0987\u0964')) + '</p>';
   else {
     const a = Array.isArray(D.biz.a) ? D.biz.a : [0, 0, 0, 0], x = +D.biz.x || 0, added = bzSum(a) + x, sold = +D.biz.s || 0;
-    h += '<div class="sc"><table><thead><tr>' + th(pt('Item', '\u09AC\u09BF\u09AC\u09B0\u09A3')) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+    h += '<div class="sc"><table class="dt">' + cg(70, 30) + '<thead><tr>' + th(pt('Item', '\u09AC\u09BF\u09AC\u09B0\u09A3')) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
       + BZ_KEYS.map((k, i) => '<tr>' + td(t(k)) + td(N(a[i]), 1) + '</tr>').join('') + (x ? '<tr>' + td(pt('Added (total only)', '\u09AF\u09CB\u0997 (\u09B6\u09C1\u09A7\u09C1 \u09AE\u09CB\u099F)')) + td(N(x), 1) + '</tr>' : '')
       + '<tr>' + td(pt('Total products added', '\u09AE\u09CB\u099F \u09AA\u09A3\u09CD\u09AF \u09AF\u09CB\u0997')) + '<td class="r"><b>' + e(N(added)) + '</b></td></tr>'
       + '<tr>' + td(pt('Selling amount', '\u09AC\u09BF\u0995\u09CD\u09B0\u09BF\u09B0 \u09AA\u09B0\u09BF\u09AE\u09BE\u09A3')) + '<td class="r"><b>' + e(N(sold)) + '</b></td></tr></tbody></table></div>';
@@ -641,13 +647,13 @@ function closingHtml(date, D) {
   let dueA = 0, payA = 0, dueN = 0, payN = 0;
   D.tx.forEach(it => { if (/payment/i.test(it.ty)) { payA += it.a; payN++; } else if (/due/i.test(it.ty)) { dueA += it.a; dueN++; } });
   const outst = D.cs.reduce((s2, c) => s2 + Math.max(0, (+c.due || 0) - (+c.paid || 0)), 0);
-  h += '<h3>2. ' + e(pt('Customer due & collection', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0 \u09AC\u09BE\u0995\u09BF \u0993 \u0986\u09A6\u09BE\u09DF')) + '</h3><div class="sc"><table><thead><tr>' + th(pt('Item', '\u09AC\u09BF\u09AC\u09B0\u09A3')) + th(pt('Entries', '\u09B8\u0982\u0996\u09CD\u09AF\u09BE'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+  h += '<h3>2. ' + e(pt('Customer due & collection', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0 \u09AC\u09BE\u0995\u09BF \u0993 \u0986\u09A6\u09BE\u09DF')) + '</h3><div class="sc"><table class="dt">' + cg(60, 20, 20) + '<thead><tr>' + th(pt('Item', '\u09AC\u09BF\u09AC\u09B0\u09A3')) + th(pt('Entries', '\u09B8\u0982\u0996\u09CD\u09AF\u09BE'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
     + '<tr>' + td(pt('New due added', '\u09A8\u09A4\u09C1\u09A8 \u09AC\u09BE\u0995\u09BF \u09AF\u09CB\u0997')) + td(dueN, 1) + td(N(dueA), 1) + '</tr>'
     + '<tr>' + td(pt('Payments collected', '\u0986\u09A6\u09BE\u09DF \u09B9\u09DF\u09C7\u099B\u09C7')) + td(payN, 1) + td(N(payA), 1) + '</tr>'
     + '<tr>' + td(pt('Net change in due (added \u2212 collected)', '\u09AC\u09BE\u0995\u09BF\u09B0 \u09A8\u09C7\u099F \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 (\u09AF\u09CB\u0997 \u2212 \u0986\u09A6\u09BE\u09DF)')) + td('', 1) + '<td class="r"><b>' + e(N(dueA - payA)) + '</b></td></tr>'
     + '<tr>' + td(pt('Total outstanding due now', '\u098F\u0996\u09A8 \u09AE\u09CB\u099F \u09AC\u09BE\u0995\u09BF')) + td(D.cs.filter(c => (+c.due || 0) - (+c.paid || 0) > 0).length, 1) + '<td class="r"><b>' + e(N(outst)) + '</b></td></tr></tbody></table></div>';
   if (D.tx.length) {
-    h += '<p style="margin-top:8pt"><b>' + e(pt('Transactions', '\u09B2\u09C7\u09A8\u09A6\u09C7\u09A8')) + '</b></p><div class="sc"><table><thead><tr>' + th('#') + th(pt('Time', '\u09B8\u09AE\u09DF')) + th(pt('Customer', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0')) + th(pt('Type', '\u09A7\u09B0\u09A8')) + th(pt('Note', '\u09A8\u09CB\u099F')) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+    h += '<p style="margin-top:8pt"><b>' + e(pt('Transactions', '\u09B2\u09C7\u09A8\u09A6\u09C7\u09A8')) + '</b></p><div class="sc"><table class="dt">' + cg(6, 10, 28, 12, 28, 16) + '<thead><tr>' + th('#') + th(pt('Time', '\u09B8\u09AE\u09DF')) + th(pt('Customer', '\u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0')) + th(pt('Type', '\u09A7\u09B0\u09A8')) + th(pt('Note', '\u09A8\u09CB\u099F')) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
       + D.tx.slice(0, 300).map((it, i) => { const ty = /payment/i.test(it.ty) ? pt('Payment', '\u0986\u09A6\u09BE\u09DF') : /due/i.test(it.ty) ? pt('Due', '\u09AC\u09BE\u0995\u09BF') : (it.ty || '-'), d = new Date(it.ts); return '<tr>' + td(i + 1) + td(pad(d.getHours()) + ':' + pad(d.getMinutes())) + td(it.n || '-') + td(ty) + td(it.note) + td(N(it.a), 1) + '</tr>'; }).join('') + '</tbody></table></div>'
       + (D.tx.length > 300 ? '<p>' + e(pt('Only the first 300 entries are listed.', '\u09B6\u09C1\u09A7\u09C1 \u09AA\u09CD\u09B0\u09A5\u09AE \u09E9\u09E6\u09E6\u099F\u09BF \u098F\u09A8\u09CD\u099F\u09CD\u09B0\u09BF \u09A6\u09C7\u0996\u09BE\u09A8\u09CB \u09B9\u09DF\u09C7\u099B\u09C7\u0964')) + '</p>' : '');
   } else h += '<p>' + e(pt('No customer transactions on this day.', '\u098F\u0987 \u09A6\u09BF\u09A8\u09C7 \u0995\u09CB\u09A8\u09CB \u0995\u09BE\u09B8\u09CD\u099F\u09AE\u09BE\u09B0 \u09B2\u09C7\u09A8\u09A6\u09C7\u09A8 \u09A8\u09C7\u0987\u0964')) + '</p>';
@@ -656,7 +662,7 @@ function closingHtml(date, D) {
   if (D.orders == null) h += '<p>' + e(na) + '</p>';
   else {
     const tot = o => Number(o.total) || ((Number(o.subtotal) || 0) + (Number(o.delivery) || 0) + (Number(o.extra) || 0) - (Number(o.discount) || 0));
-    h += '<div class="sc"><table><thead><tr>' + th(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + th(pt('Orders', '\u0985\u09B0\u09CD\u09A1\u09BE\u09B0'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+    h += '<div class="sc"><table class="dt">' + cg(60, 20, 20) + '<thead><tr>' + th(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + th(pt('Orders', '\u0985\u09B0\u09CD\u09A1\u09BE\u09B0'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
       + ODS.map(k => { const l = D.orders.filter(o => (o.status || 'new') === k); return '<tr>' + td(odL(k)) + td(l.length, 1) + td(N(l.filter(o => k !== 'cancelled').reduce((s2, o) => s2 + tot(o), 0)), 1) + '</tr>'; }).join('')
       + '<tr>' + td(pt('Received this day (excluding cancelled)', '\u098F\u0987 \u09A6\u09BF\u09A8\u09C7 \u09AA\u09BE\u0993\u09DF\u09BE (\u09AC\u09BE\u09A4\u09BF\u09B2 \u099B\u09BE\u09DC\u09BE)')) + '<td class="r"><b>' + D.orders.filter(o => o.status !== 'cancelled').length + '</b></td><td class="r"><b>' + e(N(D.orders.filter(o => o.status !== 'cancelled').reduce((s2, o) => s2 + tot(o), 0))) + '</b></td></tr></tbody></table></div>';
   }
@@ -664,10 +670,11 @@ function closingHtml(date, D) {
   /* 4. online (TrxID) payments */
   h += '<h3>4. ' + e(pt('Online payments (TrxID)', '\u0985\u09A8\u09B2\u09BE\u0987\u09A8 \u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F (TrxID)')) + '</h3>';
   if (D.pays == null) h += '<p>' + e(na) + '</p>';
-  else h += '<div class="sc"><table><thead><tr>' + th(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + th(pt('Payments', '\u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
+  else h += '<div class="sc"><table class="dt">' + cg(60, 20, 20) + '<thead><tr>' + th(pt('Status', '\u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8')) + th(pt('Payments', '\u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F'), 1) + th(pt('Amount', '\u09AA\u09B0\u09BF\u09AE\u09BE\u09A3'), 1) + '</tr></thead><tbody>'
     + ['approved', 'pending', 'rejected'].map(k => { const l = D.pays.filter(o => (o.status || 'pending') === k); return '<tr>' + td(pyStL(k)) + td(l.length, 1) + td(N(l.reduce((s2, o) => s2 + (Number(o.amount) || 0), 0)), 1) + '</tr>'; }).join('') + '</tbody></table></div>';
   if (D.payPend != null) h += '<p style="margin-top:4pt">' + e(pt('Payments still pending, all days: ', '\u098F\u0996\u09A8\u09CB \u09AA\u09C7\u09A8\u09CD\u09A1\u09BF\u0982 \u09AA\u09C7\u09AE\u09C7\u09A8\u09CD\u099F, \u09B8\u09AC \u09A6\u09BF\u09A8: ')) + D.payPend + '</p>';
-  return h + '</div>';
+  h += '<div class="sg"><div>' + e(pt('Prepared by', '\u09AA\u09CD\u09B0\u09B8\u09CD\u09A4\u09C1\u09A4\u0995\u09BE\u09B0\u09C0')) + '</div><div>' + e(pt('Checked by', '\u09AF\u09BE\u099A\u09BE\u0987\u0995\u09BE\u09B0\u09C0')) + '</div></div>';
+  return h + bzPrintFoot();   // same footer as the other reports (closes the .rp wrapper)
 }
 function showClosing(cs) {
   let date = todayStr(), cur = '', tok = 0;
@@ -677,11 +684,11 @@ function showClosing(cs) {
   const run = async () => {
     const my = ++tok, body = $('#clBody'), pb = $('#clPrint'); if (!body) return; pb.disabled = true; body.innerHTML = '<span class="spin"></span>';
     let h; try { h = closingHtml(date, await closingData(date, cs)); } catch (er) { console.warn(er); h = '<p class="muted">' + esc(t('ovFail')) + '</p>'; }
-    if (my !== tok || !$('#clBody')) return; cur = h; $('#clBody').innerHTML = '<style>' + CL_CSS + '</style>' + h; $('#clPrint').disabled = h.indexOf('class="cl"') < 0;
+    if (my !== tok || !$('#clBody')) return; cur = h; $('#clBody').innerHTML = '<style>' + RCSS + CL_CSS + '</style>' + h; $('#clPrint').disabled = h.indexOf('class="rp cl"') < 0;
   };
   $('#clDate').addEventListener('change', e => { if (/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) { date = e.target.value; run(); } });
   $('#clRef').addEventListener('click', run);
-  $('#clPrint').addEventListener('click', () => { if (cur) printHtml(cur, 'closing-' + date, '@page{size:A4;margin:14mm}body{margin:0;background:#fff}' + CL_CSS); });
+  $('#clPrint').addEventListener('click', () => { if (cur) printHtml(cur, 'closing-' + date, CL_CSS); });
   run();
 }
 function showRecent(cs) {
